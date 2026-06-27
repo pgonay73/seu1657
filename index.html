@@ -1383,7 +1383,9 @@ try {
     'clefs','motexpert','statsth','hosp_suivi','hosp_tronc',
     'surv1_reunions','surv2_reunions','sec_planches_arch',
     'dep_planches','dep_interventions','mb_menus','mh_playlists',
-    'ora_planches','infos_diverses','surv2_data','surv1_data','mc_rituels',
+    'ora_planches','infos_diverses','infosDivers','surv2_data','surv1_data','mc_rituels',
+    'admin_responsables','admin_titulaires','me_questions_posees',
+    'admin_text_planches-tracees','admin_text_correspondance',
     'planning_libre_data','planning_libre_bareme_parties',
     'planning_libre_suivi_freres',
     'planning_libre_duree_generee','admin_nav_visib','planning_libre_criteres','planning_libre_sujets_planches',
@@ -1469,6 +1471,9 @@ try {
         }} catch(ex) {}
         try { if(typeof plSuiviRender==='function') plSuiviRender(); } catch(ex) {}
         try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(ex) {}
+        try { if(typeof adminRenderResponsables==='function') adminRenderResponsables(); } catch(ex) {}
+        try { if(typeof adminRenderTitulaires==='function') adminRenderTitulaires(); } catch(ex) {}
+        try { if(typeof renderResponsablesLabels==='function') renderResponsablesLabels(); } catch(ex) {}
         // Si parDefaut Firebase a des entrées sans nom, restaurer depuis les données embarquées
         try {
           if(window.D&&window.D.parDefaut&&window.D.parDefaut.length>0){
