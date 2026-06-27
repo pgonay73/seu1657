@@ -674,7 +674,9 @@ function loginVerif(){
         <button class="hnav" onclick="nav('motexpert')">La Patte de l'Expert</button>
         <span style="width:16px;display:inline-block;"></span>
         <span style="width:24px;display:inline-block;"></span>
-        <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde de secours JSON">📥 Backup</button>
+        <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
+        <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
+        <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-27.01</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
@@ -1409,8 +1411,10 @@ try {
     'obs_tresimp_etat','obs_tresimp_fiche','obs_tresimp_att','obs_tresimp_listing','obs_tresimp_synthese',
     'obs_admin_offices','obs_admin_titulaires','obs_admin_navigation','obs_admin_responsables',
     'obs_admin_config','obs_admin_planning_libre',
-    'obs_off_1surv','obs_off_2surv','obs_off_mb','obs_off_mh','obs_off_mc','obs_off_couv'
+    'obs_off_1surv','obs_off_2surv','obs_off_mb','obs_off_mh','obs_off_mc','obs_off_couv',
+    'tenuesSpec','inv-infos-loge'
   ];
+  window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
   var _fbLoaded = 0, _fbErrors = 0;
   _FB_ALL_KEYS.forEach(function(key) {
     window.fbGet(key, function(val) {
@@ -10089,7 +10093,7 @@ try{renderPlanning();}catch(e){console.error('renderPlanning2:',e);}
 // TENUES SPECIFIQUES
 // ============================================================
 function tsLoad(){try{var s=localStorage.getItem('tenuesSpec');return s?JSON.parse(s):{std:[],cust:[]};}catch(e){return{std:[],cust:[]};}}
-function tsSave(d){try{localStorage.setItem('tenuesSpec',JSON.stringify(d));}catch(e){}}
+function tsSave(d){try{localStorage.setItem('tenuesSpec',JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet('tenuesSpec',d);}
 
 function saveTenuesSpec(){
   var std=[];
@@ -10154,18 +10158,23 @@ function exportData(){
   // comme périmée et ne l'écrase.
   save();
   try{localStorage.setItem('tresorerie2',JSON.stringify(TR2));}catch(ex){}
-  var data={
-    planning: JSON.parse(localStorage.getItem('planningTenues')||'{}'),
-    tresorerie: JSON.parse(localStorage.getItem('tresorerie')||'{}'),
-    tresorerie2: JSON.parse(localStorage.getItem('tresorerie2')||'{}'),
-    statsth: JSON.parse(localStorage.getItem('statsth')||'{}'),
-    tenuesSpec: JSON.parse(localStorage.getItem('tenuesSpec')||'{}'),
-    planchesDisponibles: JSON.parse(localStorage.getItem('planchesDisponibles')||'[]'),
-    motexpert: JSON.parse(localStorage.getItem('motexpert')||'[]'),
-    clefs: JSON.parse(localStorage.getItem('clefs')||'[]'),
-    exportDate: new Date().toISOString(),
-    version: '2.1'
-  };
+  // Export complet : toutes les cl\u00e9s connues (_FB_ALL_KEYS + extras)
+  var allKeys=(window._FB_ALL_KEYS||[]).slice();
+  ['planningTenues','tresorerie','tresorerie2','statsth','tenuesSpec',
+   'planchesDisponibles','motexpert','clefs','inv-infos-loge'].forEach(function(k){
+    if(allKeys.indexOf(k)<0) allKeys.push(k);
+  });
+  var data={exportDate:new Date().toISOString(),version:'3.0'};
+  allKeys.forEach(function(key){
+    try{
+      var v=localStorage.getItem(key);
+      if(v!==null&&v!==undefined&&v!==''&&v!=='null'){
+        try{data[key]=JSON.parse(v);}catch(e){data[key]=v;}
+      }
+    }catch(e){}
+  });
+  // Alias de compatibilit\u00e9 pour l'import
+  if(!data.planning&&data.planningTenues) data.planning=data.planningTenues;
   var dt=new Date();
   var aa=String(dt.getFullYear()).slice(2);
   var mm=(''+(dt.getMonth()+1)).padStart(2,'0');
@@ -10215,26 +10224,14 @@ function importData(input){
       var exportDate=data.exportDate?new Date(data.exportDate).toLocaleString('fr-FR'):'inconnue';
       if(!confirm('Restaurer la sauvegarde du '+exportDate+' ?\n\nATTENTION : toutes vos données actuelles seront remplacées.')) return;
 
-      // 1. Écrire dans localStorage
-      if(data.planning){
-        localStorage.setItem('planningTenues',JSON.stringify(data.planning));
-        // Horodater explicitement : une restauration manuelle de sauvegarde
-        // est une action volontaire de l'utilisateur, elle ne doit jamais
-        // être annulée par une synchronisation Firebase ultérieure qui la
-        // considérerait à tort comme périmée.
-        try{localStorage.setItem('planningTenues_localTs', String(Date.now()));}catch(ex){}
-      }
-      if(data.tresorerie) localStorage.setItem('tresorerie',JSON.stringify(data.tresorerie));
-      if(data.tresorerie2) localStorage.setItem('tresorerie2',JSON.stringify(data.tresorerie2));
-      if(data.statsth) localStorage.setItem('statsth',JSON.stringify(data.statsth));
-      if(data.tenuesSpec) localStorage.setItem('tenuesSpec',JSON.stringify(data.tenuesSpec));
-      if(data.planchesDisponibles) localStorage.setItem('planchesDisponibles',JSON.stringify(data.planchesDisponibles));
-      if(data.motexpert) localStorage.setItem('motexpert',JSON.stringify(data.motexpert));
-      if(data.clefs) localStorage.setItem('clefs',JSON.stringify(data.clefs));
-      if(data.dep_planches) localStorage.setItem('dep_planches',JSON.stringify(data.dep_planches));
-      if(data.dep_interventions) localStorage.setItem('dep_interventions',JSON.stringify(data.dep_interventions));
-      if(data.hosp_tronc) localStorage.setItem('hosp_tronc',JSON.stringify(data.hosp_tronc));
-      if(data.sec_planches_arch) localStorage.setItem('sec_planches_arch',JSON.stringify(data.sec_planches_arch));
+      // 1. Restaurer TOUTES les clés du JSON dans localStorage
+      var META=['exportDate','version','planning'];
+      Object.keys(data).forEach(function(key){
+        if(META.indexOf(key)>=0) return;
+        var val=data[key]; if(val===null||val===undefined) return;
+        try{localStorage.setItem(key,typeof val==='string'?val:JSON.stringify(val));}catch(e){}
+      });
+      try{localStorage.setItem('planningTenues_localTs',String(Date.now()));}catch(ex){}
 
       // 2. Recharger D immédiatement et complètement
       if(planning){
@@ -10252,20 +10249,57 @@ function importData(input){
       if(typeof loadTr==='function') loadTr();
       if(typeof tr2Load==='function') tr2Load();
 
-      // 4. Recharger les vues
+      // 4. Synchroniser TOUT vers Firebase
+      if(window.fbSet){
+        Object.keys(data).forEach(function(key){
+          if(META.indexOf(key)>=0) return;
+          if(key==='logeLogo') return;
+          if(/^office_mdp_/.test(key)||key.endsWith('_localTs')) return;
+          var val=data[key]; if(val===null||val===undefined) return;
+          window.fbSet(key,val);
+        });
+      }
+
+      // 5. Recharger les vues
       try{if(typeof renderPlanning==='function') renderPlanning();}catch(ex){console.error('renderPlanning:',ex);}
       try{if(typeof renderFreres==='function') renderFreres();}catch(ex){console.error('renderFreres:',ex);}
       try{if(typeof renderConfig==='function') renderConfig();}catch(ex){console.error('renderConfig:',ex);}
       try{if(typeof renderMotExpert==='function') renderMotExpert();}catch(ex){console.error('renderMotExpert:',ex);}
       try{if(typeof renderClefs==='function') renderClefs();}catch(ex){console.error('renderClefs:',ex);}
 
-      toast('\u2713 Restauration réussie depuis '+file.name+' — '+(D.freres?D.freres.length:0)+' frères, '+(D.modeles?D.modeles.length:0)+' modèles, '+(D.tenues?D.tenues.length:0)+' tenues');
+      var fbMsg=window.fbSet?' + syncé Firebase':'';
+      toast('\u2713 Restauration : '+(D.freres?D.freres.length:0)+' fr\u00e8res, '+(D.tenues?D.tenues.length:0)+' tenues'+fbMsg);
     }catch(err){
       alert('Erreur restauration : '+err.message);
     }
     if(input.value!==undefined) input.value='';
   };
   reader.readAsText(file);
+}
+
+function syncAllToFirebase(){
+  if(!window.fbSet){alert('Firebase non connecté. Vérifiez votre connexion internet.');return;}
+  if(!confirm('Pousser TOUTES les données locales vers Firebase ?\n\nCela permettra d\'y accéder depuis d\'autres appareils (iPad, etc.).\n\nOpération recommandée lors de la première utilisation sur un nouvel appareil.')) return;
+  save();
+  try{localStorage.setItem('tresorerie2',JSON.stringify(TR2));}catch(e){}
+  var allKeys=(window._FB_ALL_KEYS||[]).slice();
+  ['tenuesSpec','inv-infos-loge','planningTenues','tresorerie','tresorerie2'].forEach(function(k){
+    if(allKeys.indexOf(k)<0) allKeys.push(k);
+  });
+  var count=0;
+  allKeys.forEach(function(key){
+    if(key==='logeLogo') return;
+    if(/^office_mdp_/.test(key)||key.endsWith('_localTs')) return;
+    try{
+      var v=localStorage.getItem(key);
+      if(v!==null&&v!==undefined&&v!==''&&v!=='null'){
+        var parsed; try{parsed=JSON.parse(v);}catch(e){parsed=v;}
+        window.fbSet(key,parsed);
+        count++;
+      }
+    }catch(e){}
+  });
+  toast('✓ '+count+' clés synchronisées vers Firebase.');
 }
 
 function renderStatsth(){
