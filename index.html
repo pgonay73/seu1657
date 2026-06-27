@@ -5663,8 +5663,45 @@ function imprimerCfgOnglet(name){
     }
 
   } else if(name==='detail'){
-    // peRender gère l'affichage interactif — ne rien injecter ici
-    bodyHtml='';
+    var pd=D.parDefaut||[];
+    if(!pd.length){ bodyHtml='<p style="color:#7F8C8D;font-style:italic;">Aucune partie par défaut définie.</p>'; }
+    else {
+      bodyHtml='<table><thead><tr><th>#</th><th>Partie</th><th style="text-align:right;">Durée (min)</th></tr></thead><tbody>';
+      pd.forEach(function(p,i){ bodyHtml+='<tr style="background:'+(i%2===0?'#F8F6F2':'#fff')+';"><td>'+(i+1)+'</td><td>'+(p.nom||'—')+'</td><td style="text-align:right;">'+(p.dur||0)+'</td></tr>'; });
+      bodyHtml+='</tbody></table>';
+    }
+
+  } else if(name==='periode'){
+    var l2=D.loge||{};
+    bodyHtml='<div class="card">';
+    if(l2.periodeDebut) bodyHtml+='<div class="row"><span class="lbl">Début</span><span class="val">'+l2.periodeDebut+'</span></div>';
+    if(l2.periodeFin)   bodyHtml+='<div class="row"><span class="lbl">Fin</span><span class="val">'+l2.periodeFin+'</span></div>';
+    if(!l2.periodeDebut&&!l2.periodeFin) bodyHtml+='<div class="row"><span class="val" style="color:#7F8C8D;font-style:italic;">Aucune période définie.</span></div>';
+    bodyHtml+='</div>';
+
+  } else if(name==='accueil'){
+    var l3=D.loge||{};
+    bodyHtml='<div class="card">';
+    if(l3.accueilTitre) bodyHtml+='<div class="row"><span class="lbl">Titre</span><span class="val">'+l3.accueilTitre+'</span></div>';
+    if(l3.accueilTexte) bodyHtml+='<div class="row"><span class="lbl">Texte</span><span class="val" style="white-space:pre-wrap;">'+l3.accueilTexte+'</span></div>';
+    if(l3.accueilNews1) bodyHtml+='<div class="row"><span class="lbl">Actualité 1</span><span class="val">'+l3.accueilNews1+'</span></div>';
+    if(l3.accueilNews2) bodyHtml+='<div class="row"><span class="lbl">Actualité 2</span><span class="val">'+l3.accueilNews2+'</span></div>';
+    if(l3.accueilNews3) bodyHtml+='<div class="row"><span class="lbl">Actualité 3</span><span class="val">'+l3.accueilNews3+'</span></div>';
+    if(!l3.accueilTitre&&!l3.accueilTexte) bodyHtml+='<div class="row"><span class="val" style="color:#7F8C8D;font-style:italic;">Aucun texte défini.</span></div>';
+    bodyHtml+='</div>';
+
+  } else if(name==='typesdurees'){
+    function _tdSec(t,ls){ var h='<h2>'+t+'</h2><table><thead><tr><th>Partie</th><th style="text-align:right;">Durée (min)</th></tr></thead><tbody>'; ls.forEach(function(l,i){h+='<tr style="background:'+(i%2===0?'#F8F6F2':'#fff')+';"><td>'+l[0]+'</td><td style="text-align:right;">'+l[1]+'</td></tr>';}); return h+'</tbody></table>'; }
+    bodyHtml=_tdSec('Menu déroulant',[['Rituel ouverture',20],['Rituel fermeture',20],['Ouverture administrative',10],['Fermeture administrative',10],['Inspecteur',60],['Conseil d\'Administration',60],['Réunion Apprentis',90],['Réunion Compagnons',90]]);
+    bodyHtml+=_tdSec('Collège — Élection',[['Collège + VM',120],['Député',15],['Délégués judiciaires',10]]);
+    bodyHtml+=_tdSec('Collège — Installation',[['Collège + VM',120],['Député',15]]);
+    bodyHtml+=_tdSec('VM',[['Élection VM',10],['Installation VM',10]]);
+    bodyHtml+=_tdSec('Député',[['Élection',15],['Installation',15],['Intervention / CR',15]]);
+    bodyHtml+=_tdSec('Candidature — Liste 1',[['Profane / Affiliation / Intégration / Réintégration',30]]);
+    bodyHtml+=_tdSec('Candidature — Liste 2',[['Candidature + vote',30],['Enquête + vote',30],['Bandeau + vote',30]]);
+    bodyHtml+=_tdSec('Initiation',[['Initiation au 1°',60],['Initiation au 2°',60],['Initiation au 3°',60]]);
+    bodyHtml+=_tdSec('Morceau d\'Architecture',[['Symbolisme',10],['Planche',15],['Impressions',10],['Passage + vote',30],['Parole',15]]);
+    bodyHtml+=_tdSec('Cérémonie',[['Jubilé',120],['Préparation cérémonie',120],['Tenue funèbre',120],['St Jean',120]]);
 
   } else if(name==='durees'){
     var durees=D.dureesReleves||[];
