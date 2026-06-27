@@ -18315,6 +18315,7 @@ function plRenderPlanning(){
     +'<th style="text-align:center;width:64px;">Planches<br>+Parole</th>'
     +'<th style="text-align:center;width:64px;">Symbo-<br>lisme</th>'
     +'<th style="text-align:center;width:44px;">Détail</th>'
+    +'<th style="width:36px;"></th>'
     +'</tr></thead><tbody>';
   var curTr=null;
   var dateAffPrecedente=null;
@@ -18367,13 +18368,14 @@ function plRenderPlanning(){
       +'<td style="text-align:center;color:var(--gold2);font-weight:600;">'+(nbBlocs===0?'':nbBlocs)+'</td>'
       +'<td style="text-align:center;color:rgba(255,255,255,.8);">'+(sujetSymbolisme===0?'':sujetSymbolisme)+'</td>'
       +'<td style="text-align:center;"><button onclick="plOuvrirDetailTenue(&quot;'+eid+'&quot;)" title="Détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:13px;padding:2px 7px;">📋</button></td>'
+      +'<td style="text-align:center;"><button onclick="plDeleteDirect(&quot;'+eid+'&quot;)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:13px;padding:2px 7px;">🗑</button></td>'
       +'</tr>';
     // Ligne dépliable : détail du découpage par module de cette tenue,
     // Ligne dépliable : détail de la tenue (parties avec nom et durée)
     var detailParties=e.detail&&e.detail.length?e.detail:(D.parDefaut||[]);
     h+='<tr id="pl-detail-row-'+eid+'" style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
     h+='<td></td>';
-    h+='<td colspan="7" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
+    h+='<td colspan="8" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
     if(!detailParties.length){
       h+='<span style="font-size:11.5px;color:rgba(255,255,255,.4);font-style:italic;">Aucun détail saisi — cliquer sur 📋 pour compléter.</span>';
     } else {
@@ -18512,6 +18514,12 @@ function plDelete(){
   if(!_plEditId)return;var data=plLoad();
   data.events=(data.events||[]).filter(function(x){return x.id!==_plEditId;});
   plSave(data);plCloseForm();plRender();plRenderObligatoires();toast('Tenue supprimée.');
+}
+function plDeleteDirect(id){
+  if(!confirm('Supprimer cette tenue ?'))return;
+  var data=plLoad();
+  data.events=(data.events||[]).filter(function(x){return x.id!==id;});
+  plSave(data);plRender();plRenderObligatoires();toast('Tenue supprimée.');
 }
 
 // ── Démarrage : appelé par nav('planning-libre') dans index.html ──────────
