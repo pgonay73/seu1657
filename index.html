@@ -4058,7 +4058,7 @@ function tcHTML(t, moisLabel, forceVM, hideDate){
     +(pr.length?'<span style="font-size:10px;color:var(--grey);">'+pr.length+' partie'+(pr.length>1?'s':'')+'</span>':'')
     +(noPlanches?'<span style="font-size:10px;background:rgba(192,57,43,.18);color:#E74C3C;border:1px solid rgba(192,57,43,.4);border-radius:8px;padding:1px 8px;font-weight:700;">Pas de MA</span>':'')
     +'</div></div>';
-  h+='<div class="tc-acts" onclick="event.stopPropagation()"></div></div>';
+  h+='<div class="tc-acts" onclick="event.stopPropagation()"><button onclick="delTenue(\''+t.id+'\')" title="Supprimer cette tenue" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:5px 10px;font-size:15px;line-height:1;opacity:.75;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.75">🗑</button></div></div>';
   h+='<div class="tc-body" id="tcb-'+t.id+'">';
   if(t.notes) h+='<div style="font-size:12px;color:var(--grey);margin-bottom:8px;font-style:italic;">'+t.notes+'</div>';
   if(t.compteRendu) h+='<div style="margin-bottom:8px;padding:8px 10px;background:rgba(184,146,42,.07);border-left:3px solid var(--gold);border-radius:3px;"><span style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);font-weight:700;display:block;margin-bottom:4px;">Compte rendu</span><span style="font-size:12px;color:rgba(255,255,255,.8);white-space:pre-wrap;">'+t.compteRendu+'</span></div>';
