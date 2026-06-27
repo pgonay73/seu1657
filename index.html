@@ -5705,19 +5705,31 @@ function imprimerCfgOnglet(name){
 
   } else if(name==='durees'){
     var durees=D.dureesReleves||[];
-    if(!durees.length){ bodyHtml='<p style="color:#7F8C8D;font-style:italic;">Aucune durée définie.</p>'; }
+    if(!durees.length){ bodyHtml='<p style="color:#7F8C8D;font-style:italic;">Aucune durée relevée.</p>'; }
     else {
-      bodyHtml='<table><thead><tr><th>#</th><th>Type de partie</th><th style="text-align:right;">Durée (min)</th><th>Validé</th></tr></thead><tbody>';
+      // Collecter toutes les dates de mesure
+      var datesSet={};
+      durees.forEach(function(dr){
+        if(dr.mesures) dr.mesures.forEach(function(m){if(m.date) datesSet[m.date]=true;});
+      });
+      var dates=Object.keys(datesSet).sort();
+      var theads='<th style="text-align:left;">Type de partie</th>';
+      dates.forEach(function(d){ theads+='<th style="text-align:center;">'+d+'</th>'; });
+      if(!dates.length) theads+='<th style="text-align:right;">Durée (min)</th>';
+      bodyHtml='<table><thead><tr>'+theads+'</tr></thead><tbody>';
       durees.forEach(function(dr,i){
-        // Lire valeur depuis input si dispo
-        var nomEl=document.getElementById('dr-nom-'+i);
-        var durEl=document.getElementById('dr-dur-'+i);
-        var nomVal=nomEl?nomEl.value:(dr.nom||'—');
-        var durVal=durEl?durEl.value:(dr.duree||'—');
-        bodyHtml+='<tr style="background:'+(i%2===0?'#F8F6F2':'#fff')+';"><td>'+(i+1)+'</td>';
-        bodyHtml+='<td>'+nomVal+'</td>';
-        bodyHtml+='<td style="text-align:right;">'+durVal+'</td>';
-        bodyHtml+='<td>'+(dr.valide?'✓':'')+'</td></tr>';
+        var row='<tr style="background:'+(i%2===0?'#F8F6F2':'#fff')+';"><td>'+(dr.nom||'—')+'</td>';
+        if(dates.length){
+          dates.forEach(function(d){
+            var val='—';
+            if(dr.mesures){var m=dr.mesures.filter(function(x){return x.date===d;});if(m.length)val=m[0].duree!==undefined?m[0].duree:'—';}
+            row+='<td style="text-align:center;">'+val+'</td>';
+          });
+        } else {
+          var dur=dr.duree!==undefined?dr.duree:'—';
+          row+='<td style="text-align:right;">'+dur+'</td>';
+        }
+        bodyHtml+=row+'</tr>';
       });
       bodyHtml+='</tbody></table>';
     }
