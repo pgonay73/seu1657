@@ -677,7 +677,7 @@ function loginVerif(){
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-27.02</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-27.03</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1478,6 +1478,13 @@ try {
         try { if(typeof adminRenderResponsables==='function') adminRenderResponsables(); } catch(ex) {}
         try { if(typeof adminRenderTitulaires==='function') adminRenderTitulaires(); } catch(ex) {}
         try { if(typeof renderResponsablesLabels==='function') renderResponsablesLabels(); } catch(ex) {}
+        // Rafraîchir la vue office active (ex: off-mh, off-mb) pour afficher
+        // les données chargées depuis Firebase (playlists, menus, etc.)
+        try {
+          if(typeof renderOffice==='function' && window._CURRENT_VIEW && window._CURRENT_VIEW.indexOf('off-')===0){
+            renderOffice(window._CURRENT_VIEW);
+          }
+        } catch(ex) {}
         // Si parDefaut Firebase a des entrées sans nom, restaurer depuis les données embarquées
         try {
           if(window.D&&window.D.parDefaut&&window.D.parDefaut.length>0){
