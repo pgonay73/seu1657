@@ -678,7 +678,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-28.05</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-28.06</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -5579,85 +5579,40 @@ function cfgTab(name, btn){
 function renderTypesDurees(){
   var el=document.getElementById('cfg-typesdurees-content');
   if(!el) return;
-  var S='font-size:11px;font-weight:700;color:var(--gold2);text-transform:uppercase;letter-spacing:.4px;padding:10px 0 4px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:6px;';
-  var rowStyle='display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;';
-  var durStyle='min-width:70px;text-align:right;color:var(--gold2);font-weight:600;font-size:11px;';
-  var nomStyle='color:rgba(255,255,255,.85);';
-  function sec(titre,lignes){
-    var h='<div style="margin-bottom:16px;">';
-    h+='<div style="'+S+'">'+titre+'</div>';
-    lignes.forEach(function(l){
-      h+='<div style="'+rowStyle+'"><span style="'+nomStyle+'">'+l[0]+'</span><span style="'+durStyle+'">'+l[1]+' min</span></div>';
-    });
+  var td=D.typesDurees||[];
+  var h='';
+  for(var i=0;i<td.length;i++){
+    var n=(td[i].nom||'').replace(/"/g,'&quot;'),d=td[i].dur||0;
+    var du=i===0?'opacity:.3;pointer-events:none;':'';
+    var dd=i===td.length-1?'opacity:.3;pointer-events:none;':'';
+    h+='<div class="pe-row" style="margin-bottom:4px;">';
+    h+='<div style="display:flex;gap:2px;flex-direction:column;">';
+    h+='<button class="pe-mv" onclick="tdMv(this,-1)" style="'+du+'">&#9650;</button>';
+    h+='<button class="pe-mv" onclick="tdMv(this,1)" style="'+dd+'">&#9660;</button>';
     h+='</div>';
-    return h;
+    h+='<input class="pe-nom" type="text" value="'+n+'" placeholder="Type de partie" oninput="tdNomChange(this,'+i+')">';
+    h+='<input class="pe-dur" type="number" value="'+d+'" min="0" max="480" oninput="tdDurChange(this,'+i+')">';
+    h+='<span style="font-size:11px;color:var(--grey);">min</span>';
+    h+='<button class="pe-del" onclick="tdDel('+i+')" title="Supprimer">&#10005;</button>';
+    h+='</div>';
   }
-  var h='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:0 32px;">';
-  // MENU DÉROULANT
-  h+=sec('Menu déroulant (durées par défaut)',[
-    ['Rituel ouverture',20],
-    ['Rituel fermeture',20],
-    ['Ouverture administrative',10],
-    ['Fermeture administrative',10],
-    ['Inspecteur',60],
-    ['Conseil d\'Administration',60],
-    ['Réunion Apprentis',90],
-    ['Réunion Compagnons',90]
-  ]);
-  // COLLÈGE
-  h+=sec('Collège — Élection',[
-    ['Collège + VM',120],
-    ['Député',15],
-    ['Délégués judiciaires',10]
-  ]);
-  h+=sec('Collège — Installation',[
-    ['Collège + VM',120],
-    ['Député',15]
-  ]);
-  // VM
-  h+=sec('VM',[
-    ['Élection VM',10],
-    ['Installation VM',10]
-  ]);
-  // DÉPUTÉ
-  h+=sec('Député',[
-    ['Élection',15],
-    ['Installation',15],
-    ['Intervention / CR',15]
-  ]);
-  // CANDIDATURE / PROFANE
-  h+=sec('Candidature — Liste 1 (présentation)',[
-    ['Profane / Affiliation / Intégration / Réintégration',30]
-  ]);
-  h+=sec('Candidature — Liste 2 (vote)',[
-    ['Candidature + vote',30],
-    ['Enquête + vote',30],
-    ['Bandeau + vote',30]
-  ]);
-  // INITIATION
-  h+=sec('Initiation (radio exclusif)',[
-    ['Initiation au 1°',60],
-    ['Initiation au 2°',60],
-    ['Initiation au 3°',60]
-  ]);
-  // MORCEAU D'ARCHITECTURE
-  h+=sec('Morceau d\'Architecture',[
-    ['Symbolisme',10],
-    ['Planche',15],
-    ['Impressions',10],
-    ['Passage + vote',30],
-    ['Parole',15]
-  ]);
-  // CÉRÉMONIE
-  h+=sec('Cérémonie',[
-    ['Jubilé',120],
-    ['Préparation cérémonie',120],
-    ['Tenue funèbre',120],
-    ['St Jean',120]
-  ]);
-  h+='</div>';
   el.innerHTML=h;
 }
+function tdMv(btn,dir){
+  var row=btn.closest('.pe-row'),container=row.parentElement;
+  var rows=container.querySelectorAll('.pe-row'),i=-1;
+  for(var j=0;j<rows.length;j++) if(rows[j]===row){i=j;break;}
+  if(i<0||!D.typesDurees) return;
+  var ni=i+dir;
+  if(ni<0||ni>=D.typesDurees.length) return;
+  var tmp=D.typesDurees[i];D.typesDurees[i]=D.typesDurees[ni];D.typesDurees[ni]=tmp;
+  tdSave();renderTypesDurees();
+}
+function tdNomChange(inp,i){if(!D.typesDurees)D.typesDurees=[];if(D.typesDurees[i])D.typesDurees[i].nom=inp.value;tdSave();}
+function tdDurChange(inp,i){if(!D.typesDurees)D.typesDurees=[];if(D.typesDurees[i])D.typesDurees[i].dur=parseInt(inp.value)||0;tdSave();}
+function tdDel(i){if(!D.typesDurees)return;D.typesDurees.splice(i,1);tdSave();renderTypesDurees();}
+function tdAdd(){if(!D.typesDurees)D.typesDurees=[];D.typesDurees.push({nom:'',dur:15});tdSave();renderTypesDurees();}
+function tdSave(){save();}
 
 
 function imprimerCfgOnglet(name){
