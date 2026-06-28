@@ -677,7 +677,8 @@ function loginVerif(){
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-27.06</span>
+        <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-27.07</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -10286,6 +10287,23 @@ function importData(input){
     if(input.value!==undefined) input.value='';
   };
   reader.readAsText(file);
+}
+
+function rechargerDepuisFirebase(){
+  if(!window.fbGet){alert('Firebase non connecté. Vérifiez votre connexion internet.');return;}
+  if(!confirm('Recharger toutes les données depuis Firebase ?\n\nLe cache local sera effacé et la page rechargée.\nLes données saisies sur cet appareil et non synchronisées seront perdues.')) return;
+  // Effacer tous les horodatages locaux pour que Firebase gagne toujours
+  var allKeys=(window._FB_ALL_KEYS||[]).slice();
+  ['planningTenues','tresorerie','tresorerie2','tenuesSpec','inv-infos-loge'].forEach(function(k){
+    if(allKeys.indexOf(k)<0) allKeys.push(k);
+  });
+  allKeys.forEach(function(key){
+    try{localStorage.removeItem(key+'_localTs');}catch(e){}
+    try{localStorage.removeItem(key);}catch(e){}
+  });
+  try{localStorage.removeItem('planningTenues_localTs');}catch(e){}
+  toast('Rechargement depuis Firebase...');
+  setTimeout(function(){location.reload();},800);
 }
 
 function syncAllToFirebase(){
