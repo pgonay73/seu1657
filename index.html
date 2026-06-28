@@ -678,7 +678,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-28.01</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-28.02</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -5691,7 +5691,7 @@ function imprimerCfgOnglet(name){
     }
     bodyHtml+='<h2 style="font-size:14px;color:#1E3660;border-bottom:1px solid #E5DDD0;padding-bottom:3px;margin:16px 0 8px;">Types de parties &amp; durées</h2>';
     function _tdSec2(t,ls){ var h='<h3 style="font-size:12px;color:#B8922A;margin:10px 0 4px;">'+t+'</h3><table><thead><tr><th>Partie</th><th style="text-align:right;">Durée (min)</th></tr></thead><tbody>'; ls.forEach(function(l,i){h+='<tr style="background:'+(i%2===0?'#F8F6F2':'#fff')+';"><td>'+l[0]+'</td><td style="text-align:right;">'+l[1]+'</td></tr>';}); return h+'</tbody></table>'; }
-    bodyHtml+=_tdSec2('Menu déroulant',[['Rituel ouverture',20],['Rituel fermeture',20],['Ouverture administrative',10],['Fermeture administrative',10],['Inspecteur',60],['Conseil d'Administration',60],['Réunion Apprentis',90],['Réunion Compagnons',90]]);
+    bodyHtml+=_tdSec2('Menu déroulant',[['Rituel ouverture',20],['Rituel fermeture',20],['Ouverture administrative',10],['Fermeture administrative',10],['Inspecteur',60],['Conseil d\'Administration',60],['Réunion Apprentis',90],['Réunion Compagnons',90]]);
     bodyHtml+=_tdSec2('Collège — Élection',[['Collège + VM',120],['Député',15],['Délégués judiciaires',10]]);
     bodyHtml+=_tdSec2('Collège — Installation',[['Collège + VM',120],['Député',15]]);
     bodyHtml+=_tdSec2('VM',[['Élection VM',10],['Installation VM',10]]);
@@ -5699,7 +5699,7 @@ function imprimerCfgOnglet(name){
     bodyHtml+=_tdSec2('Candidature — Liste 1',[['Profane / Affiliation / Intégration / Réintégration',30]]);
     bodyHtml+=_tdSec2('Candidature — Liste 2',[['Candidature + vote',30],['Enquête + vote',30],['Bandeau + vote',30]]);
     bodyHtml+=_tdSec2('Initiation',[['Initiation au 1°',60],['Initiation au 2°',60],['Initiation au 3°',60]]);
-    bodyHtml+=_tdSec2('Morceau d'Architecture',[['Symbolisme',10],['Planche',15],['Impressions',10],['Passage + vote',30],['Parole',15]]);
+    bodyHtml+=_tdSec2('Morceau d\'Architecture',[['Symbolisme',10],['Planche',15],['Impressions',10],['Passage + vote',30],['Parole',15]]);
     bodyHtml+=_tdSec2('Cérémonie',[['Jubilé',120],['Préparation cérémonie',120],['Tenue funèbre',120],['St Jean',120]]);
 
   } else if(name==='periode'){
