@@ -677,7 +677,7 @@ function loginVerif(){
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-27.04</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-27.05</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -2633,7 +2633,7 @@ function toast(m){var e=document.getElementById('toast');e.textContent=m;e.class
     'config':     "saveConfig();toast('\u2713 Configuration enregistrée.')",
     'tresorerie': "saveTr();toast('\u2713 Trésorerie enregistrée.')",
     'off-vm':     "saveAllTenues();toast('\u2713 Planning enregistré.')",
-    'off-1surv':  "save();toast('\u2713 Enregistré.')",
+    'off-1surv':  "surv1Save()",
     'off-2surv':  "surv2Save()",
     'off-sec':    "saveAllFreres();toast('\u2713 Frères enregistrés.')",
     'off-ora':    "save();toast('\u2713 Enregistré.')",
@@ -6668,7 +6668,8 @@ function invSauvegarderInfos(){
     texte2:        g('inv-texte2'),
     texte3:        g('inv-texte3'),
     texte4:        g('inv-texte4'),
-    texte5:        g('inv-texte5')
+    texte5:        g('inv-texte5'),
+    tenueId:       g('inv-tenue-select')
   };
   try{ localStorage.setItem('inv-infos-loge', JSON.stringify(infos)); if(window.fbSet) window.fbSet('inv-infos-loge', infos); }catch(e){}
 }
@@ -6699,6 +6700,7 @@ function invChargerInfos(){
     sv('inv-texte3',        infos.texte3);
     sv('inv-texte4',        infos.texte4);
     sv('inv-texte5',        infos.texte5);
+    sv('inv-tenue-select',  infos.tenueId);
   }catch(e){}
 }
 
@@ -13595,12 +13597,13 @@ function surv2RowHTML(idx, date, odj, par, not, inpS){
 
 function surv2AjouterAvecDate(){
   var inp=document.getElementById('surv2-new-date');
-  var date=inp?inp.value:new Date().toISOString().slice(0,10);
+  var date=inp?inp.value:'';
   if(!date) date=new Date().toISOString().slice(0,10);
-  var d=surv2Load();
+  var d={}; try{var s=localStorage.getItem('surv2_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
   d.reunions.push({date:date,odj:'',par:'',not:''});
-  surv2Save(d);
+  try{localStorage.setItem('surv2_reunions',JSON.stringify(d));}catch(e){}
+  if(window.fbSet) window.fbSet('surv2_reunions', d);
   renderOffice('off-2surv');
 }
 function surv2Ajouter(){
@@ -13667,12 +13670,13 @@ function surv1RowHTML(idx, date, odj, par, not, inpS){
 
 function surv1AjouterAvecDate(){
   var inp=document.getElementById('surv1-new-date');
-  var date=inp?inp.value:new Date().toISOString().slice(0,10);
+  var date=inp?inp.value:'';
   if(!date) date=new Date().toISOString().slice(0,10);
-  var d=surv1Load();
+  var d={}; try{var s=localStorage.getItem('surv1_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
   d.reunions.push({date:date,odj:'',par:'',not:''});
-  surv1Save(d);
+  try{localStorage.setItem('surv1_reunions',JSON.stringify(d));}catch(e){}
+  if(window.fbSet) window.fbSet('surv1_reunions', d);
   renderOffice('off-1surv');
 }
 function surv1Ajouter(){
