@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.67</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.68</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13271,6 +13271,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab active" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)">Modèles</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-detail" onclick="adminPlTab(\'detail\',this)">Détail tenue</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)">Tenues impératives</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-suivi" onclick="adminPlTab(\'suivi\',this)">Suivi des planches</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-planning" onclick="adminPlTab(\'planning\',this)">Planning</button>';
     c+='</div>';
     c+='<div id="admin-pl-panel-modeles" style="display:none;">';
@@ -13288,6 +13289,10 @@ function renderOffice(n){
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues impératives</h3>';
     c+='<p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Définissez les tenues à organiser impérativement dans l\'année. Pour chaque tenue, indiquez la date conseillée et une date de substitution. Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning (la date de substitution est utilisée automatiquement si la date conseillée est déjà occupée).</p>';
     c+='<div id="admin-ti-list"></div>';
+    c+='</div></div>';
+    c+='<div id="admin-pl-panel-suivi" style="display:none;">';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Suivi des planches par frère et tenue</h3>';
+    c+='<div id="admin-pl-suivi-list"></div>';
     c+='</div></div>';
     c+='</div>';
 
@@ -14959,7 +14964,7 @@ function adminTab(name, btn){
 // ── Planning sub-tabs ──────────────────────────────────────────────────
 function adminPlTab(name, btn){
   if(name==='planning'){ plLibreAutoriserEtOuvrir(); return; }
-  var subTabs=['modeles','detail','tenuesImp'];
+  var subTabs=['modeles','detail','tenuesImp','suivi'];
   var subBtns=document.querySelectorAll('#admin-panel-planning .cfg-tab');
   for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
   if(btn) btn.classList.add('active');
@@ -14973,6 +14978,7 @@ function adminPlTab(name, btn){
     if(el&&typeof peRender==='function') peRender('admin-pl-pe-defaut', D.parDefaut||[]);
   },0);
   if(name==='tenuesImp') setTimeout(tiRender,0);
+  if(name==='suivi') setTimeout(function(){ plSuiviRender('admin-pl-suivi-list'); },0);
 }
 
 // ── Titulaires des offices ──────────────────────────────────────────────
@@ -19869,8 +19875,8 @@ function plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,ligne,nbLignes){
     +'<tr><td colspan="7" style="height:8px;border:none;background:transparent;"></td></tr>';
   return h;
 }
-function plSuiviRender(){
-  var el=document.getElementById('pl-suivi-list');
+function plSuiviRender(containerId){
+  var el=document.getElementById(containerId||'pl-suivi-list');
   if(!el) return;
   if(!window.D || !Array.isArray(D.freres) || !D.freres.length){
     el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun frère trouvé.</p>';
