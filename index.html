@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.41</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.42</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -5745,7 +5745,7 @@ function cfgTab(name, btn){
   if(name==='regles') renderRegles();
   if(name==='modeles') renderModeles();
   if(name==='durees') renderDureesReleves();
-  if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); peRender('pe-defaut', D.parDefaut||[]); peRender('cfg-pe-cards',[{nom:'Élections',dur:0,elecSteps:[]},{nom:'Installations',dur:0,instSteps:[]},{nom:'Interventions',dur:0,interSteps:[]},{nom:'Cérémonie',dur:0,cerCardSteps:[]},{nom:'Réunions hors tenue',dur:0,reunSteps:[]}]); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
+  if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); peRender('pe-defaut', D.parDefaut||[]); peRender('cfg-pe-cards',[{nom:'ÉLECTION',dur:0,elecSteps:[]},{nom:'INSTALLATION',dur:0,instSteps:[]},{nom:'INTERVENTION',dur:0,interSteps:[]},{nom:'CÉRÉMONIE',dur:0,cerCardSteps:[]},{nom:'RÉUNION HORS TENUE',dur:0,reunSteps:[]}]); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
   // Bouton imprimer global géré par dispatchImprimer()
   window._cfgCurrentTab = name;
   // Zone Observations
