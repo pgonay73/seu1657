@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.70</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.71</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6652,7 +6652,7 @@ function delRegle(i){if(!confirm('Supprimer cette regle ?'))return;D.regles.spli
 // MODELES
 // ============================================================
 function renderModeles(){
-  var targets=['modeles-list','admin-pl-modeles-list','pl-nav-modeles-list'];
+  var targets=['modeles-list','admin-pl-modeles-list'];
   var empty='<p style="font-size:13px;color:var(--grey);margin-bottom:10px">Aucun modele. Cliquez sur + pour en creer un.</p>';
   var h='';
   if(D.modeles&&D.modeles.length){
@@ -14963,14 +14963,29 @@ function adminTab(name, btn){
 
 // ── Planning sub-tabs ──────────────────────────────────────────────────
 function adminPlTab(name, btn){
-  if(name==='planning'){ plLibreAutoriserEtOuvrir(); return; }
-  var subTabs=['modeles','detail','tenuesImp','suivi'];
+  var subTabs=['modeles','detail','tenuesImp','suivi','planning'];
   var subBtns=document.querySelectorAll('#admin-panel-planning .cfg-tab');
   for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
   if(btn) btn.classList.add('active');
+  // Cacher tous les sous-panneaux sauf le sélectionné
   for(var j=0;j<subTabs.length;j++){
     var p=document.getElementById('admin-pl-panel-'+subTabs[j]);
     if(p) p.style.display=subTabs[j]===name?'':'none';
+  }
+  if(name==='planning'){
+    // Déplacer v-planning-libre dans admin-pl-panel-planning
+    var plPage=document.getElementById('v-planning-libre');
+    var plPanel=document.getElementById('admin-pl-panel-planning');
+    if(plPage&&plPanel){
+      if(plPage.parentNode!==plPanel){ plPanel.appendChild(plPage); plPage.classList.remove('view'); }
+      plPage.style.display='';
+      plPanel.style.display='';
+    }
+    setTimeout(function(){
+      try{ sessionStorage.setItem(_PL_LIBRE_SESSION_KEY,'1'); }catch(e){}
+      plInitPage();
+    },50);
+    return;
   }
   if(name==='modeles') setTimeout(function(){ renderModeles(); },0);
   if(name==='detail') setTimeout(function(){
@@ -17141,38 +17156,6 @@ var PA_SUGGESTIONS_MOIS={
 </script>
   <!-- VUES OFFICIERS -->
   <div id="v-planning-libre" class="view pl-page">
-
-<div style="display:flex;gap:0;border-bottom:2px solid var(--gold);margin-bottom:14px;flex-wrap:wrap;background:var(--dark);position:sticky;top:0;z-index:10;">
-  <button class="cfg-tab" id="pl-nav-tab-modeles" onclick="plNavTab('modeles',this)">Modèles</button>
-  <button class="cfg-tab" id="pl-nav-tab-detail" onclick="plNavTab('detail',this)">Détail tenue</button>
-  <button class="cfg-tab" id="pl-nav-tab-tenuesImp" onclick="plNavTab('tenuesImp',this)">Tenues impératives</button>
-  <button class="cfg-tab" id="pl-nav-tab-suivi" onclick="plNavTab('suivi',this)">Suivi des planches</button>
-  <button class="cfg-tab active" id="pl-nav-tab-planning" onclick="plNavTab('planning',this)">Planning</button>
-</div>
-
-<div id="pl-nav-panel-modeles" style="display:none;">
-  <div class="pl-cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Modèles de tenues</h3>
-  <div id="pl-nav-modeles-list"></div>
-  <button class="pl-btn pl-btn-outline pl-btn-sm" style="margin-top:8px;" onclick="openModele(null)">+ Créer un modèle</button>
-  </div>
-</div>
-<div id="pl-nav-panel-detail" style="display:none;">
-  <div class="pl-cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Détail tenue</h3>
-  <div class="pe-list" id="pl-nav-pe-defaut"></div>
-  <button class="pl-btn pl-btn-outline pl-btn-sm" style="margin-top:8px;" onclick="peAdd('pl-nav-pe-defaut')">+ Ajouter une ligne</button>
-  </div>
-</div>
-<div id="pl-nav-panel-tenuesImp" style="display:none;">
-  <div class="pl-cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues impératives</h3>
-  <p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning.</p>
-  <div id="pl-nav-ti-list"></div>
-  </div>
-</div>
-<div id="pl-nav-panel-suivi" style="display:none;">
-  <div class="pl-cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:'Cormorant Garamond',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Suivi des planches par frère et tenue</h3>
-  <div id="pl-nav-suivi-list"></div>
-  </div>
-</div>
 
 <div id="admin-panel-planning-libre">
 
@@ -20308,27 +20291,6 @@ function plLibreValiderMdp(){
   });
 }
 // Raccourci depuis Office Administrateur (zone déjà protégée par mot de passe
-// ── Navigation interne de la page Planning libre ──────────────────────
-function plNavTab(name, btn){
-  var subTabs=['modeles','detail','tenuesImp','suivi'];
-  var allBtns=document.querySelectorAll('#v-planning-libre [id^="pl-nav-tab-"]');
-  for(var i=0;i<allBtns.length;i++) allBtns[i].classList.remove('active');
-  if(btn) btn.classList.add('active');
-  for(var j=0;j<subTabs.length;j++){
-    var p=document.getElementById('pl-nav-panel-'+subTabs[j]);
-    if(p) p.style.display=subTabs[j]===name?'':'none';
-  }
-  var planningPanel=document.getElementById('admin-panel-planning-libre');
-  if(planningPanel) planningPanel.style.display=name==='planning'?'':'none';
-  if(name==='modeles') setTimeout(function(){ renderModeles(); },0);
-  if(name==='detail') setTimeout(function(){
-    var el=document.getElementById('pl-nav-pe-defaut');
-    if(el&&typeof peRender==='function') peRender('pl-nav-pe-defaut', D.parDefaut||[]);
-  },0);
-  if(name==='tenuesImp') setTimeout(function(){ tiRender('pl-nav-ti-list'); },0);
-  if(name==='suivi') setTimeout(function(){ plSuiviRender('pl-nav-suivi-list'); },0);
-}
-
 // d'office) : autorise l'accès directement, sans redemander le mot de passe
 // spécifique de Planning libre.
 function plLibreAutoriserEtOuvrir(){
@@ -20337,11 +20299,24 @@ function plLibreAutoriserEtOuvrir(){
 }
 
 // ── Branchement Planning libre sur la navigation ──
+// nav('planning-libre') redirige vers le sous-onglet Planning de l'admin
 (function(){
   var _origNavPL = nav;
   nav = function(n){
+    if(n==='planning-libre'){
+      // Rester dans l'espace admin, afficher le planning inline
+      _origNavPL('off-admin');
+      setTimeout(function(){
+        var adminBtn=document.querySelector('#v-off-admin .cfg-tab[onclick*="adminTab(\'planning\'"]');
+        adminTab('planning', adminBtn);
+        setTimeout(function(){
+          var plBtn=document.getElementById('admin-pl-tab-planning');
+          adminPlTab('planning', plBtn);
+        },50);
+      },50);
+      return;
+    }
     _origNavPL(n);
-    if(n==='planning-libre') plInitPage();
   };
 })();
 </script>
