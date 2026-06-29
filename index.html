@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.43</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.44</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -2980,17 +2980,17 @@ function peRender(cid,parties){
         // Ligne 1 : Planche (15) et Minute de symbolisme (10)
         h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="symbolisme" '+(plancheSteps.indexOf('symbolisme')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peSaveRow(this)">Symbolisme (10 min)</label>';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="planche" '+(plancheSteps.indexOf('planche')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peSaveRow(this)">Planche (15 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="symbolisme" data-dur="10" '+(plancheSteps.indexOf('symbolisme')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Symbolisme (10 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="planche" data-dur="15" '+(plancheSteps.indexOf('planche')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Planche (15 min)</label>';
         h+='</div>';
         // Ligne 2 : Impressions et Passage+vote
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="impressions" '+(plancheSteps.indexOf('impressions')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peSaveRow(this)">Impressions (10 min)</label>';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="passage-vote" '+(plancheSteps.indexOf('passage-vote')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peSaveRow(this)">Passage + vote (30 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="impressions" data-dur="10" '+(plancheSteps.indexOf('impressions')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Impressions (10 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="passage-vote" data-dur="30" '+(plancheSteps.indexOf('passage-vote')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Passage + vote (30 min)</label>';
         h+='</div>';
         // Ligne 3 : Parole
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-circul-cb" '+(p.circulParole?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peCirculChange(this)">Parole (15 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-circul-cb" data-dur="15" '+(p.circulParole?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Parole (15 min)</label>';
         h+='</div>';
         // Titre et conférencier
         h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">';
@@ -3709,6 +3709,17 @@ function peCirculChange(cb){
     durEl.value=base+(cb.checked?15:0);
   }
   peTotalUpdate();
+}
+function pePlancheChange(cb){
+  var row=cb.closest('.pe-row');
+  var durEl=row.querySelector('.pe-dur');
+  if(!durEl)return;
+  var total=0;
+  row.querySelectorAll('.pe-planche-cb:checked,.pe-circul-cb:checked').forEach(function(c){total+=parseInt(c.getAttribute('data-dur'))||0;});
+  durEl.value=total;
+  peTotalUpdate();
+  var list=row.closest('.pe-list');
+  if(list&&list.id==='pe-defaut')peSaveDefaut();
 }
 
 function pePlancheStepChange(cb){
