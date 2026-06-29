@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.65</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.66</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13155,7 +13155,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="adminTab(\'navigation\',this)">Visibilité navigation</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'responsables\',this)">Responsables</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'config\',this)">Configuration</button>';
-    c+='<button class="cfg-tab" onclick="adminTab(\'planning\',this)">Planning</button>';
+    c+='<button class="cfg-tab" onclick="adminTab(\'planning\',this);plLibreAutoriserEtOuvrir()">Planning</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'planches-tracees\',this)">Planches tracées</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'correspondance\',this)">Correspondance</button>';
     c+='<button onclick="adminImprimerOnglet()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
@@ -13268,12 +13268,10 @@ function renderOffice(n){
 
     c+='<div id="admin-panel-planning" style="display:none;">';
     c+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;">';
-    c+='<button class="cfg-tab active" id="admin-pl-tab-planning" onclick="plLibreAutoriserEtOuvrir()">Planning</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)">Modèles</button>';
+    c+='<button class="cfg-tab active" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)">Modèles</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-detail" onclick="adminPlTab(\'detail\',this)">Détail tenue</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)">Tenues impératives</button>';
     c+='</div>';
-    c+='<div id="admin-pl-panel-planning" style="display:none;"></div>';
     c+='<div id="admin-pl-panel-modeles" style="display:none;">';
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Modèles de tenues</h3>';
     c+='<p style="font-size:13px;color:var(--grey);margin-bottom:14px;">Créez des modèles réutilisables.</p>';
@@ -14950,7 +14948,7 @@ function adminTab(name, btn){
   if(name==='responsables') setTimeout(adminRenderResponsables,0);
   if(name==='titulaires') setTimeout(adminRenderTitulaires,0);
   if(name==='navigation') setTimeout(adminRenderNavVisib,0);
-  if(name==='planning') setTimeout(function(){ adminPlTab('planning', document.getElementById('admin-pl-tab-planning')); },0);
+  if(name==='planning') setTimeout(function(){ adminPlTab('modeles', document.getElementById('admin-pl-tab-modeles')); },0);
   // Zone Observations
   var adminPanels={offices:'admin-panel-offices',titulaires:'admin-panel-titulaires',navigation:'admin-panel-navigation',responsables:'admin-panel-responsables',config:'admin-panel-config',planning:'admin-panel-planning','planches-tracees':'admin-panel-planches-tracees','correspondance':'admin-panel-correspondance'};
   var apid=adminPanels[name];
@@ -14959,7 +14957,6 @@ function adminTab(name, btn){
 
 // ── Planning sub-tabs ──────────────────────────────────────────────────
 function adminPlTab(name, btn){
-  if(name==='planning'){ plLibreAutoriserEtOuvrir(); return; }
   var subTabs=['modeles','detail','tenuesImp'];
   var subBtns=document.querySelectorAll('#admin-panel-planning .cfg-tab');
   for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
