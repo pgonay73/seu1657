@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.62</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.63</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6652,28 +6652,33 @@ function delRegle(i){if(!confirm('Supprimer cette regle ?'))return;D.regles.spli
 // MODELES
 // ============================================================
 function renderModeles(){
-  var el=document.getElementById('modeles-list');if(!el)return;
-  if(!D.modeles||!D.modeles.length){el.innerHTML='<p style="font-size:13px;color:var(--grey);margin-bottom:10px">Aucun modele. Cliquez sur + pour en creer un.</p>';return;}
+  var targets=['modeles-list','admin-pl-modeles-list'];
+  var empty='<p style="font-size:13px;color:var(--grey);margin-bottom:10px">Aucun modele. Cliquez sur + pour en creer un.</p>';
   var h='';
-  for(var i=0;i<D.modeles.length;i++){
-    var m=D.modeles[i],nb=m.parties?m.parties.length:0,tm=0;
-    if(m.parties)for(var j=0;j<m.parties.length;j++)tm+=(m.parties[j].dur||m.parties[j].duree||0);
-    var ds=tm?Math.floor(tm/60)+'h'+(tm%60<10?'0':'')+(tm%60):'';
-    var isFirst=(i===0), isLast=(i===D.modeles.length-1);
-    var upStyle=isFirst?'opacity:.25;pointer-events:none;':'';
-    var dnStyle=isLast?'opacity:.25;pointer-events:none;':'';
-    h+='<div class="item-card"><div class="item-desc">';
-    h+='<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+(m.couleur||'#4472C4')+';flex-shrink:0;margin-right:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.4);"></span>';
-    h+='<strong>'+m.nom+'</strong><span style="margin-left:10px;font-size:12px;color:var(--grey)">'+nb+' partie'+(nb>1?'s':'')+(ds?' &middot; '+ds:'')+'</span></div>';
-    h+='<div style="display:flex;gap:4px;align-items:center">';
-    h+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\',-1)" style="'+upStyle+'" title="Monter">&#9650; Monter</button>';
-    h+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\'\,1)" style="'+dnStyle+'" title="Descendre">&#9660; Descendre</button>';
-    h+='</div>';
-    h+='<button class="act-btn" onclick="editModele(\''+m.id+'\')" style="font-size:13px">&#9999;&#65039;</button>';
-    h+='<button class="act-btn" onclick="dupModele(\''+m.id+'\')" style="font-size:13px;color:var(--grey)" title="Dupliquer">&#128203;</button>';
-    h+='<button class="item-del" onclick="delModele(\''+m.id+'\')">&#10005;</button></div>';
+  if(D.modeles&&D.modeles.length){
+    for(var i=0;i<D.modeles.length;i++){
+      var m=D.modeles[i],nb=m.parties?m.parties.length:0,tm=0;
+      if(m.parties)for(var j=0;j<m.parties.length;j++)tm+=(m.parties[j].dur||m.parties[j].duree||0);
+      var ds=tm?Math.floor(tm/60)+'h'+(tm%60<10?'0':'')+(tm%60):'';
+      var isFirst=(i===0), isLast=(i===D.modeles.length-1);
+      var upStyle=isFirst?'opacity:.25;pointer-events:none;':'';
+      var dnStyle=isLast?'opacity:.25;pointer-events:none;':'';
+      h+='<div class="item-card"><div class="item-desc">';
+      h+='<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+(m.couleur||'#4472C4')+';flex-shrink:0;margin-right:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.4);"></span>';
+      h+='<strong>'+m.nom+'</strong><span style="margin-left:10px;font-size:12px;color:var(--grey)">'+nb+' partie'+(nb>1?'s':'')+(ds?' &middot; '+ds:'')+'</span></div>';
+      h+='<div style="display:flex;gap:4px;align-items:center">';
+      h+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\',-1)" style="'+upStyle+'" title="Monter">&#9650; Monter</button>';
+      h+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\'\,1)" style="'+dnStyle+'" title="Descendre">&#9660; Descendre</button>';
+      h+='</div>';
+      h+='<button class="act-btn" onclick="editModele(\''+m.id+'\')" style="font-size:13px">&#9999;&#65039;</button>';
+      h+='<button class="act-btn" onclick="dupModele(\''+m.id+'\')" style="font-size:13px;color:var(--grey)" title="Dupliquer">&#128203;</button>';
+      h+='<button class="item-del" onclick="delModele(\''+m.id+'\')">&#10005;</button></div>';
+    }
   }
-  el.innerHTML=h;
+  for(var ti=0;ti<targets.length;ti++){
+    var el=document.getElementById(targets[ti]);
+    if(el) el.innerHTML=h||empty;
+  }
 }
 
 function openModele(m){
@@ -13150,10 +13155,9 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="adminTab(\'navigation\',this)">Visibilité navigation</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'responsables\',this)">Responsables</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'config\',this)">Configuration</button>';
-    c+='<button class="cfg-tab" onclick="nav(\'planning-libre\');document.getElementById(\'ov-office-change-mdp\') && 1;">Planning</button>';
+    c+='<button class="cfg-tab" onclick="adminTab(\'planning\',this)">Planning</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'planches-tracees\',this)">Planches tracées</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'correspondance\',this)">Correspondance</button>';
-    c+='<button class="cfg-tab" onclick="adminTab(\'tenuesImp\',this)">Tenues impératives</button>';
     c+='<button onclick="adminImprimerOnglet()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
     c+='</div>';
     // PANEL OFFICES
@@ -13262,12 +13266,36 @@ function renderOffice(n){
     c+='</div>';
     // PANEL PLANNING ANNUEL
 
-    c+='<div id="admin-panel-planning-libre-tab" style="display:none;">';
-    c+='<div class="cfg-box" style="margin-bottom:16px;border:2px solid var(--gold);border-radius:6px;padding:16px;">';
+    c+='<div id="admin-panel-planning" style="display:none;">';
+    c+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;">';
+    c+='<button class="cfg-tab active" id="admin-pl-tab-planning" onclick="adminPlTab(\'planning\',this)">Planning</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)">Modèles</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-detail" onclick="adminPlTab(\'detail\',this)">Détail tenue</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)">Tenues impératives</button>';
+    c+='</div>';
+    c+='<div id="admin-pl-panel-planning">';
+    c+='<div class="cfg-box" style="border:2px solid var(--gold);border-radius:6px;padding:16px;">';
     c+='<h3 style="font-size:18px;color:var(--gold);margin-bottom:10px;">Planning</h3>';
     c+='<p style="font-size:12px;color:var(--grey);margin-bottom:16px;font-style:italic;">Accès direct réservé aux administrateurs, sans ressaisie du mot de passe spécifique.</p>';
     c+='<button class="btn btn-gold" onclick="plLibreAutoriserEtOuvrir()">&#8594; Ouvrir Planning</button>';
     c+='</div>';
+    c+='</div>';
+    c+='<div id="admin-pl-panel-modeles" style="display:none;">';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Modèles de tenues</h3>';
+    c+='<p style="font-size:13px;color:var(--grey);margin-bottom:14px;">Créez des modèles réutilisables.</p>';
+    c+='<div id="admin-pl-modeles-list"></div>';
+    c+='<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="openModele(null)">+ Créer un modèle</button>';
+    c+='</div></div>';
+    c+='<div id="admin-pl-panel-detail" style="display:none;">';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Détail tenue</h3>';
+    c+='<div class="pe-list" id="admin-pl-pe-defaut"></div>';
+    c+='<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="peAdd(\'admin-pl-pe-defaut\')">+ Ajouter une ligne</button>';
+    c+='</div></div>';
+    c+='<div id="admin-pl-panel-tenuesImp" style="display:none;">';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues impératives</h3>';
+    c+='<p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Définissez les tenues à organiser impérativement dans l\'année. Pour chaque tenue, indiquez la date conseillée et une date de substitution. Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning (la date de substitution est utilisée automatiquement si la date conseillée est déjà occupée).</p>';
+    c+='<div id="admin-ti-list"></div>';
+    c+='</div></div>';
     c+='</div>';
 
     c+='<div id="admin-panel-planches-tracees" style="display:none;">';
@@ -13289,12 +13317,6 @@ function renderOffice(n){
     c+='</div></div>';
     c+='</div>';
     c+='</div>';
-
-    c+='<div id="admin-panel-tenuesImp" style="display:none;">';
-    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues impératives</h3>';
-    c+='<p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Définissez les tenues à organiser impérativement dans l\'année. Pour chaque tenue, indiquez la date conseillée et une date de substitution. Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning (la date de substitution est utilisée automatiquement si la date conseillée est déjà occupée).</p>';
-    c+='<div id="admin-ti-list"></div>';
-    c+='</div></div>';
 
     c+='</div>';
 
@@ -14918,29 +14940,45 @@ function adminTab(name, btn){
   var pn=document.getElementById('admin-panel-navigation');
   var pr=document.getElementById('admin-panel-responsables');
   var pc=document.getElementById('admin-panel-config');
-  var ppl=document.getElementById('admin-panel-planning-libre-tab');
+  var ppl=document.getElementById('admin-panel-planning');
   if(po) po.style.display=name==='offices'?'':'none';
   if(pt) pt.style.display=name==='titulaires'?'':'none';
   if(pn) pn.style.display=name==='navigation'?'':'none';
   if(pr) pr.style.display=name==='responsables'?'':'none';
   if(pc) pc.style.display=name==='config'?'':'none';
-  if(ppl) ppl.style.display=name==='planning-libre'?'':'none';
+  if(ppl) ppl.style.display=name==='planning'?'':'none';
   var ppt=document.getElementById('admin-panel-planches-tracees');
   var pco=document.getElementById('admin-panel-correspondance');
-  var pti=document.getElementById('admin-panel-tenuesImp');
   if(ppt) ppt.style.display=name==='planches-tracees'?'':'none';
   if(pco) pco.style.display=name==='correspondance'?'':'none';
-  if(pti) pti.style.display=name==='tenuesImp'?'':'none';
   if(name==='config'){ setTimeout(function(){renderConfig();setTimeout(renderStatsth,50);},0); }
   if(name==='planches-tracees'||name==='correspondance') { setTimeout(function(){ adminLoadTextPanel(name); },50); }
   if(name==='responsables') setTimeout(adminRenderResponsables,0);
   if(name==='titulaires') setTimeout(adminRenderTitulaires,0);
   if(name==='navigation') setTimeout(adminRenderNavVisib,0);
-  if(name==='tenuesImp') setTimeout(tiRender,0);
+  if(name==='planning') setTimeout(function(){ adminPlTab('planning', document.getElementById('admin-pl-tab-planning')); },0);
   // Zone Observations
-  var adminPanels={offices:'admin-panel-offices',titulaires:'admin-panel-titulaires',navigation:'admin-panel-navigation',responsables:'admin-panel-responsables',config:'admin-panel-config','planning-libre':'admin-panel-planning-libre-tab','planning-genere':'admin-panel-planning-genere','detail-tenues':'admin-panel-detail-tenues','planches-tracees':'admin-panel-planches-tracees','correspondance':'admin-panel-correspondance'};
+  var adminPanels={offices:'admin-panel-offices',titulaires:'admin-panel-titulaires',navigation:'admin-panel-navigation',responsables:'admin-panel-responsables',config:'admin-panel-config',planning:'admin-panel-planning','planches-tracees':'admin-panel-planches-tracees','correspondance':'admin-panel-correspondance'};
   var apid=adminPanels[name];
   if(apid) setTimeout(function(){ obsInject('admin_'+name.replace('-','_'), apid); },120);
+}
+
+// ── Planning sub-tabs ──────────────────────────────────────────────────
+function adminPlTab(name, btn){
+  var subTabs=['planning','modeles','detail','tenuesImp'];
+  var subBtns=document.querySelectorAll('#admin-panel-planning .cfg-tab');
+  for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
+  if(btn) btn.classList.add('active');
+  for(var j=0;j<subTabs.length;j++){
+    var p=document.getElementById('admin-pl-panel-'+subTabs[j]);
+    if(p) p.style.display=subTabs[j]===name?'':'none';
+  }
+  if(name==='modeles') setTimeout(function(){ renderModeles(); },0);
+  if(name==='detail') setTimeout(function(){
+    var el=document.getElementById('admin-pl-pe-defaut');
+    if(el&&typeof peRender==='function') peRender('admin-pl-pe-defaut', D.parDefaut||[]);
+  },0);
+  if(name==='tenuesImp') setTimeout(tiRender,0);
 }
 
 // ── Titulaires des offices ──────────────────────────────────────────────
