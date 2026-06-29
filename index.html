@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-28.32</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-28.33</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -5620,17 +5620,18 @@ function tdDel(i){if(!D.typesDurees)return;D.typesDurees.splice(i,1);tdSave();re
 function tdAdd(){if(!D.typesDurees)D.typesDurees=[];D.typesDurees.push({nom:'',dur:15});tdSave();renderTypesDurees();}
 function tdSave(){save();}
 function initParDefautStandards(){
-  var standards=[
-    {nom:'Installations — Collège+VM',dur:120},{nom:'Installations — VM',dur:15},
-    {nom:'Interventions — VM',dur:15},{nom:'Interventions — Député',dur:15},
-    {nom:'Cérémonie — St Jean',dur:120},{nom:'Cérémonie — Jubilé',dur:120},{nom:'Cérémonie — Funèbre',dur:120},
-    {nom:'Réunions apprentis',dur:120},{nom:'Réunions compagnons',dur:120},{nom:'CA',dur:60}
+  var toRemove=[
+    'Installations — Collège+VM','Installations — VM','Installations — Député',
+    'Interventions — VM','Interventions — Député','Interventions — Autre',
+    'Cérémonie — St Jean','Cérémonie — Jubilé','Cérémonie — Funèbre','Cérémonie — Tenue funèbre','Cérémonie — Autre',
+    'Réunions apprentis','Réunions compagnons','CA',
+    'Élections — Collège+VM','Élections — Renouvellement','Élections — VM',
+    'Élections — Député','Élections — Délégués judiciaires'
   ];
-  if(!D.parDefaut)D.parDefaut=[];
-  var noms=D.parDefaut.map(function(p){return p.nom;});
-  var added=0;
-  standards.forEach(function(s){if(noms.indexOf(s.nom)<0){D.parDefaut.push(s);added++;}});
-  if(added>0)save();
+  if(!D.parDefaut||!D.parDefaut.length)return;
+  var before=D.parDefaut.length;
+  D.parDefaut=D.parDefaut.filter(function(p){return toRemove.indexOf(p.nom)<0;});
+  if(D.parDefaut.length!==before)save();
 }
 function addParDefautRapide(nom,dur){
   if(!nom)return;
