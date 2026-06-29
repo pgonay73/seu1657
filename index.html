@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.35</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.36</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -2763,6 +2763,10 @@ function isConseil(nom){
   var n=(nom||'').toLowerCase();
   return n.indexOf('conseil')>=0||n.indexOf('administration')>=0||n.indexOf('ca')===0;
 }
+function isElections(nom){
+  var n=(nom||'').toLowerCase().trim();
+  return n.indexOf('élection')===0||n.indexOf('election')===0;
+}
 
 function peRender(cid,parties){
   var el=document.getElementById(cid);if(!el)return;
@@ -2772,6 +2776,7 @@ function peRender(cid,parties){
     var fn=sorted[fi].nom+(sorted[fi].prenom?' '+sorted[fi].prenom:'');
     frOpts+='<option value="'+sorted[fi].nom+'">'+fn+'</option>';
   }
+  var elecData=[{v:'Collège+VM',dur:120},{v:'Renouvellement',dur:105},{v:'VM',dur:15},{v:'Député',dur:15},{v:'Délégués judiciaires',dur:10}];
   var isCfgPe=cid.indexOf('cfg-pe-')===0;
   var h='';
   for(var i=0;i<parties.length;i++){
@@ -2795,6 +2800,8 @@ function peRender(cid,parties){
     var isDep=!isCfgPe&&isDepute(p.nom);
     var deputeSteps=p.deputeSteps||[];
     var isCA=!isCfgPe&&isConseil(p.nom);
+    var isElec=isElections(p.nom);
+    var elecSteps=p.elecSteps||[];
     var caOdj=(p.caOdj||'').replace(/"/g,'&quot;');
     var caSujets=p.caSujets||[];
     var initDegre=(p.initDegre||'').replace(/"/g,'&quot;');
@@ -2817,7 +2824,27 @@ function peRender(cid,parties){
     h+='<button class="pe-dup" onclick="peDup(this)" title="Dupliquer" style="background:none;border:none;color:var(--grey);cursor:pointer;font-size:13px;padding:0 3px;">&#128203;</button>';
     h+='<button class="pe-del" onclick="peDel(this)">&#10005;</button>';
     if(cid==='pe-pl-detail') h+='<button onclick="plValiderLigneTenue(this)" title="Valider cette partie" style="background:var(--gold);border:none;border-radius:3px;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;cursor:pointer;white-space:nowrap;">✓</button>';
-    if(isPl){
+    if(isElec){
+      h+='<div class="pe-pl-extra" style="display:none;"></div>';
+      h+='<div class="pe-pr-extra" style="display:none;"></div>';
+      h+='<div class="pe-aff-extra" style="display:none;"></div>';
+      h+='<div class="pe-cer-extra" style="display:none;"></div>';
+      h+='<div class="pe-ts-extra" style="display:none;"></div>';
+      h+='<div class="pe-init-extra" style="display:none;"></div>';
+      h+='<div class="pe-col-extra" style="display:none;"></div>';
+      h+='<div class="pe-vm-extra" style="display:none;"></div>';
+      h+='<div class="pe-dep-extra" style="display:none;"></div>';
+      h+='<div class="pe-ca-extra" style="display:none;"></div>';
+      h+='<div class="pe-elec-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
+      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+      h+='<div style="display:flex;flex-wrap:wrap;gap:10px;">';
+      for(var ei=0;ei<elecData.length;ei++){
+        var eSel=elecSteps.indexOf(elecData[ei].v)>=0?' checked':'';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-elec-cb" value="'+elecData[ei].v+'" data-dur="'+elecData[ei].dur+'"'+eSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peElecChange(this)">'+elecData[ei].v+' ('+elecData[ei].dur+' min)</label>';
+      }
+      h+='</div>';
+      h+='</div>';
+    } else if(isPl){
       h+='<div class="pe-pl-extra" style="width:100%;display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding-left:28px;">';
       if(isSym){
         h+='<input class="pe-titre" type="text" value="'+titreVal+'" placeholder="Titre du symbolisme / sujet..." style="flex:2;min-width:160px;padding:5px 10px;border:1px solid var(--gold);border-radius:3px;font-family:Raleway,sans-serif;font-size:12px;color:var(--text);"/>';
@@ -3119,6 +3146,7 @@ function peRender(cid,parties){
       h+='<div class="pe-vm-extra" style="display:none;"></div>';
       h+='<div class="pe-dep-extra" style="display:none;"></div>';
       h+='<div class="pe-ca-extra" style="display:none;"></div>';
+      h+='<div class="pe-elec-extra" style="display:none;"></div>';
     }
     h+='</div>';
   }
@@ -3203,6 +3231,9 @@ function peGet(cid){
     // Planche/Architecture : cases à cocher
     var plancheSteps=[];
     rs[i].querySelectorAll('.pe-planche-cb:checked').forEach(function(cb){plancheSteps.push(cb.value);});
+    // Élections : cases à cocher
+    var elecSteps=[];
+    rs[i].querySelectorAll('.pe-elec-cb:checked').forEach(function(cb){elecSteps.push(cb.value);});
     // Profane/Candidature : cases à cocher
     var profCbs=rs[i].querySelectorAll('.pe-prof-cb:checked');
     if(profCbs.length){profSteps=[];profCbs.forEach(function(cb){profSteps.push(cb.value);});}
@@ -3228,7 +3259,7 @@ function peGet(cid){
       cerVals.push(cb.value);
       if(cerStd.indexOf(cb.value)<0) cerCust.push(cb.value);
     });
-    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets});
+    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets,elecSteps:elecSteps});
   }
   return r;
 }
@@ -3523,8 +3554,18 @@ function peInitCbChange(cb){
 }
 
 function peSaveRow(cb){
-  // Déclenche une mise à jour de la durée totale quand une case change
   peTotalUpdate();
+}
+function peElecChange(cb){
+  var row=cb.closest('.pe-row');
+  var durEl=row.querySelector('.pe-dur');
+  if(!durEl)return;
+  var total=0;
+  row.querySelectorAll('.pe-elec-cb:checked').forEach(function(c){total+=parseInt(c.getAttribute('data-dur'))||0;});
+  durEl.value=total;
+  peTotalUpdate();
+  var list=row.closest('.pe-list');
+  if(list&&list.id==='pe-defaut')peSaveDefaut();
 }
 
 function peCirculChange(cb){
@@ -3656,7 +3697,7 @@ function peSaveDefaut(){
 }
 function peDel(b){var cid=peCid(b),p=peGet(cid),i=peIdx(b);if(i>=0){p.splice(i,1);peRender(cid,p);if(cid==='pe-defaut')peSaveDefaut();}}
 
-function peDup(b){var cid=peCid(b),p=peGet(cid),i=peIdx(b);if(i>=0){if(cid.indexOf('cfg-pe-')===0){addParDefautRapide(p[i].nom,p[i].dur);}else{var c={nom:p[i].nom,dur:p[i].dur};p.splice(i+1,0,c);peRender(cid,p);if(cid==='pe-defaut')peSaveDefaut();}}}
+function peDup(b){var cid=peCid(b),p=peGet(cid),i=peIdx(b);if(i>=0){if(cid.indexOf('cfg-pe-')===0){var it=p[i];if(!D.parDefaut)D.parDefaut=[];D.parDefaut.push({nom:it.nom,dur:it.dur,elecSteps:it.elecSteps||[]});save();peRender('pe-defaut',D.parDefaut||[]);if(typeof toast==='function')toast('"'+it.nom+'" ajouté au détail par défaut');}else{var c={nom:p[i].nom,dur:p[i].dur,elecSteps:p[i].elecSteps||[]};p.splice(i+1,0,c);peRender(cid,p);if(cid==='pe-defaut')peSaveDefaut();}}}
 function peMv(b,dir){
   var cid=peCid(b),p=peGet(cid),i=peIdx(b),j=i+dir;
   if(j<0||j>=p.length)return;
@@ -5577,7 +5618,7 @@ function cfgTab(name, btn){
   if(name==='regles') renderRegles();
   if(name==='modeles') renderModeles();
   if(name==='durees') renderDureesReleves();
-  if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); peRender('pe-defaut', D.parDefaut||[]); peRender('cfg-pe-elections',[{nom:'Élections — Collège+VM',dur:120},{nom:'Élections — Renouvellement',dur:105},{nom:'Élections — VM',dur:15},{nom:'Élections — Député',dur:15},{nom:'Élections — Délégués judiciaires',dur:10}]); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
+  if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); peRender('pe-defaut', D.parDefaut||[]); peRender('cfg-pe-elections',[{nom:'Élections',dur:0,elecSteps:[]}]); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
   // Bouton imprimer global géré par dispatchImprimer()
   window._cfgCurrentTab = name;
   // Zone Observations
