@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.54</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.55</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -16745,58 +16745,62 @@ function tiRender(){
     return;
   }
   var h='';
-  var cardS='margin-bottom:10px;border:1px solid rgba(184,146,42,.45);border-radius:6px;padding:14px;background:rgba(184,146,42,.04);';
-  var selS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:6px 8px;font-family:Raleway,sans-serif;font-size:13px;';
+  var cardS='margin-bottom:6px;border:1px solid rgba(184,146,42,.45);border-radius:6px;padding:8px 12px;background:rgba(184,146,42,.04);';
+  var selS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:4px 6px;font-family:Raleway,sans-serif;font-size:12px;';
+  var lblS='font-size:11px;color:var(--grey);margin-bottom:2px;display:block;';
+  var inpS='padding:4px 6px;font-size:12px;';
   for(var i=0;i<D.tenuesImp.length;i++){
     var ti=D.tenuesImp[i];
     var id=ti.id;
     var th=(ti.theme||'').replace(/"/g,'&quot;');
     var note=(ti.note||'').replace(/"/g,'&quot;');
     var badge='';
-    if(ti.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;margin-left:8px;">&#10003; Planifiée le '+ti.planifiedDate+'</span>';}
+    if(ti.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;margin-left:6px;">&#10003; '+ti.planifiedDate+'</span>';}
     h+='<div style="'+cardS+'">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
-    h+='<div style="font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Tenue impérative'+badge+'</div>';
-    h+='<div style="display:flex;gap:6px;">';
-    h+='<button onclick="tiPlanifier(\''+id+'\')" title="Créer dans le planning" style="background:#B8922A;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:4px 12px;font-size:12px;font-weight:600;">&#8594; Planning</button>';
-    h+='<button onclick="tiSupprimer(\''+id+'\')" title="Supprimer" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:4px 8px;font-size:13px;">&#128465;</button>';
+    // Ligne 1 : label + boutons
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    h+='<div style="font-size:10px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Tenue impérative'+badge+'</div>';
+    h+='<div style="display:flex;gap:4px;">';
+    h+='<button onclick="tiPlanifier(\''+id+'\')" title="Créer dans le planning" style="background:#B8922A;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 10px;font-size:11px;font-weight:600;">&#8594; Planning</button>';
+    h+='<button onclick="tiSupprimer(\''+id+'\')" title="Supprimer" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 7px;font-size:12px;">&#128465;</button>';
     h+='</div></div>';
-    h+='<div class="cfg-row">';
-    h+='<div class="cfg-group"><label>Thème</label><input type="text" value="'+th+'" placeholder="Ex : Installation du VM" oninput="tiFieldChange(\''+id+'\',\'theme\',this.value)"/></div>';
+    // Ligne 2 : Thème (pleine largeur)
+    h+='<div style="margin-bottom:6px;">';
+    h+='<label style="'+lblS+'">Thème</label>';
+    h+='<input type="text" value="'+th+'" placeholder="Ex : Installation du VM" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tiFieldChange(\''+id+'\',\'theme\',this.value)"/>';
     h+='</div>';
-    h+='<div class="cfg-row">';
-    h+='<div class="cfg-group" style="max-width:180px;"><label>&#128197; Mois théorique</label>';
-    h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'moisTheorique\',this.value);tiDateHint(\''+id+'\')">'+tiMoisOptions(ti.moisTheorique)+'</select></div>';
-    h+='<div class="cfg-group" style="max-width:200px;"><label>Rang dans le mois</label>';
-    h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'rangTheorique\',this.value);tiDateHint(\''+id+'\')">';
-    h+='<option value="1"'+(ti.rangTheorique!='2'?' selected':'')+'>1ère tenue du mois</option>';
-    h+='<option value="2"'+(ti.rangTheorique=='2'?' selected':'')+'>2ème tenue du mois</option>';
+    // Ligne 3 : Mois | Rang+hint | Date substitution | Note — tout en flex
+    h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">';
+    // Mois
+    h+='<div style="min-width:120px;flex:0 0 auto;">';
+    h+='<label style="'+lblS+'">&#128197; Mois</label>';
+    h+='<select style="'+selS+'width:100%;" onchange="tiFieldChange(\''+id+'\',\'moisTheorique\',this.value);tiDateHint(\''+id+'\')">'+tiMoisOptions(ti.moisTheorique)+'</select>';
+    h+='</div>';
+    // Rang + hint
+    h+='<div style="min-width:150px;flex:0 0 auto;">';
+    h+='<label style="'+lblS+'">Rang</label>';
+    h+='<select style="'+selS+'width:100%;" onchange="tiFieldChange(\''+id+'\',\'rangTheorique\',this.value);tiDateHint(\''+id+'\')">';
+    h+='<option value="1"'+(ti.rangTheorique!='2'?' selected':'')+'>1ère tenue</option>';
+    h+='<option value="2"'+(ti.rangTheorique=='2'?' selected':'')+'>2ème tenue</option>';
     h+='</select>';
     (function(){
       var dateCible='';
-      if(ti.moisTheorique){
-        var mois=parseInt(ti.moisTheorique);
-        var rang=parseInt(ti.rangTheorique)||1;
-        dateCible=tiComputeDate(mois,rang);
-      }
-      var txt='';
-      if(dateCible){
-        var parts=dateCible.split('-');
-        txt='<p id="ti-dh-'+id+'" style="font-size:11px;color:var(--gold);margin-top:4px;font-style:italic;">&#8594; '+parts[2]+'/'+parts[1]+'/'+parts[0]+'</p>';
-      } else if(ti.moisTheorique){
-        txt='<p id="ti-dh-'+id+'" style="font-size:11px;color:var(--grey);margin-top:4px;font-style:italic;">Aucune tenue ce mois.</p>';
-      } else {
-        txt='<p id="ti-dh-'+id+'" style="font-size:11px;color:var(--grey);margin-top:4px;"></p>';
-      }
-      h+=txt;
+      if(ti.moisTheorique) dateCible=tiComputeDate(parseInt(ti.moisTheorique),parseInt(ti.rangTheorique)||1);
+      if(dateCible){var p=dateCible.split('-');h+='<span id="ti-dh-'+id+'" style="font-size:10px;color:var(--gold);font-style:italic;display:block;margin-top:2px;">&#8594; '+p[2]+'/'+p[1]+'/'+p[0]+'</span>';}
+      else if(ti.moisTheorique){h+='<span id="ti-dh-'+id+'" style="font-size:10px;color:var(--grey);font-style:italic;display:block;margin-top:2px;">Aucune tenue.</span>';}
+      else{h+='<span id="ti-dh-'+id+'" style="display:block;margin-top:2px;font-size:10px;"></span>';}
     })();
     h+='</div>';
-    h+='<div class="cfg-group" style="max-width:210px;"><label>&#128197; Date de substitution</label>';
-    h+='<input type="date" value="'+(ti.dateAlt||'')+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)"/>';
-    h+='<p style="font-size:10px;color:var(--grey);margin-top:3px;font-style:italic;">Si aucune tenue trouvée pour ce mois.</p></div>';
+    // Date substitution
+    h+='<div style="min-width:150px;flex:0 0 auto;">';
+    h+='<label style="'+lblS+'">&#128197; Date substitution</label>';
+    h+='<input type="date" value="'+(ti.dateAlt||'')+'" style="'+inpS+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)"/>';
     h+='</div>';
-    h+='<div class="cfg-row">';
-    h+='<div class="cfg-group"><label>Note</label><input type="text" value="'+note+'" placeholder="Remarques…" oninput="tiFieldChange(\''+id+'\',\'note\',this.value)"/></div>';
+    // Note
+    h+='<div style="flex:1;min-width:120px;">';
+    h+='<label style="'+lblS+'">Note</label>';
+    h+='<input type="text" value="'+note+'" placeholder="Remarques…" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tiFieldChange(\''+id+'\',\'note\',this.value)"/>';
+    h+='</div>';
     h+='</div>';
     h+='</div>';
   }
@@ -16818,7 +16822,7 @@ function tiDateHint(id){
     el.innerHTML='&#8594; '+parts[2]+'/'+parts[1]+'/'+parts[0];
   } else if(ti.moisTheorique){
     el.style.color='var(--grey)';el.style.fontStyle='italic';
-    el.innerHTML='Aucune tenue ce mois.';
+    el.innerHTML='Aucune tenue.';
   } else {
     el.innerHTML='';
   }
