@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.51</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.52</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -16735,12 +16735,36 @@ function tiRender(){
     h+='</div>';
     h+='<div class="cfg-row">';
     h+='<div class="cfg-group" style="max-width:180px;"><label>&#128197; Mois théorique</label>';
-    h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'moisTheorique\',this.value)">'+tiMoisOptions(ti.moisTheorique)+'</select></div>';
+    h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'moisTheorique\',this.value);tiDateHint(\''+id+'\')">'+tiMoisOptions(ti.moisTheorique)+'</select></div>';
     h+='<div class="cfg-group" style="max-width:200px;"><label>Rang dans le mois</label>';
-    h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'rangTheorique\',this.value)">';
+    h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'rangTheorique\',this.value);tiDateHint(\''+id+'\')">';
     h+='<option value="1"'+(ti.rangTheorique!='2'?' selected':'')+'>1ère tenue du mois</option>';
     h+='<option value="2"'+(ti.rangTheorique=='2'?' selected':'')+'>2ème tenue du mois</option>';
-    h+='</select></div>';
+    h+='</select>';
+    (function(){
+      var dateCible='';
+      if(ti.moisTheorique){
+        var mois=parseInt(ti.moisTheorique);
+        var rang=parseInt(ti.rangTheorique)||1;
+        var annee=new Date().getFullYear();
+        if(D.loge&&D.loge.periodeDebut) annee=parseInt(D.loge.periodeDebut.substr(0,4))||annee;
+        var prefix=annee+'-'+(mois<10?'0':'')+mois;
+        var tMois=(D.tenues||[]).filter(function(t){return (t.date||'').indexOf(prefix)===0;});
+        tMois.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+        if(tMois.length>=rang) dateCible=tMois[rang-1].date;
+      }
+      var txt='';
+      if(dateCible){
+        var parts=dateCible.split('-');
+        txt='<p id="ti-dh-'+id+'" style="font-size:11px;color:var(--gold);margin-top:4px;font-style:italic;">&#8594; '+parts[2]+'/'+parts[1]+'/'+parts[0]+'</p>';
+      } else if(ti.moisTheorique){
+        txt='<p id="ti-dh-'+id+'" style="font-size:11px;color:var(--grey);margin-top:4px;font-style:italic;">Aucune tenue ce mois.</p>';
+      } else {
+        txt='<p id="ti-dh-'+id+'" style="font-size:11px;color:var(--grey);margin-top:4px;"></p>';
+      }
+      h+=txt;
+    })();
+    h+='</div>';
     h+='<div class="cfg-group" style="max-width:210px;"><label>&#128197; Date de substitution</label>';
     h+='<input type="date" value="'+(ti.dateAlt||'')+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)"/>';
     h+='<p style="font-size:10px;color:var(--grey);margin-top:3px;font-style:italic;">Si aucune tenue trouvée pour ce mois.</p></div>';
@@ -16751,6 +16775,34 @@ function tiRender(){
     h+='</div>';
   }
   el.innerHTML=h;
+}
+
+function tiDateHint(id){
+  var ti=null;
+  for(var i=0;i<(D.tenuesImp||[]).length;i++){if(D.tenuesImp[i].id===id){ti=D.tenuesImp[i];break;}}
+  var el=document.getElementById('ti-dh-'+id);
+  if(!el||!ti)return;
+  var dateCible='';
+  if(ti.moisTheorique){
+    var mois=parseInt(ti.moisTheorique);
+    var rang=parseInt(ti.rangTheorique)||1;
+    var annee=new Date().getFullYear();
+    if(D.loge&&D.loge.periodeDebut) annee=parseInt(D.loge.periodeDebut.substr(0,4))||annee;
+    var prefix=annee+'-'+(mois<10?'0':'')+mois;
+    var tMois=(D.tenues||[]).filter(function(t){return (t.date||'').indexOf(prefix)===0;});
+    tMois.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    if(tMois.length>=rang) dateCible=tMois[rang-1].date;
+  }
+  if(dateCible){
+    var parts=dateCible.split('-');
+    el.style.color='var(--gold)';el.style.fontStyle='italic';
+    el.innerHTML='&#8594; '+parts[2]+'/'+parts[1]+'/'+parts[0];
+  } else if(ti.moisTheorique){
+    el.style.color='var(--grey)';el.style.fontStyle='italic';
+    el.innerHTML='Aucune tenue ce mois.';
+  } else {
+    el.innerHTML='';
+  }
 }
 
 function tiAjouter(){
