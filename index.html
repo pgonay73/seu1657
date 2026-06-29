@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.61</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.62</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -16868,33 +16868,26 @@ function tiPlanifier(id){
   for(var i=0;i<D.tenuesImp.length;i++){if(D.tenuesImp[i].id===id){ti=D.tenuesImp[i];break;}}
   if(!ti)return;
   var dateFin='';
+  // Calculer la date théorique via les règles de récurrence
   if(ti.moisTheorique){
-    // Chercher la Nème tenue du mois dans D.tenues
     var mois=parseInt(ti.moisTheorique);
     var rang=parseInt(ti.rangTheorique)||1;
-    // Déterminer l'année cible (période du logiciel ou année en cours)
-    var annee=new Date().getFullYear();
-    if(D.loge&&D.loge.periodeDebut) annee=parseInt(D.loge.periodeDebut.substr(0,4))||annee;
-    var prefix=annee+'-'+(mois<10?'0':'')+mois;
-    var tMois=D.tenues.filter(function(t){return (t.date||'').indexOf(prefix)===0;});
-    tMois.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-    if(tMois.length>=rang){
-      dateFin=tMois[rang-1].date;
-    } else if(tMois.length>0){
-      dateFin=tMois[tMois.length-1].date;
-      toast('⚠ Seulement '+tMois.length+' tenue(s) en '+TI_MOIS[mois]+' — utilisation de la dernière disponible.');
-    }
+    dateFin=tiComputeDate(mois,rang);
+    if(!dateFin) toast('⚠ Aucune tenue calculée pour ce mois via les règles — vérifiez la configuration.');
   }
-  if(!dateFin&&ti.dateAlt){ dateFin=ti.dateAlt; toast('⚠ Aucune tenue trouvée pour ce mois — date de substitution utilisée.'); }
-  if(!dateFin){ toast('Aucune tenue trouvée pour ce mois et pas de date de substitution.'); return; }
-  // Vérifier conflit de date
+  // Fallback sur la date de substitution
+  if(!dateFin&&ti.dateAlt){ dateFin=ti.dateAlt; toast('⚠ Date théorique introuvable — date de substitution utilisée.'); }
+  if(!dateFin){ toast('Impossible de déterminer une date : configurez un mois et des règles de récurrence, ou choisissez une date de substitution.'); return; }
+  // Vérifier conflit : si la date est déjà occupée, utiliser la substitution
   var conflit=D.tenues.some(function(t){return t.date===dateFin;});
-  if(conflit&&ti.dateAlt&&ti.dateAlt!==dateFin){ dateFin=ti.dateAlt; toast('⚠ Date occupée — date de substitution utilisée.'); }
+  if(conflit&&ti.dateAlt&&ti.dateAlt!==dateFin){ dateFin=ti.dateAlt; toast('⚠ Date théorique occupée — date de substitution utilisée.'); }
   var t={id:'t'+Date.now(),date:dateFin,heure:'',modeleId:'',titre:ti.theme||'Tenue impérative',notes:ti.note||'',compteRendu:'',prolongationDuree:0,prolongationNotes:'',ferie:false,parties:[],orateurs:[],officiers:[],presents:[]};
   D.tenues.push(t);
   ti.planifiedDate=dateFin;
-  save();renderPlanning();tiRender();
-  toast('✓ Tenue « '+t.titre+' » ajoutée au planning ('+dateFin+').');
+  save();tiRender();
+  var dp=dateFin.split('-');
+  var dAff=dp[2]+'/'+dp[1]+'/'+dp[0];
+  toast('✓ Tenue « '+(t.titre||'Tenue impérative')+' » ajoutée le '+dAff+'. Rendez-vous dans l\'espace VM → Planning pour la voir.');
 }
 // ────────────────────────────────────────────────────────────
 
