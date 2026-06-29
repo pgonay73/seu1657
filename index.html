@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.48</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.49</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1655,6 +1655,7 @@ function load(){
   if(!D.regles)D.regles=[];
   if(!D.dureesReleves)D.dureesReleves=[];
   if(!D.parDefaut||!D.parDefaut.length)D.parDefaut=[{nom:'Ouverture des Travaux',dur:15},{nom:'Lecture du PV',dur:10},{nom:'Planche et Symbolisme',dur:30},{nom:'Questions diverses',dur:10},{nom:'Cloture des Travaux',dur:10},{nom:'Agape',dur:60},{nom:'St Jean',dur:0},{nom:'Visite Inspecteur',dur:0}];
+  if(!D.tenuesImp)D.tenuesImp=[];
   if(!D.typesDurees||!D.typesDurees.length)D.typesDurees=[{nom:'Rituel ouverture',dur:20},{nom:'Rituel fermeture',dur:20},{nom:'Ouverture administrative',dur:10},{nom:'Fermeture administrative',dur:10},{nom:'Inspecteur',dur:60},{nom:'Conseil d\'Administration',dur:60},{nom:'R\u00e9union Apprentis',dur:90},{nom:'R\u00e9union Compagnons',dur:90},{nom:'Coll\u00e8ge + VM (\u00e9lection)',dur:120},{nom:'D\u00e9put\u00e9 (\u00e9lection)',dur:15},{nom:'D\u00e9l\u00e9gu\u00e9s judiciaires',dur:10},{nom:'Coll\u00e8ge + VM (installation)',dur:120},{nom:'D\u00e9put\u00e9 (installation)',dur:15},{nom:'\u00c9lection VM',dur:10},{nom:'Installation VM',dur:10},{nom:'D\u00e9put\u00e9 - \u00c9lection',dur:15},{nom:'D\u00e9put\u00e9 - Installation',dur:15},{nom:'D\u00e9put\u00e9 - Intervention/CR',dur:15},{nom:'Profane / Affiliation / Int\u00e9gration',dur:30},{nom:'Candidature + vote',dur:30},{nom:'Enqu\u00eate + vote',dur:30},{nom:'Bandeau + vote',dur:30},{nom:'Initiation au 1\u00b0',dur:60},{nom:'Initiation au 2\u00b0',dur:60},{nom:'Initiation au 3\u00b0',dur:60},{nom:'Symbolisme',dur:10},{nom:'Planche',dur:15},{nom:'Impressions',dur:10},{nom:'Passage + vote',dur:30},{nom:'Parole',dur:15},{nom:'Jubil\u00e9',dur:120},{nom:'Pr\u00e9paration c\u00e9r\u00e9monie',dur:120},{nom:'Tenue fun\u00e8bre',dur:120},{nom:'St Jean',dur:120}];
 }
 function save(){
@@ -5771,6 +5772,7 @@ function cfgTab(name, btn){
   if(name==='regles') renderRegles();
   if(name==='modeles') renderModeles();
   if(name==='durees') renderDureesReleves();
+  if(name==='tenuesImp') tiRender();
   if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); if(!D.parDefaut)D.parDefaut=[]; [{nom:'ÉLECTION',dur:0,elecSteps:[]},{nom:'INSTALLATION',dur:0,instSteps:[]},{nom:'INTERVENTION',dur:0,interSteps:[]},{nom:'CÉRÉMONIE',dur:0,cerCardSteps:[]},{nom:'RÉUNION HORS TENUE',dur:0,reunSteps:[]}].forEach(function(s){if(!D.parDefaut.some(function(p){return p.nom===s.nom;}))D.parDefaut.push(s);}); peRender('pe-defaut',D.parDefaut); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
   // Bouton imprimer global géré par dispatchImprimer()
   window._cfgCurrentTab = name;
@@ -13244,6 +13246,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="cfgTab(\'periode\',this)">Période du logiciel</button>';
     c+='<button class="cfg-tab" onclick="cfgTab(\'infos\',this)">Infos diverses</button>';
     c+='<button class="cfg-tab" onclick="cfgTab(\'accueil\',this)">Texte d\'accueil</button>';
+    c+='<button class="cfg-tab" onclick="cfgTab(\'tenuesImp\',this)">Tenues impératives</button>';
     c+='<button onclick="imprimerCfgOnglet(window._cfgCurrentTab||\'identite\')" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
     c+='</div>';
     c+='<div id="cfg-panel-identite" class="cfg-panel"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Identité de la Loge</h3><div class="cfg-row"><div class="cfg-group"><label>Nom de la Loge</label><input type="text" id="cfg-nom" placeholder="Ex : Sagesse en Uzege" onchange="saveConfig()"/></div><div class="cfg-group" style="max-width:200px"><label>Numero</label><input type="text" id="cfg-num" placeholder="N 1234" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Titre par defaut des tenues</label><input type="text" id="cfg-titredef" placeholder="Ex : Tenue au 1° degre" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Orient</label><input type="text" id="cfg-orient" placeholder="Ex : Uzès" onchange="saveConfig()"/></div><div class="cfg-group"><label>Obédience</label><input type="text" id="cfg-obedience" placeholder="Ex : Grande Loge de France" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group" style="max-width:260px;"><label>⏱ Durée classique d\'une tenue (minutes)</label><input type="number" id="cfg-duree-classique" min="30" max="480" step="5" placeholder="Ex : 120" style="max-width:120px;" onchange="saveConfig()"/><p style="font-size:10px;color:var(--grey);margin-top:4px;font-style:italic;">Sert de base de référence pour toute l\'application.</p></div></div><div class="cfg-row"><div class="cfg-group"><label>Citation / Devise</label><textarea id="cfg-citation" rows="2" placeholder="Ex : La lumière guide nos pas..." onchange="saveConfig()"></textarea></div></div><div class="cfg-row"><div class="cfg-group"><label>Logo de la Loge</label><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><img id="cfg-logo-preview" src="" alt="" style="display:none;height:56px;width:auto;object-fit:contain;border-radius:4px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.2);padding:4px;"/><div style="display:flex;flex-direction:column;gap:6px;"><label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">&#128444; Importer un logo<input type="file" accept="image/*" style="display:none;" onchange="logoImporter(this)"/></label><button class="btn btn-outline btn-sm" id="cfg-logo-suppr" style="display:none;color:var(--red);border-color:var(--red);" onclick="logoSupprimer()">&#10005; Supprimer le logo</button></div></div></div></div></div></div>';
@@ -13254,6 +13257,7 @@ function renderOffice(n){
     c+='<div id="cfg-panel-statsth" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Objectifs</h3><p style="font-size:10px;color:var(--grey);margin-bottom:8px;">Saisissez les objectifs pour chaque indicateur.</p><div id="statsth-list"></div></div></div>';
     c+='<div id="cfg-panel-periode" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Période du logiciel</h3><p style="font-size:13px;color:var(--grey);margin-bottom:14px">Définissez la période couverte par le logiciel. Une tenue créée ou générée en dehors de cette période déclenchera un avertissement (la création reste possible).</p><div class="cfg-row"><div class="cfg-group" style="max-width:200px;"><label>Date de début</label><input type="date" id="cfg-periode-debut" onchange="saveConfig()"/></div><div class="cfg-group" style="max-width:200px;"><label>Date de fin</label><input type="date" id="cfg-periode-fin" onchange="saveConfig()"/></div></div></div></div>';
     c+='<div id="cfg-panel-infos" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Infos diverses</h3><div id="infos-list"></div><div style="display:flex;gap:8px;margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="infosAjouter()">+ Ajouter une rubrique</button></div></div></div>';
+    c+='<div id="cfg-panel-tenuesImp" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues impératives</h3><p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Définissez les tenues à organiser impérativement dans l\'année. Pour chaque tenue, indiquez la date conseillée et une date de substitution. Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning (la date de substitution est utilisée automatiquement si la date conseillée est déjà occupée).</p><div id="ti-list"></div><button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="tiAjouter()">+ Ajouter une tenue impérative</button></div></div>';
     c+='<div id="cfg-panel-accueil" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Texte d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Texte affiché centré sur la page d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>Titre (optionnel)</label><input type="text" id="cfg-accueil-titre" placeholder="Ex : Bienvenue à la Loge Sagesse en Uzège" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Texte principal</label><textarea id="cfg-accueil-texte" rows="5" placeholder="Saisissez ici le texte qui s\'affichera sur la page d\'accueil…" onchange="saveConfig()" style="min-height:100px;resize:none;overflow:hidden;"></textarea></div></div></div><div class="cfg-box" style="margin-top:16px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Les news</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Trois cases affichées sous le texte d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>News 1</label><textarea id="cfg-accueil-news1" rows="3" placeholder="Contenu de la 1ère case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 2</label><textarea id="cfg-accueil-news2" rows="3" placeholder="Contenu de la 2ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 3</label><textarea id="cfg-accueil-news3" rows="3" placeholder="Contenu de la 3ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div></div></div></div>';
     c+='</div>';
     // PANEL PLANNING ANNUEL
@@ -16682,6 +16686,93 @@ function infosSave(){
   }
   infosSaveLS(d);
 }
+// ── Tenues impératives ──────────────────────────────────────
+function tiRender(){
+  if(!D.tenuesImp)D.tenuesImp=[];
+  var el=document.getElementById('ti-list');
+  if(!el)return;
+  if(!D.tenuesImp.length){
+    el.innerHTML='<p style="font-size:13px;color:var(--grey);font-style:italic;margin:12px 0;">Aucune tenue impérative définie.</p>';
+    return;
+  }
+  var h='';
+  var cardS='margin-bottom:10px;border:1px solid rgba(184,146,42,.45);border-radius:6px;padding:14px;background:rgba(184,146,42,.04);';
+  for(var i=0;i<D.tenuesImp.length;i++){
+    var ti=D.tenuesImp[i];
+    var id=ti.id;
+    var th=(ti.theme||'').replace(/"/g,'&quot;');
+    var note=(ti.note||'').replace(/"/g,'&quot;');
+    // badge statut
+    var badge='';
+    if(ti.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;margin-left:8px;">✓ Planifiée le '+ti.planifiedDate+'</span>';}
+    h+='<div style="'+cardS+'">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+    h+='<div style="font-size:11px;color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Tenue impérative'+badge+'</div>';
+    h+='<div style="display:flex;gap:6px;">';
+    h+='<button onclick="tiPlanifier(\''+id+'\')" title="Créer dans le planning" style="background:#B8922A;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:4px 12px;font-size:12px;font-weight:600;">&#8594; Planning</button>';
+    h+='<button onclick="tiSupprimer(\''+id+'\')" title="Supprimer" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:4px 8px;font-size:13px;">&#128465;</button>';
+    h+='</div></div>';
+    h+='<div class="cfg-row">';
+    h+='<div class="cfg-group"><label>Thème</label><input type="text" value="'+th+'" placeholder="Ex : Installation du VM" oninput="tiFieldChange(\''+id+'\',\'theme\',this.value)"/></div>';
+    h+='</div>';
+    h+='<div class="cfg-row">';
+    h+='<div class="cfg-group" style="max-width:210px;"><label>&#128197; Date conseillée</label><input type="date" value="'+(ti.dateConseillee||'')+'" onchange="tiFieldChange(\''+id+'\',\'dateConseillee\',this.value)"/></div>';
+    h+='<div class="cfg-group" style="max-width:210px;"><label>&#128197; Date de substitution</label><input type="date" value="'+(ti.dateAlt||'')+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)"/><p style="font-size:10px;color:var(--grey);margin-top:3px;font-style:italic;">Utilisée si la date conseillée est déjà occupée.</p></div>';
+    h+='</div>';
+    h+='<div class="cfg-row">';
+    h+='<div class="cfg-group"><label>Note</label><input type="text" value="'+note+'" placeholder="Remarques…" oninput="tiFieldChange(\''+id+'\',\'note\',this.value)"/></div>';
+    h+='</div>';
+    h+='</div>';
+  }
+  el.innerHTML=h;
+}
+
+function tiAjouter(){
+  if(!D.tenuesImp)D.tenuesImp=[];
+  D.tenuesImp.push({id:'ti'+Date.now(),theme:'',dateConseillee:'',dateAlt:'',note:'',planifiedDate:''});
+  save();tiRender();
+}
+
+function tiSupprimer(id){
+  if(!D.tenuesImp)return;
+  D.tenuesImp=D.tenuesImp.filter(function(x){return x.id!==id;});
+  save();tiRender();
+}
+
+function tiFieldChange(id,field,val){
+  if(!D.tenuesImp)return;
+  for(var i=0;i<D.tenuesImp.length;i++){
+    if(D.tenuesImp[i].id===id){D.tenuesImp[i][field]=val;break;}
+  }
+  save();
+}
+
+function tiPlanifier(id){
+  if(!D.tenuesImp)return;
+  var ti=null;
+  for(var i=0;i<D.tenuesImp.length;i++){if(D.tenuesImp[i].id===id){ti=D.tenuesImp[i];break;}}
+  if(!ti)return;
+  if(!ti.dateConseillee&&!ti.dateAlt){toast('Renseignez au moins une date avant d\'ajouter au planning.');return;}
+  var dateFin=ti.dateConseillee||ti.dateAlt;
+  if(ti.dateConseillee){
+    var dejaPrise=D.tenues.some(function(t){return t.date===ti.dateConseillee;});
+    if(dejaPrise&&ti.dateAlt){
+      dateFin=ti.dateAlt;
+      toast('⚠ Date conseillée déjà occupée — date de substitution utilisée.');
+    } else {
+      dateFin=ti.dateConseillee;
+    }
+  }
+  var t={id:'t'+Date.now(),date:dateFin,heure:'',modeleId:'',titre:ti.theme||'Tenue impérative',notes:ti.note||'',compteRendu:'',prolongationDuree:0,prolongationNotes:'',ferie:false,parties:[],orateurs:[],officiers:[],presents:[]};
+  D.tenues.push(t);
+  ti.planifiedDate=dateFin;
+  save();
+  renderPlanning();
+  tiRender();
+  toast('✓ Tenue « '+t.titre+' » ajoutée au planning ('+dateFin+').');
+}
+// ────────────────────────────────────────────────────────────
+
 function adjustMainHeight(){
   var hdr=document.querySelector('.app-header');
   var main=document.querySelector('.main');
