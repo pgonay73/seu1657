@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.71</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.72</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -14973,18 +14973,8 @@ function adminPlTab(name, btn){
     if(p) p.style.display=subTabs[j]===name?'':'none';
   }
   if(name==='planning'){
-    // Déplacer v-planning-libre dans admin-pl-panel-planning
-    var plPage=document.getElementById('v-planning-libre');
-    var plPanel=document.getElementById('admin-pl-panel-planning');
-    if(plPage&&plPanel){
-      if(plPage.parentNode!==plPanel){ plPanel.appendChild(plPage); plPage.classList.remove('view'); }
-      plPage.style.display='';
-      plPanel.style.display='';
-    }
-    setTimeout(function(){
-      try{ sessionStorage.setItem(_PL_LIBRE_SESSION_KEY,'1'); }catch(e){}
-      plInitPage();
-    },50);
+    window._plFromAdmin = true;
+    plLibreAutoriserEtOuvrir();
     return;
   }
   if(name==='modeles') setTimeout(function(){ renderModeles(); },0);
@@ -17156,6 +17146,7 @@ var PA_SUGGESTIONS_MOIS={
 </script>
   <!-- VUES OFFICIERS -->
   <div id="v-planning-libre" class="view pl-page">
+<div id="pl-admin-nav-header" style="display:none;"></div>
 
 <div id="admin-panel-planning-libre">
 
@@ -20170,7 +20161,53 @@ function plImprimer(titre, elementId){
   _printHtml(h, titre+' — '+loge);
 }
 
+function plRenderAdminNav(){
+  var el=document.getElementById('pl-admin-nav-header');
+  if(!el) return;
+  if(!window._plFromAdmin){ el.style.display='none'; return; }
+  var adminTabs=[
+    {id:'offices',label:'Accès aux offices'},
+    {id:'titulaires',label:'Titulaires des offices'},
+    {id:'navigation',label:'Visibilité navigation'},
+    {id:'responsables',label:'Responsables'},
+    {id:'config',label:'Configuration'},
+    {id:'planning',label:'Planning'},
+    {id:'planches-tracees',label:'Planches tracées'},
+    {id:'correspondance',label:'Correspondance'}
+  ];
+  var plTabs=[
+    {id:'modeles',label:'Modèles'},
+    {id:'detail',label:'Détail tenue'},
+    {id:'tenuesImp',label:'Tenues impératives'},
+    {id:'suivi',label:'Suivi des planches'},
+    {id:'planning',label:'Planning'}
+  ];
+  var h='<div class="section-header" style="flex-wrap:wrap;gap:8px;margin-bottom:0;">';
+  h+='<div style="display:flex;flex-direction:column;align-items:center;">';
+  h+='<h2 style="margin-bottom:6px;">Administrateur</h2>';
+  h+='<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'ov-office-change-mdp\').classList.add(\'open\')" style="font-size:11px;padding:4px 10px;">&#128273; Modifier le mot de passe</button>';
+  h+='</div>';
+  h+='<span style="font-size:11px;color:#FFFFFF;font-family:Raleway,sans-serif;font-style:italic;">Saisie et modifications réservées à l\'<strong style="color:#FFFFFF;font-style:normal;">Administrateur</strong></span>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:0;border-bottom:2px solid var(--cream);margin-bottom:0;flex-wrap:wrap;">';
+  for(var i=0;i<adminTabs.length;i++){
+    var t=adminTabs[i];
+    h+='<button class="cfg-tab'+(t.id==='planning'?' active':'')+'" style="color:'+(t.id==='planning'?'var(--gold)':'#FFFFFF')+';" onclick="plNavToAdmin(\''+t.id+'\')">'+t.label+'</button>';
+  }
+  h+='<button onclick="dispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;flex-wrap:wrap;">';
+  for(var j=0;j<plTabs.length;j++){
+    var pt=plTabs[j];
+    h+='<button class="cfg-tab'+(pt.id==='planning'?' active':'')+'" style="color:'+(pt.id==='planning'?'var(--gold)':'#FFFFFF')+';" onclick="plNavToAdminPl(\''+pt.id+'\')">'+pt.label+'</button>';
+  }
+  h+='</div>';
+  el.innerHTML=h;
+  el.style.display='';
+}
+
 function plInitPage(){
+  plRenderAdminNav();
   plCriteresRestaurer();
   plRenderBareme();
   plRenderObligatoires();
@@ -20298,25 +20335,47 @@ function plLibreAutoriserEtOuvrir(){
   nav('planning-libre');
 }
 
-// ── Branchement Planning libre sur la navigation ──
-// nav('planning-libre') redirige vers le sous-onglet Planning de l'admin
+// ── Navigation depuis Planning libre vers l'espace admin ──
+window._plFromAdmin = false;
+
+function plNavToAdmin(tab){
+  window._plFromAdmin = false;
+  nav('off-admin');
+  setTimeout(function(){
+    var btn=document.querySelector('#v-off-admin .cfg-tab[onclick*="adminTab(\''+tab+'\'"]');
+    adminTab(tab, btn);
+  }, 60);
+}
+
+function plNavToAdminPl(tab){
+  if(tab==='planning') return;
+  window._plFromAdmin = false;
+  nav('off-admin');
+  setTimeout(function(){
+    var btn=document.querySelector('#v-off-admin .cfg-tab[onclick*="adminTab(\'planning\'"]');
+    adminTab('planning', btn);
+    setTimeout(function(){
+      var plBtn=document.getElementById('admin-pl-tab-'+tab);
+      adminPlTab(tab, plBtn);
+    }, 60);
+  }, 60);
+}
+
+// Hook nav('planning-libre') : initialise la page à chaque navigation
 (function(){
   var _origNavPL = nav;
   nav = function(n){
-    if(n==='planning-libre'){
-      // Rester dans l'espace admin, afficher le planning inline
-      _origNavPL('off-admin');
-      setTimeout(function(){
-        var adminBtn=document.querySelector('#v-off-admin .cfg-tab[onclick*="adminTab(\'planning\'"]');
-        adminTab('planning', adminBtn);
-        setTimeout(function(){
-          var plBtn=document.getElementById('admin-pl-tab-planning');
-          adminPlTab('planning', plBtn);
-        },50);
-      },50);
-      return;
-    }
+    var _fromAdmin = window._plFromAdmin; // capture avant reset
+    if(n==='planning-libre') window._plFromAdmin = false; // reset (consume once)
     _origNavPL(n);
+    if(n==='planning-libre'){
+      setTimeout(function(){
+        window._plFromAdmin = _fromAdmin; // restaurer pour plInitPage
+        try{ sessionStorage.setItem(_PL_LIBRE_SESSION_KEY,'1'); }catch(e){}
+        plInitPage();
+        window._plFromAdmin = false; // reset après init
+      }, 60);
+    }
   };
 })();
 </script>
