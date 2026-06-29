@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.45</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.46</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1114,6 +1114,11 @@ function loginVerif(){
         <button class="btn btn-gold btn-sm" style="margin-top:10px" onclick="ajouterPartiesChoisiesModele()">Ajouter la selection</button>
       </div>
       <div class="pe-list" id="pe-modele"></div>
+      <div id="pe-modele-total" style="display:none;align-items:center;gap:8px;margin-top:8px;padding:6px 12px;background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;">
+        <span style="font-size:11px;color:var(--grey);flex:1;">Total</span>
+        <span id="pe-modele-total-val" style="font-size:15px;font-weight:700;color:var(--gold);"></span>
+        <span id="pe-modele-total-hm" style="font-size:11px;color:rgba(255,255,255,.5);"></span>
+      </div>
     </div>
     <div class="mfoot">
       <button class="btn btn-outline" onclick="document.getElementById('ov-modele').classList.remove('open')">Annuler</button>
@@ -3310,6 +3315,16 @@ function peTotalUpdate(){
   if(totDetDiv) totDetDiv.style.display=rowsDet.length>0?'flex':'none';
   if(valDetEl) valDetEl.textContent=totalDet+' min';
   if(hmDetEl){if(totalDet>=60){var hd=Math.floor(totalDet/60),md=totalDet%60;hmDetEl.textContent='('+hd+'h'+(md>0?String(md).padStart(2,'0'):'')+')'}else{hmDetEl.textContent='';}}
+  // Total modèle
+  var rowsMod=document.querySelectorAll('#pe-modele .pe-row');
+  var totalMod=0;
+  for(var k=0;k<rowsMod.length;k++){var mEl=rowsMod[k].querySelector('.pe-dur');if(mEl)totalMod+=parseInt(mEl.value)||0;}
+  var totModDiv=document.getElementById('pe-modele-total');
+  var valModEl=document.getElementById('pe-modele-total-val');
+  var hmModEl=document.getElementById('pe-modele-total-hm');
+  if(totModDiv)totModDiv.style.display=rowsMod.length>0?'flex':'none';
+  if(valModEl)valModEl.textContent=totalMod+' min';
+  if(hmModEl){if(totalMod>=60){var hm2=Math.floor(totalMod/60),mm2=totalMod%60;hmModEl.textContent='('+hm2+'h'+(mm2>0?String(mm2).padStart(2,'0'):'')+')'}else{hmModEl.textContent='';}}
 }
 
 function peGet(cid){
