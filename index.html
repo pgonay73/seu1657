@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.53</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.54</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -16704,6 +16704,37 @@ function tiMoisOptions(sel){
   return h;
 }
 
+function tiComputeDate(mois, rang){
+  var annee=new Date().getFullYear();
+  if(D.loge&&D.loge.periodeDebut) annee=parseInt(D.loge.periodeDebut.substr(0,4))||annee;
+  var mo=mois-1;
+  var dates=[];
+  var seen={};
+  for(var ri=0;ri<(D.regles||[]).length;ri++){
+    var r=D.regles[ri];
+    var occs=[];
+    for(var day=1;day<=31;day++){
+      var dd=new Date(annee,mo,day);
+      if(dd.getMonth()!==mo) break;
+      var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+      if(js===r.jour) occs.push(dd);
+    }
+    for(var oi=0;oi<occs.length;oi++){
+      var occ=occs[oi],numSem=oi+1,inc=false;
+      for(var si=0;si<r.semaines.length;si++){
+        if(r.semaines[si]===5){if(numSem===5&&occs.length===5)inc=true;}
+        else{if(r.semaines[si]===numSem)inc=true;}
+      }
+      if(inc){
+        var ds=annee+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
+        if(!seen[ds]){seen[ds]=true;dates.push(ds);}
+      }
+    }
+  }
+  dates.sort();
+  return dates.length>=rang?dates[rang-1]:'';
+}
+
 function tiRender(){
   if(!D.tenuesImp)D.tenuesImp=[];
   var el=document.getElementById('admin-ti-list');
@@ -16746,12 +16777,7 @@ function tiRender(){
       if(ti.moisTheorique){
         var mois=parseInt(ti.moisTheorique);
         var rang=parseInt(ti.rangTheorique)||1;
-        var annee=new Date().getFullYear();
-        if(D.loge&&D.loge.periodeDebut) annee=parseInt(D.loge.periodeDebut.substr(0,4))||annee;
-        var prefix=annee+'-'+(mois<10?'0':'')+mois;
-        var tMois=(D.tenues||[]).filter(function(t){return (t.date||'').indexOf(prefix)===0;});
-        tMois.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-        if(tMois.length>=rang) dateCible=tMois[rang-1].date;
+        dateCible=tiComputeDate(mois,rang);
       }
       var txt='';
       if(dateCible){
@@ -16784,14 +16810,7 @@ function tiDateHint(id){
   if(!el||!ti)return;
   var dateCible='';
   if(ti.moisTheorique){
-    var mois=parseInt(ti.moisTheorique);
-    var rang=parseInt(ti.rangTheorique)||1;
-    var annee=new Date().getFullYear();
-    if(D.loge&&D.loge.periodeDebut) annee=parseInt(D.loge.periodeDebut.substr(0,4))||annee;
-    var prefix=annee+'-'+(mois<10?'0':'')+mois;
-    var tMois=(D.tenues||[]).filter(function(t){return (t.date||'').indexOf(prefix)===0;});
-    tMois.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-    if(tMois.length>=rang) dateCible=tMois[rang-1].date;
+    dateCible=tiComputeDate(parseInt(ti.moisTheorique),parseInt(ti.rangTheorique)||1);
   }
   if(dateCible){
     var parts=dateCible.split('-');
