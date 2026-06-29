@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.59</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.60</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -16791,11 +16791,24 @@ function tiRender(){
       h+='<span id="ti-dh-'+id+'" style="font-size:12px;color:'+dCol+';font-style:italic;padding:4px 6px;border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(255,255,255,.04);white-space:nowrap;">'+dTxt+'</span>';
       h+='</div>';
     })();
-    // Date substitution
-    h+='<div style="flex:0 0 auto;">';
-    h+='<label style="'+lblS+'">Substitution</label>';
-    h+='<input type="date" value="'+(ti.dateAlt||'')+'" style="'+inpS+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)"/>';
-    h+='</div>';
+    // Date substitution — menu déroulant avec dates du planning
+    (function(){
+      var dates=(D.tenues||[]).map(function(t){return t.date||'';}).filter(Boolean);
+      dates.sort();
+      var opts='<option value="">— Aucune —</option>';
+      var JN=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+      for(var di=0;di<dates.length;di++){
+        var ds=dates[di];
+        var dp=ds.split('-');
+        var dObj=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]));
+        var lbl=JN[dObj.getDay()]+' '+dp[2]+'/'+dp[1]+'/'+dp[0];
+        opts+='<option value="'+ds+'"'+(ti.dateAlt===ds?' selected':'')+'>'+lbl+'</option>';
+      }
+      h+='<div style="flex:0 0 auto;">';
+      h+='<label style="'+lblS+'">Substitution</label>';
+      h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)">'+opts+'</select>';
+      h+='</div>';
+    })();
     // Note (réduite)
     h+='<div style="flex:1;min-width:80px;">';
     h+='<label style="'+lblS+'">Note</label>';
