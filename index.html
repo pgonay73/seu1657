@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.16</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.17</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19469,11 +19469,11 @@ function plRenderPlanchesRecap(containerId){
   }
   var FS='font-size:10px;';
   var h='<table class="pl-table-compact" style="width:100%;font-size:10px;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
-    +'<th style="width:17%;'+FS+'">Date</th>'
-    +'<th style="width:25%;'+FS+'">Tenue</th>'
+    +'<th style="width:12%;'+FS+'">Date</th>'
+    +'<th style="width:17%;'+FS+'">Tenue</th>'
     +'<th style="text-align:center;width:5%;'+FS+'">Dg</th>'
-    +'<th style="text-align:center;width:5%;'+FS+'">Type</th>'
-    +'<th style="width:20%;'+FS+'">Frère</th>'
+    +'<th style="text-align:center;width:4%;'+FS+'">Type</th>'
+    +'<th style="width:14%;'+FS+'">Frère</th>'
     +'<th style="'+FS+'">Sujet</th>'
     +'</tr></thead><tbody>';
   var lastDate='';
