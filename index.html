@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.02</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.03</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6665,75 +6665,75 @@ function delRegle(i){if(!confirm('Supprimer cette regle ?'))return;D.regles.spli
 // MODELES
 // ============================================================
 var _MOD_CATS=['Tenues classiques','Réunions hors tenues','Candidatures','Élections','Installations','Cérémonies','Inspecteur'];
+var _modCatActive='';
 function renderModeles(){
   var targets=['modeles-list','admin-pl-modeles-list'];
-  var empty='<p style="font-size:13px;color:var(--grey);margin-bottom:10px">Aucun modele. Cliquez sur + pour en creer un.</p>';
-  var h='';
+  // Construire groupes
+  var groupes={},sansCat=[];
   if(D.modeles&&D.modeles.length){
-    // Regrouper par catégorie
-    var groupes={};
-    var sansCat=[];
     for(var i=0;i<D.modeles.length;i++){
       var cat=D.modeles[i].categorie||'';
       if(cat){if(!groupes[cat])groupes[cat]=[];groupes[cat].push(D.modeles[i]);}
       else sansCat.push(D.modeles[i]);
     }
-    // Rendu d'une carte modèle
-    function _cardMod(m,mList){
-      var nb=m.parties?m.parties.length:0,tm=0;
-      if(m.parties)for(var j=0;j<m.parties.length;j++)tm+=(m.parties[j].dur||m.parties[j].duree||0);
-      var ds=tm?Math.floor(tm/60)+'h'+(tm%60<10?'0':'')+(tm%60):'';
-      var isFirst=mList[0]===m, isLast=mList[mList.length-1]===m;
-      var upStyle=isFirst?'opacity:.25;pointer-events:none;':'';
-      var dnStyle=isLast?'opacity:.25;pointer-events:none;':'';
-      var c='<div class="item-card"><div class="item-desc">';
-      c+='<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+(m.couleur||'#4472C4')+';flex-shrink:0;margin-right:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.4);"></span>';
-      c+='<strong>'+m.nom+'</strong><span style="margin-left:10px;font-size:12px;color:var(--grey)">'+nb+' partie'+(nb>1?'s':'')+(ds?' &middot; '+ds:'')+'</span></div>';
-      c+='<div style="display:flex;gap:4px;align-items:center">';
-      c+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\',-1)" style="'+upStyle+'" title="Monter">&#9650; Monter</button>';
-      c+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\'\,1)" style="'+dnStyle+'" title="Descendre">&#9660; Descendre</button>';
-      c+='</div>';
-      c+='<button class="act-btn" onclick="editModele(\''+m.id+'\')" style="font-size:13px">&#9999;&#65039;</button>';
-      c+='<button class="act-btn" onclick="dupModele(\''+m.id+'\')" style="font-size:13px;color:var(--grey)" title="Dupliquer">&#128203;</button>';
-      c+='<button class="item-del" onclick="delModele(\''+m.id+'\')">&#10005;</button></div>';
-      return c;
-    }
-    // Catégories dans l'ordre défini
-    for(var ci=0;ci<_MOD_CATS.length;ci++){
-      var cname=_MOD_CATS[ci];
-      var clist=groupes[cname];
-      if(!clist||!clist.length) continue;
-      h+='<div style="margin-bottom:4px;margin-top:10px;">';
-      h+='<div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(184,146,42,.15);border-left:3px solid var(--gold);border-radius:3px;user-select:none;">';
-      h+='<span style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;">'+cname+'</span>';
-      h+='<span style="font-size:11px;color:rgba(255,255,255,.4);">('+clist.length+')</span>';
-      h+='<span style="margin-left:auto;color:var(--gold);font-size:11px;">&#9660;</span>';
-      h+='</div>';
-      h+='<div style="padding-left:10px;border-left:2px solid rgba(184,146,42,.3);margin-left:6px;">';
-      for(var mi=0;mi<clist.length;mi++) h+=_cardMod(clist[mi],clist);
-      h+='</div></div>';
-    }
-    // Modèles sans catégorie
-    if(sansCat.length){
-      h+='<div style="margin-bottom:4px;margin-top:10px;">';
-      if(Object.keys(groupes).length>0){
-        h+='<div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.05);border-left:3px solid rgba(255,255,255,.3);border-radius:3px;user-select:none;">';
-        h+='<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;">Sans catégorie</span>';
-        h+='<span style="font-size:11px;color:rgba(255,255,255,.4);">('+sansCat.length+')</span>';
-        h+='<span style="margin-left:auto;color:rgba(255,255,255,.5);font-size:11px;">&#9660;</span>';
-        h+='</div>';
-        h+='<div style="padding-left:10px;border-left:2px solid rgba(255,255,255,.15);margin-left:6px;">';
-        for(var si=0;si<sansCat.length;si++) h+=_cardMod(sansCat[si],sansCat);
-        h+='</div>';
-      } else {
-        for(var si2=0;si2<sansCat.length;si2++) h+=_cardMod(sansCat[si2],sansCat);
+  }
+  // Onglets disponibles (catégories ayant au moins 1 modèle)
+  var onglets=[];
+  for(var ci=0;ci<_MOD_CATS.length;ci++){if(groupes[_MOD_CATS[ci]]&&groupes[_MOD_CATS[ci]].length)onglets.push(_MOD_CATS[ci]);}
+  if(sansCat.length) onglets.push('');
+  // Si l'onglet actif n'existe plus, revenir au premier
+  if(_modCatActive!==''&&onglets.indexOf(_modCatActive)<0) _modCatActive=onglets.length?onglets[0]:'';
+  if(_modCatActive===''&&onglets.length&&onglets[0]!=='') _modCatActive=onglets[0];
+
+  // Rendu d'une carte modèle
+  function _cardMod(m,mList){
+    var nb=m.parties?m.parties.length:0,tm=0;
+    if(m.parties)for(var j=0;j<m.parties.length;j++)tm+=(m.parties[j].dur||m.parties[j].duree||0);
+    var ds=tm?Math.floor(tm/60)+'h'+(tm%60<10?'0':'')+(tm%60):'';
+    var isFirst=mList[0]===m,isLast=mList[mList.length-1]===m;
+    var upStyle=isFirst?'opacity:.25;pointer-events:none;':'';
+    var dnStyle=isLast?'opacity:.25;pointer-events:none;':'';
+    var c='<div class="item-card"><div class="item-desc">';
+    c+='<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+(m.couleur||'#4472C4')+';flex-shrink:0;margin-right:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.4);"></span>';
+    c+='<strong>'+m.nom+'</strong><span style="margin-left:10px;font-size:12px;color:var(--grey)">'+nb+' partie'+(nb>1?'s':'')+(ds?' &middot; '+ds:'')+'</span></div>';
+    c+='<div style="display:flex;gap:4px;align-items:center">';
+    c+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\',-1)" style="'+upStyle+'" title="Monter">&#9650; Monter</button>';
+    c+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\'\,1)" style="'+dnStyle+'" title="Descendre">&#9660; Descendre</button>';
+    c+='</div>';
+    c+='<button class="act-btn" onclick="editModele(\''+m.id+'\')" style="font-size:13px">&#9999;&#65039;</button>';
+    c+='<button class="act-btn" onclick="dupModele(\''+m.id+'\')" style="font-size:13px;color:var(--grey)" title="Dupliquer">&#128203;</button>';
+    c+='<button class="item-del" onclick="delModele(\''+m.id+'\')">&#10005;</button></div>';
+    return c;
+  }
+
+  var h='';
+  if(!D.modeles||!D.modeles.length){
+    h='<p style="font-size:13px;color:var(--grey);margin-bottom:10px">Aucun modele. Cliquez sur + pour en creer un.</p>';
+  } else {
+    // Barre d'onglets
+    if(onglets.length){
+      h+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;border-bottom:2px solid rgba(184,146,42,.3);padding-bottom:6px;">';
+      for(var oi=0;oi<onglets.length;oi++){
+        var oname=onglets[oi];
+        var olabel=oname||'Sans catégorie';
+        var nb2=(oname?groupes[oname]:sansCat).length;
+        var isAct=(_modCatActive===oname);
+        var actStyle=isAct?'background:rgba(184,146,42,.25);border-bottom:2px solid var(--gold);color:var(--gold);font-weight:700;':'color:rgba(255,255,255,.6);';
+        h+='<button onclick="_modCatActive=\''+oname+'\';renderModeles();" style="border:none;background:none;cursor:pointer;padding:5px 12px;font-family:Raleway,sans-serif;font-size:12px;border-radius:3px 3px 0 0;'+actStyle+'">'+olabel+' <span style="font-size:10px;opacity:.7;">('+nb2+')</span></button>';
       }
       h+='</div>';
+    }
+    // Liste de l'onglet actif
+    var liste=_modCatActive?groupes[_modCatActive]:sansCat;
+    if(!liste||!liste.length){
+      h+='<p style="font-size:13px;color:var(--grey);">Aucun modèle dans cette catégorie.</p>';
+    } else {
+      for(var mi=0;mi<liste.length;mi++) h+=_cardMod(liste[mi],liste);
     }
   }
   for(var ti=0;ti<targets.length;ti++){
     var el=document.getElementById(targets[ti]);
-    if(el) el.innerHTML=h||empty;
+    if(el) el.innerHTML=h;
   }
 }
 
