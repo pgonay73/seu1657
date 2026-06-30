@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-30.86</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-30.87</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19145,9 +19145,6 @@ function plRenderPlanning(){
     +'<th style="width:150px;">Date</th>'
     +'<th style="text-align:center;width:50px;">Degré</th>'
     +'<th style="width:auto;">Titre</th>'
-    +'<th style="text-align:center;width:64px;">Modules<br>dispo.</th>'
-    +'<th style="text-align:center;width:64px;">Planches<br>+Parole</th>'
-    +'<th style="text-align:center;width:64px;">Symbo-<br>lisme</th>'
     +'<th style="text-align:center;width:44px;">Détail</th>'
     +'<th style="width:36px;"></th>'
     +'</tr></thead><tbody>';
@@ -19204,9 +19201,6 @@ function plRenderPlanning(){
       +'<td style="white-space:nowrap;color:var(--gold2);font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠ Férié</span>':'')+'</td>'
       +'<td style="text-align:center;color:var(--gold2);font-weight:700;">'+deg+'</td>'
       +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><a href="#" onclick="plOpenForm(&quot;'+eid+'&quot;);return false;" title="Modifier le titre, la date, l\'heure, la catégorie..." style="color:'+couleurTitre+';text-decoration:none;cursor:pointer;">'+titreAffiche+'</a>'+nomTenueAff+modeleAff+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div></td>'
-      +'<td style="text-align:center;">'+(restants===0?'':('<button onclick="plOuvrirParties(&quot;'+eid+'&quot;)" title="Voir/modifier le détail des modules" style="background:none;border:1px solid '+(depasseModules?'#C0524A':'rgba(255,255,255,.2)')+';border-radius:3px;color:'+(depasseModules?'#C0524A':'var(--gold2)')+';cursor:pointer;font-size:11px;font-weight:600;padding:2px 8px;white-space:nowrap;">'+restants+'</button>'))+'</td>'
-      +'<td style="text-align:center;color:var(--gold2);font-weight:600;">'+(nbBlocs===0?'':nbBlocs)+'</td>'
-      +'<td style="text-align:center;color:rgba(255,255,255,.8);">'+(sujetSymbolisme===0?'':sujetSymbolisme)+'</td>'
       +'<td style="text-align:center;"><button onclick="plOuvrirDetailTenue(&quot;'+eid+'&quot;)" title="Détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:13px;padding:2px 7px;">📋</button></td>'
       +'<td style="text-align:center;"><button onclick="plDeleteDirect(&quot;'+eid+'&quot;)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:13px;padding:2px 7px;">🗑</button></td>'
       +'</tr>';
@@ -19215,7 +19209,7 @@ function plRenderPlanning(){
     var detailParties=e.detail&&e.detail.length?e.detail:(D.parDefaut||[]);
     h+='<tr id="pl-detail-row-'+eid+'" style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
     h+='<td></td>';
-    h+='<td colspan="8" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
+    h+='<td colspan="5" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
     if(!detailParties.length){
       h+='<span style="font-size:11.5px;color:rgba(255,255,255,.4);font-style:italic;">Aucun détail saisi — cliquer sur 📋 pour compléter.</span>';
     } else {
