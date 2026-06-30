@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.04</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.05</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6707,8 +6707,8 @@ function renderModeles(){
     var tlabel=tcat==='__sans__'?'Sans catégorie':tcat;
     var tnb=(tcat==='__sans__'?sansCat:(groupes[tcat]||[])).length;
     var tact=(_modCatActive===tcat);
-    var tst=tact?'color:var(--gold);font-weight:700;border-bottom:2px solid var(--gold);margin-bottom:-2px;background:rgba(184,146,42,.12);':'color:rgba(255,255,255,.55);border-bottom:2px solid transparent;margin-bottom:-2px;';
-    h+='<button onclick="_modCatActive='+JSON.stringify(tcat)+';renderModeles();" style="border:none;cursor:pointer;padding:6px 10px;font-family:Raleway,sans-serif;font-size:11px;border-radius:3px 3px 0 0;'+tst+'">'+tlabel+(tnb?' <span style=\'font-size:10px;opacity:.6;\'>'+tnb+'</span>':'')+'</button>';
+    var tst=tact?'color:var(--gold);font-weight:700;border-bottom:2px solid var(--gold);margin-bottom:-2px;background:rgba(184,146,42,.12);':'color:rgba(255,255,255,.55);border-bottom:2px solid transparent;margin-bottom:-2px;background:transparent;';
+    h+='<button onclick="_modCatActive=\''+tcat+'\';renderModeles();" style="border:none;cursor:pointer;padding:6px 10px;font-family:Raleway,sans-serif;font-size:11px;border-radius:3px 3px 0 0;'+tst+'">'+tlabel+(tnb?' <span style="font-size:10px;opacity:.6;">'+tnb+'</span>':'')+'</button>';
   }
   h+='</div>';
 
