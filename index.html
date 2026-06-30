@@ -304,12 +304,12 @@ input, select, textarea { color: #1E3660; }
 #v-off-admin .item-card span, #v-off-admin .item-card div { color: #FFFFFF !important; }
 #v-off-admin .pe-row { background: var(--white) !important; }
 #v-off-admin .pe-row input, #v-off-admin .pe-row select { color: #FFFFFF !important; background:#1E3660 !important; }
-#ov-pl-detail .pe-row { background: rgba(255,255,255,.07) !important; border-color:rgba(184,146,42,.4) !important; }
-#ov-pl-detail .pe-row input, #ov-pl-detail .pe-row select { color: #FFFFFF !important; background: rgba(255,255,255,.07) !important; border-color:rgba(255,255,255,.25) !important; }
-#ov-pl-detail .pe-row input::placeholder { color: rgba(255,255,255,.35) !important; }
-#ov-pl-detail label, #ov-pl-detail span, #ov-pl-detail .pe-mv, #ov-pl-detail .pe-dup, #ov-pl-detail .pe-del { color: #FFFFFF !important; }
-#ov-pl-detail .pe-del { border-color: rgba(192,57,43,.5) !important; }
-#ov-pl-detail select option { background: #1E3660; color: #FFFFFF; }
+#ov-pl-detail .pe-row,#pl-form-wrap .pe-row { background: rgba(255,255,255,.07) !important; border-color:rgba(184,146,42,.4) !important; }
+#ov-pl-detail .pe-row input,#ov-pl-detail .pe-row select,#pl-form-wrap .pe-row input,#pl-form-wrap .pe-row select { color: #FFFFFF !important; background: rgba(255,255,255,.07) !important; border-color:rgba(255,255,255,.25) !important; }
+#ov-pl-detail .pe-row input::placeholder,#pl-form-wrap .pe-row input::placeholder { color: rgba(255,255,255,.35) !important; }
+#ov-pl-detail label,#ov-pl-detail span,#ov-pl-detail .pe-mv,#ov-pl-detail .pe-dup,#ov-pl-detail .pe-del,#pl-form-wrap .pe-rubriques label,#pl-form-wrap .pe-rubriques span,#pl-form-wrap .pe-mv,#pl-form-wrap .pe-dup,#pl-form-wrap .pe-del { color: #FFFFFF !important; }
+#ov-pl-detail .pe-del,#pl-form-wrap .pe-del { border-color: rgba(192,57,43,.5) !important; }
+#ov-pl-detail select option,#pl-form-wrap select option { background: #1E3660; color: #FFFFFF; }
 #v-off-admin .jbtn, #v-off-admin .sbtn { color: #FFFFFF !important; background:#1E3660 !important; border-color: rgba(255,255,255,.5) !important; }
 #v-off-admin .jbtn.on, #v-off-admin .sbtn.on { color: var(--gold) !important; background: var(--navy) !important; }
 #v-off-admin .section-sep { color: #FFFFFF !important; }
@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.78</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.79</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17313,39 +17313,79 @@ var PA_SUGGESTIONS_MOIS={
       <div style="margin-top:10px;">
         <button class="pl-btn pl-btn-gold pl-btn-sm" onclick="plOpenForm(null)">+ Nouvelle tenue</button>
       </div>
-      <div id="pl-form-wrap" style="display:none;margin-top:12px;border-top:1px solid var(--cream);padding-top:12px;">
-        <h4 id="pl-form-title">Nouvelle tenue</h4>
-        <div class="pl-cfg-row">
-          <div class="pl-cfg-group" style="max-width:170px;"><label>Date *</label><input type="date" id="pl-inp-date"></div>
-          <div class="pl-cfg-group"><label>Titre *</label><input type="text" id="pl-inp-titre"></div>
-          <div class="pl-cfg-group" style="max-width:160px;"><label>Heure</label><input type="time" id="pl-inp-heure" value="19:30"></div>
+      <div id="pl-form-wrap" style="display:none;margin-top:16px;background:#0E1E38;border:2px solid rgba(184,146,42,.65);border-radius:10px;overflow:hidden;">
+        <!-- En-tête -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(184,146,42,.12);border-bottom:1px solid rgba(184,146,42,.4);">
+          <h4 id="pl-form-title" style="margin:0;font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--gold2);font-weight:700;">Nouvelle tenue</h4>
+          <button onclick="plCloseForm()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;">✕</button>
         </div>
-        <div class="pl-cfg-row">
-          <div class="pl-cfg-group">
-            <label>Catégorie</label>
-            <select id="pl-inp-cat">
-              <option value="tenue">Tenue</option>
-              <option value="reunion">Réunion</option>
-              <option value="agape">Agape</option>
-              <option value="ceremonie">Cérémonie</option>
-              <option value="formation">Formation</option>
-              <option value="autre">Autre</option>
+        <!-- Section 1 : Informations -->
+        <div style="padding:16px 20px;border-bottom:1px solid rgba(184,146,42,.25);">
+          <p style="font-size:10px;color:rgba(184,146,42,.8);text-transform:uppercase;letter-spacing:.8px;margin:0 0 10px;font-weight:700;">Informations</p>
+          <div class="pl-cfg-row">
+            <div class="pl-cfg-group" style="max-width:170px;"><label>Date *</label><input type="date" id="pl-inp-date"></div>
+            <div class="pl-cfg-group"><label>Titre *</label><input type="text" id="pl-inp-titre"></div>
+            <div class="pl-cfg-group" style="max-width:160px;"><label>Heure</label><input type="time" id="pl-inp-heure" value="19:30"></div>
+          </div>
+          <div class="pl-cfg-row">
+            <div class="pl-cfg-group">
+              <label>Catégorie</label>
+              <select id="pl-inp-cat">
+                <option value="tenue">Tenue</option>
+                <option value="reunion">Réunion</option>
+                <option value="agape">Agape</option>
+                <option value="ceremonie">Cérémonie</option>
+                <option value="formation">Formation</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+            <div class="pl-cfg-group" style="max-width:100px;">
+              <label>Degré</label>
+              <select id="pl-inp-degre">
+                <option value="1°">1°</option>
+                <option value="2°">2°</option>
+                <option value="3°">3°</option>
+                <option value="Tous">Tous</option>
+              </select>
+            </div>
+            <div class="pl-cfg-group" style="max-width:120px;"><label>Durée (min)</label><input type="number" id="pl-inp-duree" min="0" max="480" step="15"></div>
+            <div class="pl-cfg-group"><label>Notes</label><input type="text" id="pl-inp-notes"></div>
+          </div>
+          <div class="pl-cfg-row" style="align-items:flex-end;gap:8px;">
+            <div class="pl-cfg-group"><label>Modèle</label><select id="pl-inp-modele"><option value="">— Aucun —</option></select></div>
+            <div style="padding-bottom:2px;"><button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plFormAppliquerModele()" title="Remplacer les rubriques par celles du modèle sélectionné">↻ Appliquer le modèle</button></div>
+          </div>
+        </div>
+        <!-- Section 2 : Rubriques -->
+        <div class="pe-rubriques" style="padding:16px 20px;">
+          <p style="font-size:10px;color:rgba(184,146,42,.8);text-transform:uppercase;letter-spacing:.8px;margin:0 0 10px;font-weight:700;">Rubriques de la tenue</p>
+          <div class="pe-list" id="pe-pl-form"></div>
+          <div id="pe-pl-form-total" style="display:none;align-items:center;gap:10px;margin-top:8px;padding:6px 10px;background:rgba(184,146,42,.15);border:1px solid rgba(184,146,42,.4);border-radius:5px;">
+            <span style="font-size:12px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;">Total</span>
+            <span id="pe-pl-form-total-val" style="font-size:16px;font-weight:700;color:var(--gold2);"></span>
+            <span id="pe-pl-form-total-hm" style="font-size:13px;color:rgba(255,255,255,.5);"></span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
+            <span style="font-size:12px;color:rgba(255,255,255,.6);">+ Ajouter :</span>
+            <select onchange="plFormAjouterPartie(this.value);this.selectedIndex=0;" style="padding:5px 8px;border:1px solid rgba(184,146,42,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:12px;cursor:pointer;">
+              <option value="">— Choisir un type —</option>
+              <option value="RITUEL OUVERTURE">Rituel ouverture</option>
+              <option value="RITUEL FERMETURE">Rituel fermeture</option>
+              <option value="MORCEAU D'ARCHITECTURE">Morceau d'architecture</option>
+              <option value="COLLEGE">Collège</option>
+              <option value="DEPUTE">Député</option>
+              <option value="INITIATION">Initiation</option>
+              <option value="PROFANE">Profane / Candidature</option>
+              <option value="CEREMONIE">Cérémonie</option>
+              <option value="INSPECTEUR">Inspecteur</option>
+              <option value="CONSEIL D'ADMINISTRATION">Conseil d'administration</option>
+              <option value="REUNION APPRENTI">Réunion apprentis</option>
+              <option value="REUNION COMPAGNON">Réunion compagnons</option>
             </select>
           </div>
-          <div class="pl-cfg-group" style="max-width:100px;">
-            <label>Degré</label>
-            <select id="pl-inp-degre">
-              <option value="1°">1°</option>
-              <option value="2°">2°</option>
-              <option value="3°">3°</option>
-              <option value="Tous">Tous</option>
-            </select>
-          </div>
-          <div class="pl-cfg-group" style="max-width:120px;"><label>Durée (min)</label><input type="number" id="pl-inp-duree" min="0" max="480" step="15"></div>
-          <div class="pl-cfg-group"><label>Notes</label><input type="text" id="pl-inp-notes"></div>
-          <div class="pl-cfg-group"><label>Modèle</label><select id="pl-inp-modele"><option value="">— Aucun —</option></select></div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
+        <!-- Boutons -->
+        <div style="display:flex;gap:8px;padding:14px 20px;background:rgba(0,0,0,.2);border-top:1px solid rgba(184,146,42,.25);flex-wrap:wrap;">
           <button class="pl-btn pl-btn-gold pl-btn-sm" onclick="plSaveForm()">✓ Enregistrer</button>
           <button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plCloseForm()">Annuler</button>
           <button class="pl-btn pl-btn-red pl-btn-sm" id="pl-btn-suppr" style="display:none;margin-left:auto;" onclick="plDelete()">✕ Supprimer</button>
@@ -19295,6 +19335,9 @@ function plOpenForm(id){
   }
   var ft=document.getElementById('pl-form-title');if(ft)ft.textContent=e?'Modifier la tenue':'Nouvelle tenue';
   var sb=document.getElementById('pl-btn-suppr');if(sb)sb.style.display=e?'':'none';
+  // Charger les rubriques dans l'éditeur intégré
+  var parties=e&&e.detail&&e.detail.length?e.detail:cpP(D.parDefaut||[]);
+  peRender('pe-pl-form', parties);
   fw.style.display='block';
   fw.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -19312,13 +19355,13 @@ function plSaveForm(){
     var duree=parseInt((document.getElementById('pl-inp-duree')||{}).value)||0;
     var notes=((document.getElementById('pl-inp-notes')||{}).value||'').trim();
     var modeleId=(document.getElementById('pl-inp-modele')||{}).value||'';
+    var newDetail=peGet('pe-pl-form');
     var data=plLoad();if(!data.events)data.events=[];
     if(_plEditId){
       var idx=-1;for(var i=0;i<data.events.length;i++)if(data.events[i].id===_plEditId){idx=i;break;}
       if(idx>=0){
         var ex=data.events[idx];
-        data.events[idx]={id:_plEditId,date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId};
-        if(ex.detail!==undefined)data.events[idx].detail=ex.detail;
+        data.events[idx]={id:_plEditId,date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail};
         if(ex.parties!==undefined)data.events[idx].parties=ex.parties;
         if(ex.modulesSupp!==undefined)data.events[idx].modulesSupp=ex.modulesSupp;
         if(ex.nomTenue!==undefined)data.events[idx].nomTenue=ex.nomTenue;
@@ -19327,7 +19370,7 @@ function plSaveForm(){
         toast('Tenue introuvable (id: '+_plEditId+'). Enregistrement impossible.');return;
       }
     } else {
-      data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId});
+      data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail});
     }
     plSave(data);
     plCloseForm();
@@ -19338,6 +19381,22 @@ function plSaveForm(){
     toast('Erreur lors de l\'enregistrement : '+(err&&err.message?err.message:String(err)));
     console.error('plSaveForm error:',err);
   }
+}
+function plFormAjouterPartie(nom){
+  if(!nom) return;
+  var p=peGet('pe-pl-form');
+  p.push({nom:nom,dur:30});
+  peRender('pe-pl-form',p);
+}
+function plFormAppliquerModele(){
+  var modeleId=(document.getElementById('pl-inp-modele')||{}).value||'';
+  if(!modeleId){toast('Sélectionnez d\'abord un modèle.');return;}
+  var mod=(D.modeles||[]).filter(function(m){return m.id===modeleId;})[0];
+  if(!mod){toast('Modèle introuvable.');return;}
+  var parties=cpP(mod.parties||[]);
+  if(!parties.length){toast('Ce modèle ne contient pas de rubriques.');return;}
+  peRender('pe-pl-form',parties);
+  toast('Rubriques remplacées par le modèle "'+mod.nom+'".');
 }
 function plDelete(){
   if(!_plEditId)return;var data=plLoad();
