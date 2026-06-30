@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.79</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-30.80</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19184,7 +19184,7 @@ function plRenderPlanning(){
     var aTroisieme=clesPO.some(function(c){return c.indexOf('troisieme:')===0;});
     var marqueur=aObligatoire?'&#9733; ':((aConseillee||aTroisieme)?'&#9679; ':'');
     var titreAffiche=marqueur+(e.titre||'—');
-    var nomTenueAff=e.nomTenue?('<div style="font-size:11px;color:rgba(255,255,255,.55);font-style:italic;margin-top:1px;">'+e.nomTenue+'</div>'):'';
+    var nomTenueAff=e.nomTenue?('<span style="font-size:11px;color:rgba(255,255,255,.55);font-style:italic;">'+e.nomTenue+'</span>'):'';
     var couleurTitre=aObligatoire?'var(--gold2)':(aTroisieme?'#5DA8D9':(aConseillee?'#7FB3D5':'#FFFFFF'));
     var utilisesModules=(e.parties||[]).reduce(function(s,p){return s+(p.modules||0);},0);
     var depasseModules=utilisesModules>disponiblesModules;
@@ -19196,12 +19196,12 @@ function plRenderPlanning(){
     var ferie=plJourFerie(e.date);
     var bgFerie=ferie?'background:rgba(255,80,80,.07);':'';
     var modeleAff='';
-    if(e.modeleId){var _m=(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0];if(_m)modeleAff='<div style="font-size:10px;color:rgba(184,146,42,.75);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.25);border-radius:3px;padding:1px 5px;margin-top:2px;display:inline-block;">'+_m.nom+'</div>';}
+    if(e.modeleId){var _m=(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0];if(_m)modeleAff='<span style="font-size:10px;color:rgba(184,146,42,.75);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.25);border-radius:3px;padding:1px 5px;">'+_m.nom+'</span>';}
     h+='<tr style="'+traitJournee+bgFerie+'">'
       +'<td style="text-align:center;"><button onclick="plToggleDetailModules(&quot;'+eid+'&quot;,this)" id="pl-detail-btn-'+eid+'" title="Voir le découpage par module" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;padding:2px;">'+(plAllDetailsExpanded?'&#9660;':'&#9654;')+'</button></td>'
       +'<td style="white-space:nowrap;color:var(--gold2);font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠ Férié</span>':'')+'</td>'
       +'<td style="text-align:center;color:var(--gold2);font-weight:700;">'+deg+'</td>'
-      +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><a href="#" onclick="plOpenForm(&quot;'+eid+'&quot;);return false;" title="Modifier le titre, la date, l\'heure, la catégorie..." style="color:'+couleurTitre+';text-decoration:none;cursor:pointer;">'+titreAffiche+'</a>'+nomTenueAff+modeleAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</td>'
+      +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><a href="#" onclick="plOpenForm(&quot;'+eid+'&quot;);return false;" title="Modifier le titre, la date, l\'heure, la catégorie..." style="color:'+couleurTitre+';text-decoration:none;cursor:pointer;">'+titreAffiche+'</a>'+nomTenueAff+modeleAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div></td>'
       +'<td style="text-align:center;">'+(restants===0?'':('<button onclick="plOuvrirParties(&quot;'+eid+'&quot;)" title="Voir/modifier le détail des modules" style="background:none;border:1px solid '+(depasseModules?'#C0524A':'rgba(255,255,255,.2)')+';border-radius:3px;color:'+(depasseModules?'#C0524A':'var(--gold2)')+';cursor:pointer;font-size:11px;font-weight:600;padding:2px 8px;white-space:nowrap;">'+restants+'</button>'))+'</td>'
       +'<td style="text-align:center;color:var(--gold2);font-weight:600;">'+(nbBlocs===0?'':nbBlocs)+'</td>'
       +'<td style="text-align:center;color:rgba(255,255,255,.8);">'+(sujetSymbolisme===0?'':sujetSymbolisme)+'</td>'
