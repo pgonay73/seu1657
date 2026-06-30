@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.17</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.18</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19445,23 +19445,19 @@ function plRenderPlanchesRecap(containerId){
   var rows=[];
   evts.forEach(function(e){
     var dStr=e.date||'';
+    if(dStr<today) return; // masquer les tenues passées
     var assignes=suiviParTenue[e.id]||[];
-    var restants=(moduleDefautGlobal+(e.modulesSupp||0))-(e.parties||[]).reduce(function(s,p){return s+(p.modules||0);},0);
-    var hasCapaP=coutP>0&&restants>=coutP;
-    var hasCapaS=coutS>0&&restants>=coutS;
-    if(!assignes.length&&!hasCapaP&&!hasCapaS) return;
     var d2=new Date(dStr+'T12:00:00');
     var dow=JC[(d2.getDay()===0)?6:(d2.getDay()-1)];
     var ds2=dow+' '+d2.getDate()+' '+ML[d2.getMonth()]+' '+d2.getFullYear();
     var deg=e.degre||'1°';
-    var passee=dStr<today;
     assignes.forEach(function(a){
-      rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:a.type,nomFrere:a.nomFrere,sujet:a.sujet,libre:false,passee:passee});
+      rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:a.type,nomFrere:a.nomFrere,sujet:a.sujet,libre:false});
     });
     var nbPAss=assignes.filter(function(a){return a.type==='Planche';}).length;
     var nbSAss=assignes.filter(function(a){return a.type==='Symbolisme';}).length;
-    if(hasCapaP&&nbPAss===0) rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Planche',nomFrere:'',sujet:'',libre:true,passee:passee});
-    if(hasCapaS&&nbSAss===0) rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Symbolisme',nomFrere:'',sujet:'',libre:true,passee:passee});
+    if(nbPAss===0) rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Planche',nomFrere:'',sujet:'',libre:true});
+    if(nbSAss===0) rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Symbolisme',nomFrere:'',sujet:'',libre:true});
   });
   if(!rows.length){
     el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucune tenue avec planche ou symbolisme planifié.</p>';
@@ -19478,22 +19474,21 @@ function plRenderPlanchesRecap(containerId){
     +'</tr></thead><tbody>';
   var lastDate='';
   rows.forEach(function(r){
-    var opac=r.passee?'.35':'1';
     var sepTop=(r.date!==lastDate)?'border-top:1.5px solid rgba(184,146,42,.3);':'';
     lastDate=r.date;
     var tc=r.type==='Symbolisme'?'#A8E6A3':'#9ED3F5';
     h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+sepTop+'">'
-      +'<td style="'+FS+'white-space:nowrap;color:var(--gold2);opacity:'+opac+';">'+r.ds2+'</td>'
-      +'<td style="'+FS+'opacity:'+opac+';">'+(r.titre||'—')+'</td>'
-      +'<td style="'+FS+'text-align:center;color:var(--gold2);font-weight:700;opacity:'+opac+';">'+r.deg+'</td>'
+      +'<td style="'+FS+'white-space:nowrap;color:var(--gold2);">'+r.ds2+'</td>'
+      +'<td style="'+FS+'">'+(r.titre||'—')+'</td>'
+      +'<td style="'+FS+'text-align:center;color:var(--gold2);font-weight:700;">'+r.deg+'</td>'
       +'<td style="'+FS+'text-align:center;"><span style="color:'+tc+';font-weight:700;">'+r.type.charAt(0)+'</span></td>'
       +'<td style="'+FS+'">'+(r.libre?'<em style="color:rgba(255,255,255,.3);">— Libre —</em>':'<span style="color:var(--gold2);font-weight:600;">'+r.nomFrere+'</span>')+'</td>'
       +'<td style="'+FS+'">'+(r.sujet?('<span style="color:rgba(255,255,255,.85);">'+r.sujet+'</span>'):'<span style="color:rgba(255,255,255,.2);">—</span>')+'</td>'
       +'</tr>';
   });
   h+='</tbody></table>';
-  var nbA=rows.filter(function(r){return !r.libre&&!r.passee;}).length;
-  var nbL=rows.filter(function(r){return r.libre&&!r.passee;}).length;
+  var nbA=rows.filter(function(r){return !r.libre;}).length;
+  var nbL=rows.filter(function(r){return r.libre;}).length;
   h+='<p style="font-size:11px;color:rgba(255,255,255,.35);margin-top:6px;">'+nbA+' assigné'+(nbA>1?'s':'')+'  &bull;  '+nbL+' libre'+(nbL>1?'s':'')+' (tenues à venir)</p>';
   el.innerHTML=h;
 }
