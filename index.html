@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-30.80</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-30.81</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17367,20 +17367,8 @@ var PA_SUGGESTIONS_MOIS={
           </div>
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
             <span style="font-size:12px;color:rgba(255,255,255,.6);">+ Ajouter :</span>
-            <select onchange="plFormAjouterPartie(this.value);this.selectedIndex=0;" style="padding:5px 8px;border:1px solid rgba(184,146,42,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:12px;cursor:pointer;">
+            <select id="pl-form-type-sel" onchange="plFormAjouterPartie(this.value);this.selectedIndex=0;" style="padding:5px 8px;border:1px solid rgba(184,146,42,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:12px;cursor:pointer;">
               <option value="">— Choisir un type —</option>
-              <option value="RITUEL OUVERTURE">Rituel ouverture</option>
-              <option value="RITUEL FERMETURE">Rituel fermeture</option>
-              <option value="MORCEAU D'ARCHITECTURE">Morceau d'architecture</option>
-              <option value="COLLEGE">Collège</option>
-              <option value="DEPUTE">Député</option>
-              <option value="INITIATION">Initiation</option>
-              <option value="PROFANE">Profane / Candidature</option>
-              <option value="CEREMONIE">Cérémonie</option>
-              <option value="INSPECTEUR">Inspecteur</option>
-              <option value="CONSEIL D'ADMINISTRATION">Conseil d'administration</option>
-              <option value="REUNION APPRENTI">Réunion apprentis</option>
-              <option value="REUNION COMPAGNON">Réunion compagnons</option>
             </select>
           </div>
         </div>
@@ -19333,6 +19321,16 @@ function plOpenForm(id){
       modSel.appendChild(o);
     });
   }
+  var typeSel=document.getElementById('pl-form-type-sel');
+  if(typeSel){
+    typeSel.innerHTML='<option value="">— Choisir un type —</option>';
+    (D.typesDurees||[]).forEach(function(t){
+      var o=document.createElement('option');
+      o.value=t.nom;
+      o.textContent=t.nom+' ('+t.dur+' min)';
+      typeSel.appendChild(o);
+    });
+  }
   var ft=document.getElementById('pl-form-title');if(ft)ft.textContent=e?'Modifier la tenue':'Nouvelle tenue';
   var sb=document.getElementById('pl-btn-suppr');if(sb)sb.style.display=e?'':'none';
   // Charger les rubriques dans l'éditeur intégré
@@ -19384,8 +19382,10 @@ function plSaveForm(){
 }
 function plFormAjouterPartie(nom){
   if(!nom) return;
+  var t=(D.typesDurees||[]).filter(function(x){return x.nom===nom;})[0];
+  var dur=t?t.dur:30;
   var p=peGet('pe-pl-form');
-  p.push({nom:nom,dur:30});
+  p.push({nom:nom,dur:dur});
   peRender('pe-pl-form',p);
 }
 function plFormAppliquerModele(){
