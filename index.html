@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.19</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.20</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19423,9 +19423,6 @@ function plRenderPlanchesRecap(containerId){
   var data=plLoad();
   var today=new Date().toISOString().substring(0,10);
   var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-  var moduleDefautGlobal=parseInt(plDureeGenereeLoad())||10;
-  var coutP=(plBaremeValeur('planche')||2)+(plBaremeValeur('circulation')||2);
-  var coutS=plBaremeValeur('symbolisme')||2;
   var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   var ML=['Jan.','Fév.','Mar.','Avr.','Mai','Jun.','Jul.','Aoû.','Sep.','Oct.','Nov.','Déc.'];
   // Reverse suivi index: tenueId → [{nomFrere, type, degre, sujet}]
@@ -19446,18 +19443,29 @@ function plRenderPlanchesRecap(containerId){
   evts.forEach(function(e){
     var dStr=e.date||'';
     if(dStr<today) return; // masquer les tenues passées
+    // Disponibilités P/S telles que définies dans 🕐 Planning (Détail des tenues) :
+    // nombre de rubriques marquées "planche" / "symbolisme" dans le détail de la tenue.
+    var _det=e.detail||[];
+    var nbP=_det.filter(function(p){return p.plancheSteps&&p.plancheSteps.indexOf('planche')>=0;}).length;
+    var nbS=_det.filter(function(p){return (p.symDegres&&p.symDegres.length>0)||(p.plancheSteps&&p.plancheSteps.indexOf('symbolisme')>=0);}).length;
+    if(nbP===0 && nbS===0) return; // aucune disponibilité P/S configurée pour cette tenue
     var assignes=suiviParTenue[e.id]||[];
     var d2=new Date(dStr+'T12:00:00');
     var dow=JC[(d2.getDay()===0)?6:(d2.getDay()-1)];
     var ds2=dow+' '+d2.getDate()+' '+ML[d2.getMonth()]+' '+d2.getFullYear();
     var deg=e.degre||'1°';
-    assignes.forEach(function(a){
-      rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:a.type,nomFrere:a.nomFrere,sujet:a.sujet,libre:false});
-    });
-    var nbPAss=assignes.filter(function(a){return a.type==='Planche';}).length;
-    var nbSAss=assignes.filter(function(a){return a.type==='Symbolisme';}).length;
-    if(nbPAss===0) rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Planche',nomFrere:'',sujet:'',libre:true});
-    if(nbSAss===0) rows.push({date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Symbolisme',nomFrere:'',sujet:'',libre:true});
+    var assP=assignes.filter(function(a){return a.type==='Planche';});
+    var assS=assignes.filter(function(a){return a.type==='Symbolisme';});
+    for(var i=0;i<nbP;i++){
+      var a=assP[i];
+      rows.push(a?{date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Planche',nomFrere:a.nomFrere,sujet:a.sujet,libre:false}
+                  :{date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Planche',nomFrere:'',sujet:'',libre:true});
+    }
+    for(var j=0;j<nbS;j++){
+      var b=assS[j];
+      rows.push(b?{date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Symbolisme',nomFrere:b.nomFrere,sujet:b.sujet,libre:false}
+                  :{date:dStr,ds2:ds2,titre:e.titre,deg:deg,type:'Symbolisme',nomFrere:'',sujet:'',libre:true});
+    }
   });
   if(!rows.length){
     el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucune tenue avec planche ou symbolisme planifié.</p>';
