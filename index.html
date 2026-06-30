@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.10</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.11</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19187,14 +19187,14 @@ function plRenderPlanning(){
   var trStats={};
   evts.forEach(function(e){
     var _t=getTr(e.date);
-    if(!trStats[_t])trStats[_t]={n:0,P:0,S:0,d1:0,d2:0,d3:0,elec:0,stjean:0,inspect:0,install:0,cand:0,enq:0,band:0,init:0};
-    var _dg=(!e.degre||e.degre==='Tous')?'1°':e.degre;
+    if(!trStats[_t])trStats[_t]={n:0,P:0,S:0,d1:0,d2:0,d3:0,dT:0,elec:0,stjean:0,inspect:0,install:0,cand:0,enq:0,band:0,init:0};
+    var _dg=e.degre||'';
     var _dt=e.detail||[];
     var _np=_dt.filter(function(p){return p.plancheSteps&&p.plancheSteps.indexOf('planche')>=0;}).length;
     var _ns=_dt.filter(function(p){return (p.symDegres&&p.symDegres.length>0)||(p.plancheSteps&&p.plancheSteps.indexOf('symbolisme')>=0);}).length;
     var _cl=plParseClesPO(e.notes);
     trStats[_t].n++;trStats[_t].P+=_np;trStats[_t].S+=_ns;
-    if(_dg==='1°')trStats[_t].d1++;else if(_dg==='2°')trStats[_t].d2++;else if(_dg==='3°')trStats[_t].d3++;
+    if(_dg==='1°')trStats[_t].d1++;else if(_dg==='2°')trStats[_t].d2++;else if(_dg==='3°')trStats[_t].d3++;else trStats[_t].dT++;
     if(_cl.some(function(c){return c==='obligatoire:election'||c==='obligatoire:electiondep'||c==='obligatoire:renouvcoll';}))trStats[_t].elec++;
     if(_cl.some(function(c){return c==='obligatoire:stjean';}))trStats[_t].stjean++;
     if(_cl.some(function(c){return c==='obligatoire:inspecteur';}))trStats[_t].inspect++;
@@ -19226,7 +19226,7 @@ function plRenderPlanning(){
         +TL[tr]
         +'<span style="margin-left:10px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;opacity:.95;">— '+cnt[tr]+' tenue'+(cnt[tr]>1?'s':'')+'</span>'
         +(trStats[tr]?('<span style="margin-left:14px;font-family:Raleway,sans-serif;font-size:10px;font-weight:600;opacity:.85;">'
-          +'1° '+(trStats[tr].d1||0)+' · 2° '+(trStats[tr].d2||0)+' · 3° '+(trStats[tr].d3||0)
+          +'1° '+(trStats[tr].d1||0)+' · 2° '+(trStats[tr].d2||0)+' · 3° '+(trStats[tr].d3||0)+(trStats[tr].dT?' · Tx '+trStats[tr].dT:'')
           +(trStats[tr].elec?' · Élec. '+trStats[tr].elec:'')
           +(trStats[tr].inspect?' · Insp. '+trStats[tr].inspect:'')
           +(trStats[tr].install?' · Inst. '+trStats[tr].install:'')
@@ -19355,8 +19355,8 @@ function plRenderPlanning(){
   _htot+='</div>';
   h+=_htot;
   // Bilan annuel
-  var _bT={n:0,d1:0,d2:0,d3:0,elec:0,stjean:0,inspect:0,install:0,P:0,S:0,cand:0,enq:0,band:0,init:0};
-  [1,2,3,4].forEach(function(t){if(trStats[t]){_bT.n+=trStats[t].n;_bT.d1+=trStats[t].d1;_bT.d2+=trStats[t].d2;_bT.d3+=trStats[t].d3;_bT.elec+=trStats[t].elec;_bT.stjean+=trStats[t].stjean;_bT.inspect+=trStats[t].inspect;_bT.install+=trStats[t].install;_bT.P+=trStats[t].P;_bT.S+=trStats[t].S;_bT.cand+=trStats[t].cand;_bT.enq+=trStats[t].enq;_bT.band+=trStats[t].band;_bT.init+=trStats[t].init;}});
+  var _bT={n:0,d1:0,d2:0,d3:0,dT:0,elec:0,stjean:0,inspect:0,install:0,P:0,S:0,cand:0,enq:0,band:0,init:0};
+  [1,2,3,4].forEach(function(t){if(trStats[t]){_bT.n+=trStats[t].n;_bT.d1+=trStats[t].d1;_bT.d2+=trStats[t].d2;_bT.d3+=trStats[t].d3;_bT.dT+=trStats[t].dT;_bT.elec+=trStats[t].elec;_bT.stjean+=trStats[t].stjean;_bT.inspect+=trStats[t].inspect;_bT.install+=trStats[t].install;_bT.P+=trStats[t].P;_bT.S+=trStats[t].S;_bT.cand+=trStats[t].cand;_bT.enq+=trStats[t].enq;_bT.band+=trStats[t].band;_bT.init+=trStats[t].init;}});
   var _bi='<div style="margin-top:14px;background:rgba(184,146,42,.08);border:1px solid rgba(184,146,42,.3);border-radius:6px;padding:10px 14px;">';
   _bi+='<div style="font-family:Georgia,serif;font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:7px;letter-spacing:.3px;">Bilan annuel</div>';
   _bi+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
@@ -19364,6 +19364,7 @@ function plRenderPlanning(){
     {lbl:'Tenues 1°',val:_bT.d1,col:'#B8D4F0'},
     {lbl:'Tenues 2°',val:_bT.d2,col:'#B8D4F0'},
     {lbl:'Tenues 3°',val:_bT.d3,col:'#B8D4F0'},
+    {lbl:'Tenues mixtes',val:_bT.dT,col:'#C8C8C8'},
     {lbl:'Élections',val:_bT.elec,col:'#F0D080'},
     {lbl:'St Jean',val:_bT.stjean,col:'#F0D080'},
     {lbl:'Inspecteur',val:_bT.inspect,col:'#F0D080'},
