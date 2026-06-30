@@ -556,7 +556,7 @@ input, select, textarea { color: #1E3660; }
   }
 #v-planning-libre .pl-sbtn:hover {border-color:var(--gold);}
 #v-planning-libre .pl-sbtn.on {background:var(--dark);color:var(--gold2);border-color:#FFFFFF;font-weight:700;}
-#v-planning-libre #pl-form-wrap {display:none;margin-top:12px;border-top:1px solid var(--cream);padding-top:12px;}
+#v-planning-libre #pl-form-wrap {margin-top:12px;border-top:1px solid var(--cream);padding-top:12px;}
 #v-planning-libre h4 {font-size:13px;font-family:'Raleway',sans-serif;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
 #v-planning-libre .note-integration {
     max-width:980px;margin:0 auto 24px auto;padding:12px 16px;
@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.76</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.77</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17313,6 +17313,44 @@ var PA_SUGGESTIONS_MOIS={
       <div style="margin-top:10px;">
         <button class="pl-btn pl-btn-gold pl-btn-sm" onclick="plOpenForm(null)">+ Nouvelle tenue</button>
       </div>
+      <div id="pl-form-wrap" style="display:none;margin-top:12px;border-top:1px solid var(--cream);padding-top:12px;">
+        <h4 id="pl-form-title">Nouvelle tenue</h4>
+        <div class="pl-cfg-row">
+          <div class="pl-cfg-group" style="max-width:170px;"><label>Date *</label><input type="date" id="pl-inp-date"></div>
+          <div class="pl-cfg-group"><label>Titre *</label><input type="text" id="pl-inp-titre"></div>
+          <div class="pl-cfg-group" style="max-width:160px;"><label>Heure</label><input type="time" id="pl-inp-heure" value="19:30"></div>
+        </div>
+        <div class="pl-cfg-row">
+          <div class="pl-cfg-group">
+            <label>Catégorie</label>
+            <select id="pl-inp-cat">
+              <option value="tenue">Tenue</option>
+              <option value="reunion">Réunion</option>
+              <option value="agape">Agape</option>
+              <option value="ceremonie">Cérémonie</option>
+              <option value="formation">Formation</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="pl-cfg-group" style="max-width:100px;">
+            <label>Degré</label>
+            <select id="pl-inp-degre">
+              <option value="1°">1°</option>
+              <option value="2°">2°</option>
+              <option value="3°">3°</option>
+              <option value="Tous">Tous</option>
+            </select>
+          </div>
+          <div class="pl-cfg-group" style="max-width:120px;"><label>Durée (min)</label><input type="number" id="pl-inp-duree" min="0" max="480" step="15"></div>
+          <div class="pl-cfg-group"><label>Notes</label><input type="text" id="pl-inp-notes"></div>
+          <div class="pl-cfg-group"><label>Modèle</label><select id="pl-inp-modele"><option value="">— Aucun —</option></select></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="pl-btn pl-btn-gold pl-btn-sm" onclick="plSaveForm()">✓ Enregistrer</button>
+          <button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plCloseForm()">Annuler</button>
+          <button class="pl-btn pl-btn-red pl-btn-sm" id="pl-btn-suppr" style="display:none;margin-left:auto;" onclick="plDelete()">✕ Supprimer</button>
+        </div>
+      </div>
       <div class="pl-cfg-box" style="margin-top:14px;background:rgba(255,255,255,.04);">
         <h4 style="margin:0 0 8px;">Observations</h4>
         <textarea id="pl-fonct-planning" rows="2" oninput="obsAutoResize(this)" oninput="plFonctSave('planning')" onblur="plFonctSave('planning')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;width:100%;box-sizing:border-box;" placeholder="Observations…"></textarea>
@@ -17406,45 +17444,6 @@ var PA_SUGGESTIONS_MOIS={
       </div>
     </div>
 
-    <!-- Formulaire manuel -->
-    <div id="pl-form-wrap">
-      <h4 id="pl-form-title">Nouvelle tenue</h4>
-      <div class="pl-cfg-row">
-        <div class="pl-cfg-group" style="max-width:170px;"><label>Date *</label><input type="date" id="pl-inp-date"></div>
-        <div class="pl-cfg-group"><label>Titre *</label><input type="text" id="pl-inp-titre"></div>
-        <div class="pl-cfg-group" style="max-width:160px;"><label>Heure</label><input type="time" id="pl-inp-heure" value="19:30"></div>
-      </div>
-      <div class="pl-cfg-row">
-        <div class="pl-cfg-group">
-          <label>Catégorie</label>
-          <select id="pl-inp-cat">
-            <option value="tenue">Tenue</option>
-            <option value="reunion">Réunion</option>
-            <option value="agape">Agape</option>
-            <option value="ceremonie">Cérémonie</option>
-            <option value="formation">Formation</option>
-            <option value="autre">Autre</option>
-          </select>
-        </div>
-        <div class="pl-cfg-group" style="max-width:100px;">
-          <label>Degré</label>
-          <select id="pl-inp-degre">
-            <option value="1°">1°</option>
-            <option value="2°">2°</option>
-            <option value="3°">3°</option>
-            <option value="Tous">Tous</option>
-          </select>
-        </div>
-        <div class="pl-cfg-group" style="max-width:120px;"><label>Durée (min)</label><input type="number" id="pl-inp-duree" min="0" max="480" step="15"></div>
-        <div class="pl-cfg-group"><label>Notes</label><input type="text" id="pl-inp-notes"></div>
-        <div class="pl-cfg-group"><label>Modèle</label><select id="pl-inp-modele"><option value="">— Aucun —</option></select></div>
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button class="pl-btn pl-btn-gold pl-btn-sm" onclick="plSaveForm()">✓ Enregistrer</button>
-        <button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plCloseForm()">Annuler</button>
-        <button class="pl-btn pl-btn-red pl-btn-sm" id="pl-btn-suppr" style="display:none;margin-left:auto;" onclick="plDelete()">✕ Supprimer</button>
-      </div>
-    </div>
 
   </div>
 </div>
@@ -19296,7 +19295,8 @@ function plOpenForm(id){
   }
   var ft=document.getElementById('pl-form-title');if(ft)ft.textContent=e?'Modifier la tenue':'Nouvelle tenue';
   var sb=document.getElementById('pl-btn-suppr');if(sb)sb.style.display=e?'':'none';
-  fw.style.display='';
+  fw.style.display='block';
+  fw.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function plCloseForm(){var fw=document.getElementById('pl-form-wrap');if(fw)fw.style.display='none';_plEditId=null;}
 
