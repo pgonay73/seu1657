@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.72</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.73</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13271,8 +13271,8 @@ function renderOffice(n){
     c+='<button class="cfg-tab active" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)">Modèles</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-detail" onclick="adminPlTab(\'detail\',this)">Détail tenue</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)">Tenues impératives</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-suivi" onclick="adminPlTab(\'suivi\',this)">Suivi des planches</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-planning" onclick="adminPlTab(\'planning\',this)">Planning</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-suivi" onclick="adminPlTab(\'suivi\',this)">Suivi des planches</button>';
     c+='</div>';
     c+='<div id="admin-pl-panel-modeles" style="display:none;">';
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Modèles de tenues</h3>';
@@ -19814,7 +19814,7 @@ function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDer
   var tdGauche=tdInner;
   var tdDroite=tdInner;
   if(estPremiereLigne){
-    h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
+    h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
     h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);text-align:center;vertical-align:middle;width:36px;">'
       +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:38px;width:38px;" title="Nombre de planches">'
       +'<option value="1"'+(nbLignes===1?' selected':'')+'>1</option>'
@@ -19855,7 +19855,7 @@ function plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,ligne,nbLignes){
   var border='border-top:1.5px solid rgba(184,146,42,.4);border-bottom:1px solid rgba(255,255,255,.06);';
   var h='<tr style="'+border+'">';
   // Nom sur chaque ligne (pas de rowspan)
-  h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
+  h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
   // Select Nb planches sur chaque ligne
   h+='<td style="text-align:center;vertical-align:middle;width:36px;">'
     +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:38px;width:38px;" title="Nombre de planches">'
@@ -20179,8 +20179,8 @@ function plRenderAdminNav(){
     {id:'modeles',label:'Modèles'},
     {id:'detail',label:'Détail tenue'},
     {id:'tenuesImp',label:'Tenues impératives'},
-    {id:'suivi',label:'Suivi des planches'},
-    {id:'planning',label:'Planning'}
+    {id:'planning',label:'Planning'},
+    {id:'suivi',label:'Suivi des planches'}
   ];
   var h='<div class="section-header" style="flex-wrap:wrap;gap:8px;margin-bottom:0;">';
   h+='<div style="display:flex;flex-direction:column;align-items:center;">';
