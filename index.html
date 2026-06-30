@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.29</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.30</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -16850,52 +16850,55 @@ function tiRender(containerId){
     el.innerHTML='<p style="font-size:13px;color:var(--grey);font-style:italic;margin:12px 0;">Aucune tenue impérative définie.</p>'+btnAjout;
     return;
   }
-  var h='';
-  var cardS='margin-bottom:6px;border:1px solid rgba(184,146,42,.45);border-radius:6px;padding:8px 12px;background:rgba(184,146,42,.04);';
+  var cardS='margin-bottom:4px;border:1px solid rgba(184,146,42,.35);border-radius:5px;padding:6px 10px;background:rgba(184,146,42,.04);';
   var selS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:4px 6px;font-family:Raleway,sans-serif;font-size:12px;';
-  var lblS='font-size:11px;color:var(--grey);margin-bottom:2px;display:block;';
   var inpS='padding:4px 6px;font-size:12px;';
+  var hdrS='font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:.6px;font-weight:600;';
+  // En-tête unique
+  var h='<div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:flex-end;padding:0 10px 4px;border-bottom:1px solid rgba(184,146,42,.3);margin-bottom:6px;">'
+    +'<div style="flex:0 1 170px;min-width:110px;"><span style="'+hdrS+'">Titre</span></div>'
+    +'<div style="min-width:120px;flex:0 0 auto;"><span style="'+hdrS+'">Mois</span></div>'
+    +'<div style="min-width:120px;flex:0 0 auto;"><span style="'+hdrS+'">Rang</span></div>'
+    +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Date calculée</span></div>'
+    +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Substitution</span></div>'
+    +'<div style="flex:1;min-width:60px;max-width:130px;"><span style="'+hdrS+'">Note</span></div>'
+    +'</div>';
   for(var i=0;i<D.tenuesImp.length;i++){
     var ti=D.tenuesImp[i];
     var id=ti.id;
     var th=(ti.theme||'').replace(/"/g,'&quot;');
     var note=(ti.note||'').replace(/"/g,'&quot;');
     var badge='';
-    if(ti.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;margin-left:6px;">&#10003; '+ti.planifiedDate+'</span>';}
+    if(ti.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;">&#10003; '+ti.planifiedDate+'</span>';}
     h+='<div style="'+cardS+'">';
-    // Ligne unique : Titre | Mois | Rang | Date calculée | Substitution | Note | badge + boutons
-    h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">';
+    h+='<div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:center;">';
     // Titre
     h+='<div style="flex:0 1 170px;min-width:110px;">';
-    h+='<label style="'+lblS+'">Titre</label>';
-    h+='<input type="text" value="'+th+'" placeholder="Ex : Installation du VM" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tiFieldChange(\''+id+'\',\'theme\',this.value)"/>';
+    h+='<input type="text" value="'+th+'" placeholder="Ex : Installation" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tiFieldChange(\''+id+'\',\'theme\',this.value)"/>';
     h+='</div>';
     // Mois
     h+='<div style="min-width:120px;flex:0 0 auto;">';
-    h+='<label style="'+lblS+'">&#128197; Mois</label>';
     h+='<select style="'+selS+'width:100%;" onchange="tiFieldChange(\''+id+'\',\'moisTheorique\',this.value);tiDateHint(\''+id+'\')">'+tiMoisOptions(ti.moisTheorique)+'</select>';
     h+='</div>';
     // Rang
     h+='<div style="min-width:120px;flex:0 0 auto;">';
-    h+='<label style="'+lblS+'">Rang</label>';
     h+='<select style="'+selS+'width:100%;" onchange="tiFieldChange(\''+id+'\',\'rangTheorique\',this.value);tiDateHint(\''+id+'\')">';
     h+='<option value="1"'+(ti.rangTheorique!='2'?' selected':'')+'>1ère tenue</option>';
     h+='<option value="2"'+(ti.rangTheorique=='2'?' selected':'')+'>2ème tenue</option>';
     h+='</select>';
     h+='</div>';
-    // Date calculée (colonne entre rang et date substitution)
+    // Date calculée
     (function(){
       var dateCible='';
       if(ti.moisTheorique) dateCible=tiComputeDate(parseInt(ti.moisTheorique),parseInt(ti.rangTheorique)||1);
       var dTxt='',dCol='var(--grey)';
       if(dateCible){var p=dateCible.split('-');dTxt=p[2]+'/'+p[1]+'/'+p[0];dCol='var(--gold)';}
       else if(ti.moisTheorique){dTxt='—';}
-      h+='<div style="flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-end;">';
-      h+='<label style="'+lblS+'">Date calculée</label>';
-      h+='<span id="ti-dh-'+id+'" style="font-size:12px;color:'+dCol+';font-style:italic;padding:4px 6px;border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(255,255,255,.04);white-space:nowrap;">'+dTxt+'</span>';
+      h+='<div style="flex:0 0 auto;">';
+      h+='<span id="ti-dh-'+id+'" style="font-size:12px;color:'+dCol+';font-style:italic;padding:4px 6px;border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(255,255,255,.04);white-space:nowrap;display:inline-block;">'+dTxt+'</span>';
       h+='</div>';
     })();
-    // Date substitution — menu déroulant avec dates du planning
+    // Date substitution
     (function(){
       var _seen={},dates=[];
       (D.tenues||[]).forEach(function(t){if(t.date&&!_seen[t.date]){_seen[t.date]=true;dates.push(t.date);}});
@@ -16910,17 +16913,15 @@ function tiRender(containerId){
         opts+='<option value="'+ds+'"'+(ti.dateAlt===ds?' selected':'')+'>'+lbl+'</option>';
       }
       h+='<div style="flex:0 0 auto;">';
-      h+='<label style="'+lblS+'">Substitution</label>';
       h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)">'+opts+'</select>';
       h+='</div>';
     })();
-    // Note (réduite)
+    // Note
     h+='<div style="flex:1;min-width:60px;max-width:130px;">';
-    h+='<label style="'+lblS+'">Note</label>';
     h+='<input type="text" value="'+note+'" placeholder="Remarques…" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tiFieldChange(\''+id+'\',\'note\',this.value)"/>';
     h+='</div>';
-    // Badge + boutons (inline, fin de ligne)
-    h+='<div style="flex:0 0 auto;display:flex;align-items:flex-end;gap:4px;padding-bottom:1px;">';
+    // Badge + boutons
+    h+='<div style="flex:0 0 auto;display:flex;align-items:center;gap:4px;">';
     if(badge) h+=badge;
     h+='<button onclick="tiPlanifier(\''+id+'\')" title="Créer dans le planning" style="background:#B8922A;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 10px;font-size:11px;font-weight:600;white-space:nowrap;">&#8594; Planning</button>';
     h+='<button onclick="tiSupprimer(\''+id+'\')" title="Supprimer" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 7px;font-size:12px;">&#128465;</button>';
