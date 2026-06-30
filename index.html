@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.11</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.12</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19183,10 +19183,11 @@ function plRenderPlanning(){
     if(m>=4 && m<=6) return 3;
     return 4; // juillet/août : hors trimestre
   }
-  var cnt={};evts.forEach(function(e){var t=getTr(e.date);cnt[t]=(cnt[t]||0)+1;});
+  function getTrKey(ds){return getTr(ds)+'_'+(ds||'').substring(0,4);}
+  var cnt={};evts.forEach(function(e){var t=getTrKey(e.date);cnt[t]=(cnt[t]||0)+1;});
   var trStats={};
   evts.forEach(function(e){
-    var _t=getTr(e.date);
+    var _t=getTrKey(e.date);
     if(!trStats[_t])trStats[_t]={n:0,P:0,S:0,d1:0,d2:0,d3:0,dT:0,elec:0,stjean:0,inspect:0,install:0,cand:0,enq:0,band:0,init:0};
     var _dg=e.degre||'';
     var _dt=e.detail||[];
@@ -19219,24 +19220,24 @@ function plRenderPlanning(){
   var totPS={'1°':{P:0,S:0},'2°':{P:0,S:0},'3°':{P:0,S:0}};
   var bareme=plBaremeLoad();
   evts.forEach(function(e){
-    var tr=getTr(e.date);
-    if(tr!==curTr){
-      curTr=tr;
+    var tr=getTr(e.date);var trKey=getTrKey(e.date);
+    if(trKey!==curTr){
+      curTr=trKey;
       h+='<tr><td colspan="6" style="padding:6px 10px;background:'+TC[tr]+';color:#fff;font-family:Georgia,serif;font-size:14px;font-weight:700;">'
-        +TL[tr]
-        +'<span style="margin-left:10px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;opacity:.95;">— '+cnt[tr]+' tenue'+(cnt[tr]>1?'s':'')+'</span>'
-        +(trStats[tr]?('<span style="margin-left:14px;font-family:Raleway,sans-serif;font-size:10px;font-weight:600;opacity:.85;">'
-          +'1° '+(trStats[tr].d1||0)+' · 2° '+(trStats[tr].d2||0)+' · 3° '+(trStats[tr].d3||0)+(trStats[tr].dT?' · Tx '+trStats[tr].dT:'')
-          +(trStats[tr].elec?' · Élec. '+trStats[tr].elec:'')
-          +(trStats[tr].inspect?' · Insp. '+trStats[tr].inspect:'')
-          +(trStats[tr].install?' · Inst. '+trStats[tr].install:'')
-          +(trStats[tr].stjean?' · St Jean '+trStats[tr].stjean:'')
-          +(trStats[tr].cand?' · Cand. '+trStats[tr].cand:'')
-          +(trStats[tr].enq?' · Enq. '+trStats[tr].enq:'')
-          +(trStats[tr].band?' · Band. '+trStats[tr].band:'')
-          +(trStats[tr].init?' · Init. '+trStats[tr].init:'')
-          +' <span style="color:#9ED3F5;">P '+(trStats[tr].P||0)+'</span>'
-          +' · <span style="color:#A8E6A3;">S '+(trStats[tr].S||0)+'</span>'
+        +TL[tr]+' '+(trKey.split('_')[1]||'')
+        +'<span style="margin-left:10px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;opacity:.95;">— '+cnt[trKey]+' tenue'+(cnt[trKey]>1?'s':'')+'</span>'
+        +(trStats[trKey]?('<span style="margin-left:14px;font-family:Raleway,sans-serif;font-size:10px;font-weight:600;opacity:.85;">'
+          +'1° '+(trStats[trKey].d1||0)+' · 2° '+(trStats[trKey].d2||0)+' · 3° '+(trStats[trKey].d3||0)+(trStats[trKey].dT?' · Tx '+trStats[trKey].dT:'')
+          +(trStats[trKey].elec?' · Élec. '+trStats[trKey].elec:'')
+          +(trStats[trKey].inspect?' · Insp. '+trStats[trKey].inspect:'')
+          +(trStats[trKey].install?' · Inst. '+trStats[trKey].install:'')
+          +(trStats[trKey].stjean?' · St Jean '+trStats[trKey].stjean:'')
+          +(trStats[trKey].cand?' · Cand. '+trStats[trKey].cand:'')
+          +(trStats[trKey].enq?' · Enq. '+trStats[trKey].enq:'')
+          +(trStats[trKey].band?' · Band. '+trStats[trKey].band:'')
+          +(trStats[trKey].init?' · Init. '+trStats[trKey].init:'')
+          +' <span style="color:#9ED3F5;">P '+(trStats[trKey].P||0)+'</span>'
+          +' · <span style="color:#A8E6A3;">S '+(trStats[trKey].S||0)+'</span>'
           +'</span>'):'')
         +'</td></tr>';
       dateAffPrecedente=null; // pas de trait juste après un bandeau de trimestre
@@ -19356,7 +19357,7 @@ function plRenderPlanning(){
   h+=_htot;
   // Bilan annuel
   var _bT={n:0,d1:0,d2:0,d3:0,dT:0,elec:0,stjean:0,inspect:0,install:0,P:0,S:0,cand:0,enq:0,band:0,init:0};
-  [1,2,3,4].forEach(function(t){if(trStats[t]){_bT.n+=trStats[t].n;_bT.d1+=trStats[t].d1;_bT.d2+=trStats[t].d2;_bT.d3+=trStats[t].d3;_bT.dT+=trStats[t].dT;_bT.elec+=trStats[t].elec;_bT.stjean+=trStats[t].stjean;_bT.inspect+=trStats[t].inspect;_bT.install+=trStats[t].install;_bT.P+=trStats[t].P;_bT.S+=trStats[t].S;_bT.cand+=trStats[t].cand;_bT.enq+=trStats[t].enq;_bT.band+=trStats[t].band;_bT.init+=trStats[t].init;}});
+  Object.keys(trStats).forEach(function(t){_bT.n+=trStats[t].n;_bT.d1+=trStats[t].d1;_bT.d2+=trStats[t].d2;_bT.d3+=trStats[t].d3;_bT.dT+=trStats[t].dT;_bT.elec+=trStats[t].elec;_bT.stjean+=trStats[t].stjean;_bT.inspect+=trStats[t].inspect;_bT.install+=trStats[t].install;_bT.P+=trStats[t].P;_bT.S+=trStats[t].S;_bT.cand+=trStats[t].cand;_bT.enq+=trStats[t].enq;_bT.band+=trStats[t].band;_bT.init+=trStats[t].init;});
   var _bi='<div style="margin-top:14px;background:rgba(184,146,42,.08);border:1px solid rgba(184,146,42,.3);border-radius:6px;padding:10px 14px;">';
   _bi+='<div style="font-family:Georgia,serif;font-size:12px;font-weight:700;color:var(--gold2);margin-bottom:7px;letter-spacing:.3px;">Bilan annuel</div>';
   _bi+='<div style="display:flex;flex-wrap:wrap;gap:6px;">';
