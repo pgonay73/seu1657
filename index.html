@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.26</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.27</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17501,37 +17501,29 @@ var PA_SUGGESTIONS_MOIS={
         <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:10px;">
           Une ligne par frère de la loge. Indépendant de l'onglet « Planches des frères ».
         </p>
-        <div id="pl-suivi-filtres" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.08);">
+        <div id="pl-suivi-filtres" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.08);">
           <div>
-            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">Frère</label>
-            <input type="text" id="pl-suivi-f-nom" placeholder="Rechercher…" oninput="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;width:140px;">
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Degré</label>
+            <div style="display:flex;gap:4px;" id="pl-suivi-chips-deg">
+              <button onclick="plSuiviFDeg('')"  id="pl-sf-d-tous" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Tous</button>
+              <button onclick="plSuiviFDeg('1°')" id="pl-sf-d-1" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(51,221,102,.35);background:transparent;color:#33DD66;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">1°</button>
+              <button onclick="plSuiviFDeg('2°')" id="pl-sf-d-2" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,153,0,.35);background:transparent;color:#FF9900;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">2°</button>
+              <button onclick="plSuiviFDeg('3°')" id="pl-sf-d-3" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,68,68,.35);background:transparent;color:#FF4444;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">3°</button>
+            </div>
           </div>
           <div>
-            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">Type</label>
-            <select id="pl-suivi-f-type" onchange="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;">
-              <option value="">Tous</option>
-              <option value="Planche">Planche</option>
-              <option value="Symbolisme">Symbolisme</option>
-            </select>
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Type</label>
+            <div style="display:flex;gap:4px;" id="pl-suivi-chips-type">
+              <button onclick="plSuiviFType('')"  id="pl-sf-t-tous" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Tous</button>
+              <button onclick="plSuiviFType('Planche')"    id="pl-sf-t-p" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(158,211,245,.35);background:transparent;color:#9ED3F5;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">P</button>
+              <button onclick="plSuiviFType('Symbolisme')" id="pl-sf-t-s" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(168,230,163,.35);background:transparent;color:#A8E6A3;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">S</button>
+            </div>
           </div>
           <div>
-            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">Degré</label>
-            <select id="pl-suivi-f-degre" onchange="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;">
-              <option value="">Tous</option>
-              <option value="1°">1°</option>
-              <option value="2°">2°</option>
-              <option value="3°">3°</option>
-            </select>
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Frère</label>
+            <input type="text" id="pl-suivi-f-nom" placeholder="Rechercher…" oninput="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;width:130px;">
           </div>
-          <div>
-            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">État</label>
-            <select id="pl-suivi-f-etat" onchange="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;">
-              <option value="">Tous</option>
-              <option value="planifie">Planifiées</option>
-              <option value="non">Non planifiées</option>
-            </select>
-          </div>
-          <button onclick="plSuiviFiltresReset()" style="padding:4px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:transparent;color:rgba(255,255,255,.5);font-family:Raleway,sans-serif;font-size:11px;cursor:pointer;align-self:flex-end;">✕ Réinit.</button>
+          <button onclick="plSuiviFiltresReset()" style="padding:3px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:transparent;color:rgba(255,255,255,.45);font-family:Raleway,sans-serif;font-size:11px;cursor:pointer;align-self:flex-end;">✕</button>
         </div>
         <div id="pl-suivi-list"></div>
       </div>
@@ -20269,14 +20261,12 @@ function plSuiviRender(containerId){
   });
   // Filtres de sélection
   var fNom=((document.getElementById('pl-suivi-f-nom')||{}).value||'').toLowerCase().trim();
-  var fType=(document.getElementById('pl-suivi-f-type')||{}).value||'';
-  var fDegre=(document.getElementById('pl-suivi-f-degre')||{}).value||'';
-  var fEtat=(document.getElementById('pl-suivi-f-etat')||{}).value||'';
-  if(fNom||fType||fDegre||fEtat){
+  var fType=_plSFType||'';
+  var fDegre=_plSFDeg||'';
+  if(fNom||fType||fDegre){
     lignes=lignes.filter(function(lg){
       if(fNom && lg.nomFrere.toLowerCase().indexOf(fNom)<0) return false;
       if(lg.groupeSansDate){
-        if(fEtat==='planifie') return false;
         if(fType||fDegre){
           lg.lignesSansDate=lg.lignesSansDate.filter(function(l){
             var e=plSuiviEntree(suivi,lg.nomFrere,l);
@@ -20292,8 +20282,6 @@ function plSuiviRender(containerId){
         var e2=plSuiviEntree(suivi,lg.nomFrere,lg.ligne);
         if(fType && (e2.type||'Planche')!==fType) return false;
         if(fDegre && (e2.degre||'')!==fDegre) return false;
-        if(fEtat==='planifie' && !e2.tenueId) return false;
-        if(fEtat==='non' && !!e2.tenueId) return false;
       }
       return true;
     });
@@ -20326,9 +20314,33 @@ function plSuiviRender(containerId){
   el.innerHTML=h;
 }
 
+var _plSFDeg='';
+var _plSFType='';
+function _plSuiviChipUpdate(){
+  var degMap={'':'pl-sf-d-tous','1°':'pl-sf-d-1','2°':'pl-sf-d-2','3°':'pl-sf-d-3'};
+  var typMap={'':'pl-sf-t-tous','Planche':'pl-sf-t-p','Symbolisme':'pl-sf-t-s'};
+  Object.keys(degMap).forEach(function(k){
+    var b=document.getElementById(degMap[k]);if(!b)return;
+    b.style.background=(_plSFDeg===k)?'rgba(255,255,255,.18)':'transparent';
+    b.style.fontWeight=(_plSFDeg===k)?'900':'700';
+    b.style.textDecoration=(_plSFDeg===k)?'underline':'none';
+  });
+  Object.keys(typMap).forEach(function(k){
+    var b=document.getElementById(typMap[k]);if(!b)return;
+    b.style.background=(_plSFType===k)?'rgba(255,255,255,.18)':'transparent';
+    b.style.fontWeight=(_plSFType===k)?'900':'700';
+    b.style.textDecoration=(_plSFType===k)?'underline':'none';
+  });
+  // "Tous" garde toujours son fond de base quand actif
+  if(_plSFDeg===''){var b=document.getElementById('pl-sf-d-tous');if(b)b.style.background='rgba(255,255,255,.15)';}
+  if(_plSFType===''){var b2=document.getElementById('pl-sf-t-tous');if(b2)b2.style.background='rgba(255,255,255,.15)';}
+}
+function plSuiviFDeg(v){_plSFDeg=v;_plSuiviChipUpdate();plSuiviRender();}
+function plSuiviFType(v){_plSFType=v;_plSuiviChipUpdate();plSuiviRender();}
 function plSuiviFiltresReset(){
-  var ids=['pl-suivi-f-nom','pl-suivi-f-type','pl-suivi-f-degre','pl-suivi-f-etat'];
-  ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  _plSFDeg='';_plSFType='';
+  var el=document.getElementById('pl-suivi-f-nom');if(el)el.value='';
+  _plSuiviChipUpdate();
   plSuiviRender();
 }
 // Force la sauvegarde explicite de toutes les données de Planning libre (en
