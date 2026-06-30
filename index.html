@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.01</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.02</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1105,6 +1105,9 @@ function loginVerif(){
     <div class="mbody">
       <div class="cfg-row">
         <div class="cfg-group"><label>Nom du modele *</label><input type="text" id="m-nom" placeholder="Ex : Tenue ordinaire, Initiation..."></div>
+        <div class="cfg-group"><label>Catégorie</label><select id="m-cat" style="width:100%;"><option value="">— Sans catégorie —</option><option value="Tenues classiques">Tenues classiques</option><option value="Réunions hors tenues">Réunions hors tenues</option><option value="Candidatures">Candidatures</option><option value="Élections">Élections</option><option value="Installations">Installations</option><option value="Cérémonies">Cérémonies</option><option value="Inspecteur">Inspecteur</option></select></div>
+      </div>
+      <div class="cfg-row">
         <div class="cfg-group"><label>Couleur</label><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span onclick="selCouleurModele('#B8922A')" style="display:inline-block;width:22px;height:22px;background:#B8922A;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#B8922A"></span><span onclick="selCouleurModele('#4472C4')" style="display:inline-block;width:22px;height:22px;background:#4472C4;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#4472C4"></span><span onclick="selCouleurModele('#ED7D31')" style="display:inline-block;width:22px;height:22px;background:#ED7D31;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#ED7D31"></span><span onclick="selCouleurModele('#70AD47')" style="display:inline-block;width:22px;height:22px;background:#70AD47;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#70AD47"></span><span onclick="selCouleurModele('#9B59B6')" style="display:inline-block;width:22px;height:22px;background:#9B59B6;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#9B59B6"></span><span onclick="selCouleurModele('#E74C3C')" style="display:inline-block;width:22px;height:22px;background:#E74C3C;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#E74C3C"></span><span onclick="selCouleurModele('#1ABC9C')" style="display:inline-block;width:22px;height:22px;background:#1ABC9C;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#1ABC9C"></span><span onclick="selCouleurModele('#E91E63')" style="display:inline-block;width:22px;height:22px;background:#E91E63;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#E91E63"></span><span onclick="selCouleurModele('#607D8B')" style="display:inline-block;width:22px;height:22px;background:#607D8B;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#607D8B"></span><span onclick="selCouleurModele('#795548')" style="display:inline-block;width:22px;height:22px;background:#795548;border-radius:3px;cursor:pointer;border:2px solid transparent;margin:2px;" data-c="#795548"></span><span id="m-couleur-preview" style="display:inline-block;width:22px;height:22px;border-radius:3px;border:2px solid var(--gold);"></span><input type="hidden" id="m-couleur" value="#4472C4"></div></div>
       </div>
       <div class="section-sep">Parties &amp; Durees <div style="display:flex;gap:6px"><button class="btn btn-outline btn-sm" onclick="togglePanelDefautModele()">+ Detail tenue</button><button class="btn btn-outline btn-sm" onclick="peAdd('pe-modele')">+ Ajouter</button></div></div>
@@ -6661,28 +6664,71 @@ function delRegle(i){if(!confirm('Supprimer cette regle ?'))return;D.regles.spli
 // ============================================================
 // MODELES
 // ============================================================
+var _MOD_CATS=['Tenues classiques','Réunions hors tenues','Candidatures','Élections','Installations','Cérémonies','Inspecteur'];
 function renderModeles(){
   var targets=['modeles-list','admin-pl-modeles-list'];
   var empty='<p style="font-size:13px;color:var(--grey);margin-bottom:10px">Aucun modele. Cliquez sur + pour en creer un.</p>';
   var h='';
   if(D.modeles&&D.modeles.length){
+    // Regrouper par catégorie
+    var groupes={};
+    var sansCat=[];
     for(var i=0;i<D.modeles.length;i++){
-      var m=D.modeles[i],nb=m.parties?m.parties.length:0,tm=0;
+      var cat=D.modeles[i].categorie||'';
+      if(cat){if(!groupes[cat])groupes[cat]=[];groupes[cat].push(D.modeles[i]);}
+      else sansCat.push(D.modeles[i]);
+    }
+    // Rendu d'une carte modèle
+    function _cardMod(m,mList){
+      var nb=m.parties?m.parties.length:0,tm=0;
       if(m.parties)for(var j=0;j<m.parties.length;j++)tm+=(m.parties[j].dur||m.parties[j].duree||0);
       var ds=tm?Math.floor(tm/60)+'h'+(tm%60<10?'0':'')+(tm%60):'';
-      var isFirst=(i===0), isLast=(i===D.modeles.length-1);
+      var isFirst=mList[0]===m, isLast=mList[mList.length-1]===m;
       var upStyle=isFirst?'opacity:.25;pointer-events:none;':'';
       var dnStyle=isLast?'opacity:.25;pointer-events:none;':'';
-      h+='<div class="item-card"><div class="item-desc">';
-      h+='<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+(m.couleur||'#4472C4')+';flex-shrink:0;margin-right:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.4);"></span>';
-      h+='<strong>'+m.nom+'</strong><span style="margin-left:10px;font-size:12px;color:var(--grey)">'+nb+' partie'+(nb>1?'s':'')+(ds?' &middot; '+ds:'')+'</span></div>';
-      h+='<div style="display:flex;gap:4px;align-items:center">';
-      h+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\',-1)" style="'+upStyle+'" title="Monter">&#9650; Monter</button>';
-      h+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\'\,1)" style="'+dnStyle+'" title="Descendre">&#9660; Descendre</button>';
+      var c='<div class="item-card"><div class="item-desc">';
+      c+='<span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:'+(m.couleur||'#4472C4')+';flex-shrink:0;margin-right:8px;vertical-align:middle;border:1px solid rgba(255,255,255,.4);"></span>';
+      c+='<strong>'+m.nom+'</strong><span style="margin-left:10px;font-size:12px;color:var(--grey)">'+nb+' partie'+(nb>1?'s':'')+(ds?' &middot; '+ds:'')+'</span></div>';
+      c+='<div style="display:flex;gap:4px;align-items:center">';
+      c+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\',-1)" style="'+upStyle+'" title="Monter">&#9650; Monter</button>';
+      c+='<button class="btn btn-outline btn-sm" onclick="mvModele(\''+m.id+'\'\,1)" style="'+dnStyle+'" title="Descendre">&#9660; Descendre</button>';
+      c+='</div>';
+      c+='<button class="act-btn" onclick="editModele(\''+m.id+'\')" style="font-size:13px">&#9999;&#65039;</button>';
+      c+='<button class="act-btn" onclick="dupModele(\''+m.id+'\')" style="font-size:13px;color:var(--grey)" title="Dupliquer">&#128203;</button>';
+      c+='<button class="item-del" onclick="delModele(\''+m.id+'\')">&#10005;</button></div>';
+      return c;
+    }
+    // Catégories dans l'ordre défini
+    for(var ci=0;ci<_MOD_CATS.length;ci++){
+      var cname=_MOD_CATS[ci];
+      var clist=groupes[cname];
+      if(!clist||!clist.length) continue;
+      h+='<div style="margin-bottom:4px;margin-top:10px;">';
+      h+='<div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(184,146,42,.15);border-left:3px solid var(--gold);border-radius:3px;user-select:none;">';
+      h+='<span style="font-size:12px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;">'+cname+'</span>';
+      h+='<span style="font-size:11px;color:rgba(255,255,255,.4);">('+clist.length+')</span>';
+      h+='<span style="margin-left:auto;color:var(--gold);font-size:11px;">&#9660;</span>';
       h+='</div>';
-      h+='<button class="act-btn" onclick="editModele(\''+m.id+'\')" style="font-size:13px">&#9999;&#65039;</button>';
-      h+='<button class="act-btn" onclick="dupModele(\''+m.id+'\')" style="font-size:13px;color:var(--grey)" title="Dupliquer">&#128203;</button>';
-      h+='<button class="item-del" onclick="delModele(\''+m.id+'\')">&#10005;</button></div>';
+      h+='<div style="padding-left:10px;border-left:2px solid rgba(184,146,42,.3);margin-left:6px;">';
+      for(var mi=0;mi<clist.length;mi++) h+=_cardMod(clist[mi],clist);
+      h+='</div></div>';
+    }
+    // Modèles sans catégorie
+    if(sansCat.length){
+      h+='<div style="margin-bottom:4px;margin-top:10px;">';
+      if(Object.keys(groupes).length>0){
+        h+='<div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,.05);border-left:3px solid rgba(255,255,255,.3);border-radius:3px;user-select:none;">';
+        h+='<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;">Sans catégorie</span>';
+        h+='<span style="font-size:11px;color:rgba(255,255,255,.4);">('+sansCat.length+')</span>';
+        h+='<span style="margin-left:auto;color:rgba(255,255,255,.5);font-size:11px;">&#9660;</span>';
+        h+='</div>';
+        h+='<div style="padding-left:10px;border-left:2px solid rgba(255,255,255,.15);margin-left:6px;">';
+        for(var si=0;si<sansCat.length;si++) h+=_cardMod(sansCat[si],sansCat);
+        h+='</div>';
+      } else {
+        for(var si2=0;si2<sansCat.length;si2++) h+=_cardMod(sansCat[si2],sansCat);
+      }
+      h+='</div>';
     }
   }
   for(var ti=0;ti<targets.length;ti++){
@@ -6695,6 +6741,7 @@ function openModele(m){
   editModeleId=m?m.id:null;
   document.getElementById('mm-title').textContent=m?'Modifier le modele':'Nouveau modele';
   document.getElementById('m-nom').value=m?(m.nom||''):'';
+  var catEl=document.getElementById('m-cat');if(catEl)catEl.value=m?(m.categorie||''):'';
   var couleurDef=m?(m.couleur||'#4472C4'):'#4472C4';
   selCouleurModele(couleurDef);
   peRender('pe-modele',m?cpP(m.parties||[]):[{nom:'Ouverture des Travaux',dur:15},{nom:'Planche et Symbolisme',dur:30},{nom:'Cloture des Travaux',dur:10}]);
@@ -6705,7 +6752,8 @@ function saveModele(){
   var nom=document.getElementById('m-nom').value.trim();
   if(!nom){toast('Renseignez un nom pour le modele.');return;}
   var p=peGet('pe-modele'),f=[];for(var i=0;i<p.length;i++)if(p[i].nom)f.push(p[i]);
-  var m={id:editModeleId||String(Date.now()),nom:nom,parties:f,couleur:document.getElementById('m-couleur').value||'#4472C4'};
+  var cat=(document.getElementById('m-cat')||{}).value||'';
+  var m={id:editModeleId||String(Date.now()),nom:nom,parties:f,couleur:document.getElementById('m-couleur').value||'#4472C4',categorie:cat};
   if(!D.modeles)D.modeles=[];
   if(editModeleId){for(var i=0;i<D.modeles.length;i++)if(D.modeles[i].id===editModeleId){D.modeles[i]=m;break;}}
   else D.modeles.push(m);
