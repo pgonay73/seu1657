@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-30.87</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-30.88</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19354,10 +19354,10 @@ function plOpenForm(id){
   var typeSel=document.getElementById('pl-form-type-sel');
   if(typeSel){
     typeSel.innerHTML='<option value="">— Choisir un type —</option>';
-    (D.typesDurees||[]).forEach(function(t){
+    (D.parDefaut||[]).forEach(function(t){
       var o=document.createElement('option');
       o.value=t.nom;
-      o.textContent=t.nom+' ('+t.dur+' min)';
+      o.textContent=t.nom+(t.dur?' ('+t.dur+' min)':'');
       typeSel.appendChild(o);
     });
   }
@@ -19412,7 +19412,8 @@ function plSaveForm(){
 }
 function plFormAjouterPartie(nom){
   if(!nom) return;
-  var t=(D.typesDurees||[]).filter(function(x){return x.nom===nom;})[0];
+  var t=(D.parDefaut||[]).filter(function(x){return x.nom===nom;})[0]
+     ||(D.typesDurees||[]).filter(function(x){return x.nom===nom;})[0];
   var dur=t?t.dur:30;
   var p=peGet('pe-pl-form');
   p.push({nom:nom,dur:dur});
