@@ -681,7 +681,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.75</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-06-29.76</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17437,6 +17437,7 @@ var PA_SUGGESTIONS_MOIS={
         </div>
         <div class="pl-cfg-group" style="max-width:120px;"><label>Durée (min)</label><input type="number" id="pl-inp-duree" min="0" max="480" step="15"></div>
         <div class="pl-cfg-group"><label>Notes</label><input type="text" id="pl-inp-notes"></div>
+        <div class="pl-cfg-group"><label>Modèle</label><select id="pl-inp-modele"><option value="">— Aucun —</option></select></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:8px;">
         <button class="pl-btn pl-btn-gold pl-btn-sm" onclick="plSaveForm()">✓ Enregistrer</button>
@@ -19155,11 +19156,13 @@ function plRenderPlanning(){
     var dureeUtilisee=Math.floor(minUtilisees/60)+'h'+(minUtilisees%60?String(minUtilisees%60).padStart(2,'0'):'');
     var ferie=plJourFerie(e.date);
     var bgFerie=ferie?'background:rgba(255,80,80,.07);':'';
+    var modeleAff='';
+    if(e.modeleId){var _m=(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0];if(_m)modeleAff='<div style="font-size:10px;color:rgba(184,146,42,.75);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.25);border-radius:3px;padding:1px 5px;margin-top:2px;display:inline-block;">'+_m.nom+'</div>';}
     h+='<tr style="'+traitJournee+bgFerie+'">'
       +'<td style="text-align:center;"><button onclick="plToggleDetailModules(&quot;'+eid+'&quot;,this)" id="pl-detail-btn-'+eid+'" title="Voir le découpage par module" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;padding:2px;">'+(plAllDetailsExpanded?'&#9660;':'&#9654;')+'</button></td>'
       +'<td style="white-space:nowrap;color:var(--gold2);font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠ Férié</span>':'')+'</td>'
       +'<td style="text-align:center;color:var(--gold2);font-weight:700;">'+deg+'</td>'
-      +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><a href="#" onclick="plOpenForm(&quot;'+eid+'&quot;);return false;" title="Modifier le titre, la date, l\'heure, la catégorie..." style="color:'+couleurTitre+';text-decoration:none;cursor:pointer;">'+titreAffiche+'</a>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</td>'
+      +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><a href="#" onclick="plOpenForm(&quot;'+eid+'&quot;);return false;" title="Modifier le titre, la date, l\'heure, la catégorie..." style="color:'+couleurTitre+';text-decoration:none;cursor:pointer;">'+titreAffiche+'</a>'+nomTenueAff+modeleAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</td>'
       +'<td style="text-align:center;">'+(restants===0?'':('<button onclick="plOuvrirParties(&quot;'+eid+'&quot;)" title="Voir/modifier le détail des modules" style="background:none;border:1px solid '+(depasseModules?'#C0524A':'rgba(255,255,255,.2)')+';border-radius:3px;color:'+(depasseModules?'#C0524A':'var(--gold2)')+';cursor:pointer;font-size:11px;font-weight:600;padding:2px 8px;white-space:nowrap;">'+restants+'</button>'))+'</td>'
       +'<td style="text-align:center;color:var(--gold2);font-weight:600;">'+(nbBlocs===0?'':nbBlocs)+'</td>'
       +'<td style="text-align:center;color:rgba(255,255,255,.8);">'+(sujetSymbolisme===0?'':sujetSymbolisme)+'</td>'
@@ -19281,6 +19284,16 @@ function plOpenForm(id){
   document.getElementById('pl-inp-degre').value=e?e.degre||'1°':'1°';
   document.getElementById('pl-inp-duree').value=e&&e.duree?e.duree:'';
   document.getElementById('pl-inp-notes').value=e?e.notes:'';
+  var modSel=document.getElementById('pl-inp-modele');
+  if(modSel){
+    modSel.innerHTML='<option value="">— Aucun —</option>';
+    (D.modeles||[]).forEach(function(m){
+      var o=document.createElement('option');
+      o.value=m.id;o.textContent=m.nom;
+      if(e&&e.modeleId===m.id)o.selected=true;
+      modSel.appendChild(o);
+    });
+  }
   var ft=document.getElementById('pl-form-title');if(ft)ft.textContent=e?'Modifier la tenue':'Nouvelle tenue';
   var sb=document.getElementById('pl-btn-suppr');if(sb)sb.style.display=e?'':'none';
   fw.style.display='';
@@ -19297,12 +19310,13 @@ function plSaveForm(){
   var degre=(document.getElementById('pl-inp-degre')||{}).value||'1°';
   var duree=parseInt((document.getElementById('pl-inp-duree')||{}).value)||0;
   var notes=((document.getElementById('pl-inp-notes')||{}).value||'').trim();
+  var modeleId=(document.getElementById('pl-inp-modele')||{}).value||'';
   var data=plLoad();if(!data.events)data.events=[];
   if(_plEditId){
     var idx=-1;for(var i=0;i<data.events.length;i++)if(data.events[i].id===_plEditId){idx=i;break;}
-    if(idx>=0)data.events[idx]={id:_plEditId,date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes};
+    if(idx>=0){var ex=data.events[idx];data.events[idx]={id:_plEditId,date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:ex.detail,parties:ex.parties,modulesSupp:ex.modulesSupp,nomTenue:ex.nomTenue};}
   } else {
-    data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes});
+    data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId});
   }
   plSave(data);plCloseForm();plRender();plRenderObligatoires();toast('✓ Tenue enregistrée.');
 }
