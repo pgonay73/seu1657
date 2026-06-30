@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.24</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.25</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17498,9 +17498,41 @@ var PA_SUGGESTIONS_MOIS={
           <div style="display:flex;gap:8px;">
           </div>
         </div>
-        <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:12px;">
+        <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:10px;">
           Une ligne par frère de la loge. Indépendant de l'onglet « Planches des frères ».
         </p>
+        <div id="pl-suivi-filtres" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.08);">
+          <div>
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">Frère</label>
+            <input type="text" id="pl-suivi-f-nom" placeholder="Rechercher…" oninput="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;width:140px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">Type</label>
+            <select id="pl-suivi-f-type" onchange="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;">
+              <option value="">Tous</option>
+              <option value="Planche">Planche</option>
+              <option value="Symbolisme">Symbolisme</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">Degré</label>
+            <select id="pl-suivi-f-degre" onchange="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;">
+              <option value="">Tous</option>
+              <option value="1°">1°</option>
+              <option value="2°">2°</option>
+              <option value="3°">3°</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px;">État</label>
+            <select id="pl-suivi-f-etat" onchange="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;">
+              <option value="">Tous</option>
+              <option value="planifie">Planifiées</option>
+              <option value="non">Non planifiées</option>
+            </select>
+          </div>
+          <button onclick="plSuiviFiltresReset()" style="padding:4px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:transparent;color:rgba(255,255,255,.5);font-family:Raleway,sans-serif;font-size:11px;cursor:pointer;align-self:flex-end;">✕ Réinit.</button>
+        </div>
         <div id="pl-suivi-list"></div>
       </div>
       <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
@@ -20235,6 +20267,37 @@ function plSuiviRender(containerId){
     if(a.dateTenue && b.dateTenue) return a.dateTenue<b.dateTenue?-1:a.dateTenue>b.dateTenue?1:0;
     return fSortNom(a.f,b.f);
   });
+  // Filtres de sélection
+  var fNom=((document.getElementById('pl-suivi-f-nom')||{}).value||'').toLowerCase().trim();
+  var fType=(document.getElementById('pl-suivi-f-type')||{}).value||'';
+  var fDegre=(document.getElementById('pl-suivi-f-degre')||{}).value||'';
+  var fEtat=(document.getElementById('pl-suivi-f-etat')||{}).value||'';
+  if(fNom||fType||fDegre||fEtat){
+    lignes=lignes.filter(function(lg){
+      if(fNom && lg.nomFrere.toLowerCase().indexOf(fNom)<0) return false;
+      if(lg.groupeSansDate){
+        if(fEtat==='planifie') return false;
+        if(fType||fDegre){
+          lg.lignesSansDate=lg.lignesSansDate.filter(function(l){
+            var e=plSuiviEntree(suivi,lg.nomFrere,l);
+            if(fType && (e.type||'Planche')!==fType) return false;
+            if(fDegre && (e.degre||'')!==fDegre) return false;
+            return true;
+          });
+          if(!lg.lignesSansDate.length) return false;
+          lg.ligne=lg.lignesSansDate[0];
+          if(lg.lignesSansDate.length===1) lg.groupeSansDate=false;
+        }
+      } else {
+        var e2=plSuiviEntree(suivi,lg.nomFrere,lg.ligne);
+        if(fType && (e2.type||'Planche')!==fType) return false;
+        if(fDegre && (e2.degre||'')!==fDegre) return false;
+        if(fEtat==='planifie' && !e2.tenueId) return false;
+        if(fEtat==='non' && !!e2.tenueId) return false;
+      }
+      return true;
+    });
+  }
   // Les frères distincts (pour le compteur de bas de page)
   var freresTries=D.freres.slice().sort(fSortNom);
   var h='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
@@ -20263,6 +20326,11 @@ function plSuiviRender(containerId){
   el.innerHTML=h;
 }
 
+function plSuiviFiltresReset(){
+  var ids=['pl-suivi-f-nom','pl-suivi-f-type','pl-suivi-f-degre','pl-suivi-f-etat'];
+  ids.forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  plSuiviRender();
+}
 // Force la sauvegarde explicite de toutes les données de Planning libre (en
 // plus de la sauvegarde automatique déjà déclenchée à chaque modification),
 // avec confirmation visuelle. Utile en complément du correctif qui synchronise
