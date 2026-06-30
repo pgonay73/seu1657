@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.22</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.23</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19485,14 +19485,14 @@ function plRenderPlanchesRecap(containerId){
     var sepTop=(r.date!==lastDate)?'border-top:1.5px solid rgba(184,146,42,.3);':'';
     lastDate=r.date;
     var tc=r.type==='Symbolisme'?'#A8E6A3':'#9ED3F5';
-    var bgDeg=r.deg==='2°'?'background:rgba(230,150,30,.12);':r.deg==='3°'?'background:rgba(192,57,43,.14);':'background:rgba(60,180,80,.10);';
-    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+sepTop+bgDeg+'">'
-      +'<td style="'+FS+'white-space:nowrap;color:var(--gold2);">'+r.ds2+'</td>'
-      +'<td style="'+FS+'">'+(r.titre||'—')+'</td>'
-      +'<td style="'+FS+'text-align:center;color:var(--gold2);font-weight:700;">'+r.deg+'</td>'
+    var cd=r.deg==='2°'?'#FF9900':r.deg==='3°'?'#FF4444':'#33DD66';
+    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+sepTop+'">'
+      +'<td style="'+FS+'white-space:nowrap;color:'+cd+';">'+r.ds2+'</td>'
+      +'<td style="'+FS+'color:'+cd+';">'+(r.titre||'—')+'</td>'
+      +'<td style="'+FS+'text-align:center;color:'+cd+';font-weight:700;">'+r.deg+'</td>'
       +'<td style="'+FS+'text-align:center;"><span style="color:'+tc+';font-weight:700;">'+r.type.charAt(0)+'</span></td>'
-      +'<td style="'+FS+'">'+(r.libre?'<em style="color:rgba(255,255,255,.3);">— Libre —</em>':'<span style="color:var(--gold2);font-weight:600;">'+r.nomFrere+'</span>')+'</td>'
-      +'<td style="'+FS+'">'+(r.sujet?('<span style="color:rgba(255,255,255,.85);">'+r.sujet+'</span>'):'<span style="color:rgba(255,255,255,.2);">—</span>')+'</td>'
+      +'<td style="'+FS+'color:'+cd+';">'+(r.libre?'<em style="color:rgba(255,255,255,.3);">— Libre —</em>':'<span style="font-weight:600;">'+r.nomFrere+'</span>')+'</td>'
+      +'<td style="'+FS+'color:'+cd+';">'+(r.sujet?r.sujet:'<span style="color:rgba(255,255,255,.2);">—</span>')+'</td>'
       +'</tr>';
   });
   h+='</tbody></table>';
