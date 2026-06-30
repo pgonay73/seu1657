@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.28</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.29</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17505,30 +17505,6 @@ var PA_SUGGESTIONS_MOIS={
         <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:10px;">
           Une ligne par frère de la loge. Indépendant de l'onglet « Planches des frères ».
         </p>
-        <div id="pl-suivi-filtres" style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.08);">
-          <div>
-            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Degré</label>
-            <div style="display:flex;gap:4px;" id="pl-suivi-chips-deg">
-              <button onclick="plSuiviFDeg('')"  id="pl-sf-d-tous" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Tous</button>
-              <button onclick="plSuiviFDeg('1°')" id="pl-sf-d-1" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(51,221,102,.35);background:transparent;color:#33DD66;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">1°</button>
-              <button onclick="plSuiviFDeg('2°')" id="pl-sf-d-2" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,153,0,.35);background:transparent;color:#FF9900;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">2°</button>
-              <button onclick="plSuiviFDeg('3°')" id="pl-sf-d-3" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,68,68,.35);background:transparent;color:#FF4444;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">3°</button>
-            </div>
-          </div>
-          <div>
-            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Type</label>
-            <div style="display:flex;gap:4px;" id="pl-suivi-chips-type">
-              <button onclick="plSuiviFType('')"  id="pl-sf-t-tous" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">Tous</button>
-              <button onclick="plSuiviFType('Planche')"    id="pl-sf-t-p" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(158,211,245,.35);background:transparent;color:#9ED3F5;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">P</button>
-              <button onclick="plSuiviFType('Symbolisme')" id="pl-sf-t-s" style="padding:3px 10px;border-radius:4px;border:1px solid rgba(168,230,163,.35);background:transparent;color:#A8E6A3;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">S</button>
-            </div>
-          </div>
-          <div>
-            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Frère</label>
-            <input type="text" id="pl-suivi-f-nom" placeholder="Rechercher…" oninput="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;width:130px;">
-          </div>
-          <button onclick="plSuiviFiltresReset()" style="padding:3px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:transparent;color:rgba(255,255,255,.45);font-family:Raleway,sans-serif;font-size:11px;cursor:pointer;align-self:flex-end;">✕</button>
-        </div>
         <div id="pl-suivi-list"></div>
       </div>
       <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
@@ -20223,6 +20199,36 @@ function plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,ligne,nbLignes){
 function plSuiviRender(containerId){
   var el=document.getElementById(containerId||'pl-suivi-list');
   if(!el) return;
+  // Injecter la barre de filtres comme élément frère (si pas déjà présente dans ce parent)
+  var fbId='_pl-sf-bar';
+  var fb=document.getElementById(fbId);
+  if(!fb || fb.parentNode!==el.parentNode){
+    if(fb) fb.parentNode.removeChild(fb);
+    fb=document.createElement('div');
+    fb.id=fbId;
+    el.parentNode.insertBefore(fb,el);
+    var BS='padding:3px 10px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;';
+    fb.innerHTML='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;padding:8px 12px;background:rgba(255,255,255,.04);border-radius:6px;border:1px solid rgba(255,255,255,.08);">'
+      +'<div><label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Degré</label>'
+      +'<div style="display:flex;gap:4px;">'
+      +'<button id="pl-sf-d-tous" onclick="plSuiviFDeg(\'\')"  style="'+BS+'border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;">Tous</button>'
+      +'<button id="pl-sf-d-1"    onclick="plSuiviFDeg(\'1°\')" style="'+BS+'border-color:rgba(51,221,102,.4);background:transparent;color:#33DD66;">1°</button>'
+      +'<button id="pl-sf-d-2"    onclick="plSuiviFDeg(\'2°\')" style="'+BS+'border-color:rgba(255,153,0,.4);background:transparent;color:#FF9900;">2°</button>'
+      +'<button id="pl-sf-d-3"    onclick="plSuiviFDeg(\'3°\')" style="'+BS+'border-color:rgba(255,68,68,.4);background:transparent;color:#FF4444;">3°</button>'
+      +'</div></div>'
+      +'<div><label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Type</label>'
+      +'<div style="display:flex;gap:4px;">'
+      +'<button id="pl-sf-t-tous" onclick="plSuiviFType(\'\')"           style="'+BS+'border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.15);color:#fff;">Tous</button>'
+      +'<button id="pl-sf-t-p"    onclick="plSuiviFType(\'Planche\')"    style="'+BS+'border-color:rgba(158,211,245,.4);background:transparent;color:#9ED3F5;">P — Planche</button>'
+      +'<button id="pl-sf-t-s"    onclick="plSuiviFType(\'Symbolisme\')" style="'+BS+'border-color:rgba(168,230,163,.4);background:transparent;color:#A8E6A3;">S — Symbolisme</button>'
+      +'</div></div>'
+      +'<div><label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:5px;">Frère</label>'
+      +'<input id="pl-suivi-f-nom" type="text" placeholder="Rechercher…" oninput="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;width:130px;">'
+      +'</div>'
+      +'<button onclick="plSuiviFiltresReset()" style="padding:3px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:transparent;color:rgba(255,255,255,.45);font-family:Raleway,sans-serif;font-size:11px;cursor:pointer;align-self:flex-end;">✕ Réinit.</button>'
+      +'</div>';
+  }
+  _plSuiviChipUpdate();
   if(!window.D || !Array.isArray(D.freres) || !D.freres.length){
     el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun frère trouvé.</p>';
     return;
