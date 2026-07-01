@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.41</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.42</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19525,7 +19525,7 @@ function plOpenForm(id){
   var _hDefConf='19:30';
   try{if(D.regles&&D.regles[0]&&D.regles[0].heure)_hDefConf=D.regles[0].heure;}catch(_){}
   document.getElementById('pl-inp-date').value=e?e.date:'';
-  document.getElementById('pl-inp-titre').value=e?e.titre:'Tenue';
+  document.getElementById('pl-inp-titre').value=e?e.titre:'???';
   document.getElementById('pl-inp-heure').value=e?e.heure:_hDefConf;
   document.getElementById('pl-inp-cat').value=e?e.categorie:'tenue';
   document.getElementById('pl-inp-degre').value=e?e.degre||'1°':'1°';
@@ -19565,6 +19565,14 @@ function plOpenForm(id){
     if(_modT1&&modSel){
       modSel.value=_modT1.id;
       parties=cpP(_modT1.parties||[]);
+      // Pré-cocher "Planche" et "Parole" dans chaque morceau d'architecture
+      parties.forEach(function(p){
+        var n=(p.nom||'').toLowerCase();
+        if(n.trim()==='planche'||n.trim()==='planche et symbolisme'||n.indexOf('morceau')>=0||n.indexOf('architecture')>=0){
+          if((p.plancheSteps||[]).indexOf('planche')<0) p.plancheSteps=(p.plancheSteps||[]).concat(['planche']);
+          p.circulParole=true;
+        }
+      });
     }
     if(!parties||!parties.length) parties=cpP(D.parDefaut||[]);
   } else {
