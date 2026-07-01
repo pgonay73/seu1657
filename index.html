@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.52</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.53</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13332,6 +13332,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab" id="admin-pl-tab-dispos" onclick="adminPlTab(\'dispos\',this)">📋 Dispo P/S</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-suivi" onclick="adminPlTab(\'suivi\',this)">Suivi des planches</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-sujets" onclick="adminPlTab(\'sujets\',this)">Sujets de planches</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-symbolisme" onclick="adminPlTab(\'symbolisme\',this)">Sujets de symbolisme</button>';
     c+='</div>';
     c+='<div id="admin-pl-panel-modeles" style="display:none;">';
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Modèles de tenues</h3>';
@@ -13364,6 +13365,14 @@ function renderOffice(n){
     c+='<button class="btn btn-gold btn-sm" onclick="plSujetsAjouter();setTimeout(function(){plSujetsRender();var e=document.getElementById(\'admin-pl-sujets-list\');if(e)plSujetsRenderInto(e);},100)">+ Ajouter un sujet</button>';
     c+='</div>';
     c+='<div id="admin-pl-sujets-list"></div>';
+    c+='</div></div>';
+    c+='<div id="admin-pl-panel-symbolisme" style="display:none;">';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Sujets de symbolisme</h3>';
+    c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">Banque de sujets de symbolisme classés par degré — utilisés dans le suivi quand le type est S.</p>';
+    c+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
+    c+='<button class="btn btn-gold btn-sm" onclick="plSymAjouter();setTimeout(function(){plSymRender();var e=document.getElementById(\'admin-pl-sym-list\');if(e)plSymRenderInto(e);},100)">+ Ajouter un sujet</button>';
+    c+='</div>';
+    c+='<div id="admin-pl-sym-list"></div>';
     c+='</div></div>';
     c+='</div>';
 
@@ -15034,7 +15043,7 @@ function adminTab(name, btn){
 
 // ── Planning sub-tabs ──────────────────────────────────────────────────
 function adminPlTab(name, btn){
-  var subTabs=['modeles','detail','tenuesImp','suivi','planning','dispos','sujets'];
+  var subTabs=['modeles','detail','tenuesImp','suivi','planning','dispos','sujets','symbolisme'];
   var subBtns=document.querySelectorAll('#admin-panel-planning .cfg-tab');
   for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
   if(btn) btn.classList.add('active');
@@ -15057,6 +15066,7 @@ function adminPlTab(name, btn){
   if(name==='suivi') setTimeout(function(){ plSuiviRender('admin-pl-suivi-list'); },0);
   if(name==='dispos') setTimeout(function(){ plRenderPlanchesRecap('admin-pl-planches-recap'); },0);
   if(name==='sujets') setTimeout(function(){ var e=document.getElementById('admin-pl-sujets-list'); if(e) plSujetsRenderInto(e); },0);
+  if(name==='symbolisme') setTimeout(function(){ var e=document.getElementById('admin-pl-sym-list'); if(e) plSymRenderInto(e); },0);
 }
 
 // ── Titulaires des offices ──────────────────────────────────────────────
@@ -17253,6 +17263,7 @@ var PA_SUGGESTIONS_MOIS={
       <button class="cfg-tab active" id="pl-subtab-criteres-parent" onclick="plSubTabParent('criteres')">Critères de sélection</button>
       <button class="cfg-tab" id="pl-subtab-planning" onclick="plSubTab('planning',this)">Détail des tenues</button>
       <button class="cfg-tab" id="pl-subtab-sujets" onclick="plSubTab('sujets',this)">Sujets de planches</button>
+      <button class="cfg-tab" id="pl-subtab-symbolisme" onclick="plSubTab('symbolisme',this)">Sujets de symbolisme</button>
       <button class="cfg-tab" id="pl-subtab-suivi" onclick="plSubTab('suivi',this)">Suivi des planches</button>
       <button class="cfg-tab" id="pl-subtab-planches" onclick="plSubTab('planches',this)">📋 Dispo P/S</button>
       <button class="cfg-tab" id="pl-subtab-procedure" onclick="plSubTab('procedure',this)">📝 Procédure</button>
@@ -17514,6 +17525,26 @@ var PA_SUGGESTIONS_MOIS={
       <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
         <h4 style="margin:0 0 8px;">Observations</h4>
         <textarea id="pl-fonct-sujets" rows="2" oninput="obsAutoResize(this)" oninput="plFonctSave('sujets')" onblur="plFonctSave('sujets')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;width:100%;box-sizing:border-box;" placeholder="Observations…"></textarea>
+      </div>
+    </div>
+
+    <!-- ── Sous-onglet : Sujets de symbolisme ── -->
+    <div id="pl-sub-symbolisme" style="display:none;">
+      <div class="pl-cfg-box" style="background:rgba(255,255,255,.05);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+          <h4 style="margin:0;">Sujets de symbolisme</h4>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="pl-btn pl-btn-gold pl-btn-sm" onclick="plSymAjouter()">+ Ajouter un sujet</button>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:12px;">
+          Banque de sujets de symbolisme classés par degré. Proposés dans le suivi quand le type est S (Symbolisme).
+        </p>
+        <div id="pl-sym-list"></div>
+      </div>
+      <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
+        <h4 style="margin:0 0 8px;">Observations</h4>
+        <textarea id="pl-fonct-symbolisme" rows="2" oninput="obsAutoResize(this)" onblur="plFonctSave('symbolisme')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;" placeholder="Observations…"></textarea>
       </div>
     </div>
 
@@ -18997,7 +19028,7 @@ function plGenererSelonCriteres(){
 var PL_CRITERES_ENFANTS=['critmens','obligatoires','candidature','deuxieme','troisieme'];
 function plSubTab(name, btn){
   _currentPlSubTab = name;
-  document.querySelectorAll('#pl-subtab-bareme,#pl-subtab-criteres-parent,#pl-subtab-critmens,#pl-subtab-obligatoires,#pl-subtab-candidature,#pl-subtab-deuxieme,#pl-subtab-troisieme,#pl-subtab-planning,#pl-subtab-sujets,#pl-subtab-suivi,#pl-subtab-planches,#pl-subtab-procedure').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('#pl-subtab-bareme,#pl-subtab-criteres-parent,#pl-subtab-critmens,#pl-subtab-obligatoires,#pl-subtab-candidature,#pl-subtab-deuxieme,#pl-subtab-troisieme,#pl-subtab-planning,#pl-subtab-sujets,#pl-subtab-symbolisme,#pl-subtab-suivi,#pl-subtab-planches,#pl-subtab-procedure').forEach(function(b){b.classList.remove('active');});
   var estEnfantCriteres=(PL_CRITERES_ENFANTS.indexOf(name)>=0);
   var subbar=document.getElementById('pl-criteres-subbar');
   var plBtnWrap=document.getElementById('pl-btn-imprimer-wrap');
@@ -19014,7 +19045,7 @@ function plSubTab(name, btn){
     // Barre principale → montrer bouton principal
     if(plBtnWrap) plBtnWrap.style.display='';
   }
-  var panels={bareme:'pl-sub-bareme',critmens:'pl-sub-critmens',obligatoires:'pl-sub-obligatoires',candidature:'pl-sub-candidature',deuxieme:'pl-sub-deuxieme',troisieme:'pl-sub-troisieme',planning:'pl-sub-planning',planches:'pl-sub-planches',sujets:'pl-sub-sujets',suivi:'pl-sub-suivi',procedure:'pl-sub-procedure'};
+  var panels={bareme:'pl-sub-bareme',critmens:'pl-sub-critmens',obligatoires:'pl-sub-obligatoires',candidature:'pl-sub-candidature',deuxieme:'pl-sub-deuxieme',troisieme:'pl-sub-troisieme',planning:'pl-sub-planning',planches:'pl-sub-planches',sujets:'pl-sub-sujets',symbolisme:'pl-sub-symbolisme',suivi:'pl-sub-suivi',procedure:'pl-sub-procedure'};
   Object.keys(panels).forEach(function(key){
     var el=document.getElementById(panels[key]);
     if(el) el.style.display=(key===name)?'':'none';
@@ -19026,6 +19057,7 @@ function plSubTab(name, btn){
   if(name==='planning') plRenderPlanning();
   if(name==='planches') plRenderPlanchesRecap();
   if(name==='sujets') plSujetsRender();
+  if(name==='symbolisme') plSymRender();
   if(name==='suivi') plSuiviRender();
   if(name==='procedure'){ setTimeout(function(){ plProcedureLoad(); },30); }
 }
@@ -19794,6 +19826,10 @@ function plSujetsToggleActif(idx,checked){
     plSujetsRender();
   }
 }
+function plSujetsToggleActifSel(idx,checked){
+  var d=plSujetsLoad();
+  if(idx>=0&&idx<d.length){d[idx].actif=checked;d[idx].selectionne=checked?true:false;plSujetsSave(d);}
+}
 function plSujetsChanger(idx,champ,val){
   var d=plSujetsLoad();
   if(!d[idx]) return;
@@ -19898,8 +19934,8 @@ function plSujetsRenderInto(el){
   var dFiltres=filtreActif?d.filter(function(p){return p.degre===filtreActif;}):d;
   var degs=['1°','2°','3°'];
   var tot={},sel={}; degs.forEach(function(g){tot[g]=0;sel[g]=0;});
-  d.forEach(function(p){ var g=p.degre; if(g&&degs.indexOf(g)>=0){tot[g]++;if(p.selectionne)sel[g]++;} });
-  var selFiltres=dFiltres.filter(function(p){return p.selectionne;}).length;
+  d.forEach(function(p){ var g=p.degre; if(g&&degs.indexOf(g)>=0){tot[g]++;if(p.actif!==false)sel[g]++;} });
+  var selFiltres=dFiltres.filter(function(p){return p.actif!==false;}).length;
   h+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center;">';
   h+='<span style="font-size:11px;color:rgba(255,255,255,.5);">Totaux :</span>';
   degs.forEach(function(g){
@@ -19909,7 +19945,7 @@ function plSujetsRenderInto(el){
       +(sel[g]>0?' <span style="color:rgba(184,146,42,.8);">('+sel[g]+' ✓)</span>':'')
       +'</span>';
   });
-  h+='<span style="font-size:11px;color:rgba(255,255,255,.35);">| Affichés : '+dFiltres.length+(selFiltres>0?' · <b style=\"color:var(--gold2)\">'+selFiltres+' sél.</b>':'')+'</span>';
+  h+='<span style="font-size:11px;color:rgba(255,255,255,.35);">| Affichés : '+dFiltres.length+(selFiltres>0?' · <b style=\"color:var(--gold2)\">'+selFiltres+' actifs</b>':'')+'</span>';
   h+='</div>';
   var _elId=el.id||'vm-sujets-list';
   var BS2='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;margin:0;';
@@ -19925,8 +19961,7 @@ function plSujetsRenderInto(el){
   var cs={};
   try{Object.keys(suivi).forEach(function(k){if(k.indexOf('#nb')<0&&suivi[k]&&suivi[k].sujet)cs[suivi[k].sujet]=(cs[suivi[k].sujet]||0)+1;});}catch(e){}
   h+='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
-    +'<th style="text-align:center;width:36px;" title="Sélectionner">☑</th>'
-    +'<th style="text-align:center;width:44px;">✓ Suivi</th><th>Sujet</th>'
+    +'<th style="text-align:center;width:44px;" title="Coché = sujet actif dans le menu du suivi">✓ Suivi</th><th>Sujet</th>'
     +'<th style="text-align:center;width:60px;">Degré</th>'
     +'<th style="text-align:center;width:50px;">Assigné</th>'
     +'<th style="width:36px;"></th></tr></thead><tbody>';
@@ -19934,14 +19969,12 @@ function plSujetsRenderInto(el){
     var idx=d.indexOf(p);
     var ea=(p.actif!==false);
     var nb=cs[p.sujet]||0;
-    var isSel=!!p.selectionne;
-    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(ea?'':'opacity:.45;')+(isSel?'background:rgba(184,146,42,.1);':'')+'">'
-      +'<td style="text-align:center;"><input type="checkbox"'+(isSel?' checked':'')+' title="Sélectionner" onchange="plSujetsToggleSel('+idx+',this.checked);setTimeout(function(){var e=document.getElementById(\'vm-sujets-list\');if(e)plSujetsRenderInto(e);},80)"></td>'
-      +'<td style="text-align:center;"><input type="checkbox"'+(ea?' checked':'')+' onchange="plSujetsToggleActif('+idx+',this.checked);setTimeout(function(){var e=document.getElementById(\'vm-sujets-list\');if(e)plSujetsRenderInto(e);},100)"></td>'
+    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(ea?'background:rgba(184,146,42,.08);':'opacity:.45;')+'">'
+      +'<td style="text-align:center;"><input type="checkbox"'+(ea?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSujetsToggleActifSel('+idx+',this.checked);setTimeout(function(){var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);},100)"></td>'
       +'<td><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSujetsChanger('+idx+',&quot;sujet&quot;,this.value)" style="min-width:300px;width:100%;"></td>'
       +'<td style="text-align:center;color:var(--gold2);font-weight:700;">'+(p.degre||'—')+'</td>'
       +'<td style="text-align:center;">'+(nb>0?'<span style="font-weight:700;color:var(--gold2);">'+nb+'</span>':'<span style="color:rgba(255,255,255,.25);">—</span>')+'</td>'
-      +'<td style="text-align:center;"><button onclick="plSujetsSupprimer('+idx+');setTimeout(function(){var e=document.getElementById(\'vm-sujets-list\');if(e)plSujetsRenderInto(e);},100)" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
+      +'<td style="text-align:center;"><button onclick="plSujetsSupprimer('+idx+');setTimeout(function(){var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);},100)" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
       +'</tr>';
   });
   h+='</tbody></table>';
@@ -19960,8 +19993,8 @@ function plSujetsRender(){
   var dFiltres=filtreActif?d.filter(function(p){return p.degre===filtreActif;}):d;
   var degs=['1°','2°','3°'];
   var tot={},sel={}; degs.forEach(function(g){tot[g]=0;sel[g]=0;});
-  d.forEach(function(p){ var g=p.degre; if(g&&degs.indexOf(g)>=0){tot[g]++;if(p.selectionne)sel[g]++;} });
-  var selFiltres=dFiltres.filter(function(p){return p.selectionne;}).length;
+  d.forEach(function(p){ var g=p.degre; if(g&&degs.indexOf(g)>=0){tot[g]++;if(p.actif!==false)sel[g]++;} });
+  var selFiltres=dFiltres.filter(function(p){return p.actif!==false;}).length;
   // Bandeau totaux
   var h='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;">';
   h+='<span style="font-size:11px;color:rgba(255,255,255,.5);">Totaux :</span>';
@@ -19972,8 +20005,8 @@ function plSujetsRender(){
       +(sel[g]>0?' <span style="color:rgba(184,146,42,.9);">('+sel[g]+' sél.)</span>':'')
       +'</span>';
   });
-  var totAll=d.length, selAll=d.filter(function(p){return p.selectionne;}).length;
-  h+='<span style="font-size:11px;color:rgba(255,255,255,.4);margin-left:6px;">Total : '+totAll+(selAll>0?' · <span style="color:var(--gold2);font-weight:700;">'+selAll+' sél.</span>':'')+'</span>';
+  var totAll=d.length, selAll=d.filter(function(p){return p.actif!==false;}).length;
+  h+='<span style="font-size:11px;color:rgba(255,255,255,.4);margin-left:6px;">Total : '+totAll+(selAll>0?' · <span style="color:var(--gold2);font-weight:700;">'+selAll+' actifs</span>':'')+'</span>';
   h+='</div>';
   // Boutons filtre par degré
   var BS='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;margin:0;';
@@ -19995,7 +20028,6 @@ function plSujetsRender(){
     }
   });
   h+='<table class="pl-table-compact" style="width:auto;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
-    +'<th style="text-align:center;width:36px;" title="Sélectionner ce sujet">☑</th>'
     +'<th style="text-align:center;width:44px;" title="Coché = apparaît dans le menu déroulant du suivi des frères">✓ Suivi</th>'
     +'<th>Sujet</th><th style="text-align:center;width:60px;">Degré</th>'
     +'<th style="text-align:center;width:50px;" title="Nombre de frères ayant ce sujet sélectionné dans le suivi">Assigné</th>'
@@ -20004,10 +20036,8 @@ function plSujetsRender(){
     var idx=d.indexOf(p);
     var estActif=(p.actif!==false);
     var nb=compteSujets[p.sujet]||0;
-    var isSel=!!p.selectionne;
-    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(estActif?'':'opacity:.45;')+(isSel?'background:rgba(184,146,42,.1);':'')+'">'
-      +'<td style="text-align:center;"><input type="checkbox"'+(isSel?' checked':'')+' title="Sélectionner" onchange="plSujetsToggleSel('+idx+',this.checked);plSujetsRender()"></td>'
-      +'<td style="text-align:center;"><input type="checkbox"'+(estActif?' checked':'')+' onchange="plSujetsToggleActif('+idx+',this.checked)" title="Inclure dans le menu du suivi"></td>'
+    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(estActif?'background:rgba(184,146,42,.08);':'opacity:.45;')+'">'
+      +'<td style="text-align:center;"><input type="checkbox"'+(estActif?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSujetsToggleActifSel('+idx+',this.checked);plSujetsRender()"></td>'
       +'<td style="width:100%;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSujetsChanger('+idx+',&quot;sujet&quot;,this.value)" style="min-width:480px;width:100%;"></td>'
       +'<td style="text-align:center;color:var(--gold2);font-weight:700;font-size:13px;">'+(p.degre||'—')+'</td>'
       +'<td style="text-align:center;">'+(nb>0?'<span style="font-weight:700;color:var(--gold2);">'+nb+'</span>':'<span style="color:rgba(255,255,255,.25);">—</span>')+'</td>'
@@ -20115,6 +20145,132 @@ function plSujetsImporterColler(){
 }
 
 
+// ── Sujets de symbolisme ──────────────────────────────────────────────────
+var PL_SYM_KEY='planning_libre_sujets_symbolisme';
+function plSymLoad(){try{var d=JSON.parse(localStorage.getItem(PL_SYM_KEY));if(Array.isArray(d))return d;}catch(e){}return [];}
+function plSymSave(d){try{localStorage.setItem(PL_SYM_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_SYM_KEY,d);}
+function plSymAjouter(){var d=plSymLoad();d.push({sujet:'',degre:''});plSymSave(d);if(typeof plSymRender==='function')plSymRender();}
+function plSymSupprimer(idx){var d=plSymLoad();if(!d[idx])return;d.splice(idx,1);plSymSave(d);plSymRender();}
+function plSymChanger(idx,champ,val){var d=plSymLoad();if(!d[idx])return;d[idx][champ]=val;plSymSave(d);}
+function plSymToggleActifSel(idx,checked){var d=plSymLoad();if(idx>=0&&idx<d.length){d[idx].actif=checked;d[idx].selectionne=checked?true:false;plSymSave(d);}}
+function plSymRenderInto(el){
+  if(!el) return;
+  var d=plSymLoad();
+  var _elId=el.id||'vm-sym-list';
+  var h='<div style="display:flex;gap:8px;margin-bottom:12px;">'
+    +'<button class="btn btn-gold btn-sm" onclick="plSymAjouter();setTimeout(function(){plSymRender();var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);},100)">+ Ajouter un sujet</button>'
+    +'</div>';
+  if(!d||!d.length){h+='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun sujet pour le moment.</p>';el.innerHTML=h;return;}
+  var filtreActif=el.dataset.filtreDegre||'';
+  var dFiltres=filtreActif?d.filter(function(p){return p.degre===filtreActif;}):d;
+  var degs=['1°','2°','3°'];
+  var tot={},sel={}; degs.forEach(function(g){tot[g]=0;sel[g]=0;});
+  d.forEach(function(p){var g=p.degre;if(g&&degs.indexOf(g)>=0){tot[g]++;if(p.actif!==false)sel[g]++;}});
+  var selFiltres=dFiltres.filter(function(p){return p.actif!==false;}).length;
+  h+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center;">';
+  h+='<span style="font-size:11px;color:rgba(255,255,255,.5);">Totaux :</span>';
+  degs.forEach(function(g){
+    h+='<span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:2px 8px;">'
+      +'<span style="color:var(--gold2);font-weight:700;">'+g+'</span> '
+      +'<span style="color:#fff;">'+tot[g]+'</span>'
+      +(sel[g]>0?' <span style="color:rgba(184,146,42,.8);">('+sel[g]+' ✓)</span>':'')
+      +'</span>';
+  });
+  h+='<span style="font-size:11px;color:rgba(255,255,255,.35);">| Affichés : '+dFiltres.length+(selFiltres>0?' · <b style=\"color:var(--gold2)\">'+selFiltres+' actifs</b>':'')+'</span>';
+  h+='</div>';
+  var BS2='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;margin:0;';
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;">'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.45);margin-right:4px;">Afficher :</span>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'\';var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);" style="'+BS2+'border-color:rgba(255,255,255,.3);background:'+(filtreActif===''?'rgba(255,255,255,.2)':'transparent')+';color:#fff;">Tous</button>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'1°\';var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);" style="'+BS2+'border-color:rgba(51,221,102,.4);background:'+(filtreActif==='1°'?'rgba(51,221,102,.2)':'transparent')+';color:#33DD66;">Tenue au 1°</button>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'2°\';var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);" style="'+BS2+'border-color:rgba(255,153,0,.4);background:'+(filtreActif==='2°'?'rgba(255,153,0,.2)':'transparent')+';color:#FF9900;">Tenue au 2°</button>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'3°\';var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);" style="'+BS2+'border-color:rgba(255,68,68,.4);background:'+(filtreActif==='3°'?'rgba(255,68,68,.2)':'transparent')+';color:#FF4444;">Tenue au 3°</button>'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:6px;">'+dFiltres.length+' affiché'+(dFiltres.length>1?'s':'')+(selFiltres>0?' · <b>'+selFiltres+' actifs</b>':'')+'</span>'
+    +'</div>';
+  var suivi=(typeof plSuiviLoad==='function')?plSuiviLoad():{};
+  var cs={};
+  try{Object.keys(suivi).forEach(function(k){if(k.indexOf('#nb')<0&&suivi[k]&&suivi[k].sujet)cs[suivi[k].sujet]=(cs[suivi[k].sujet]||0)+1;});}catch(e){}
+  h+='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
+    +'<th style="text-align:center;width:44px;" title="Coché = sujet actif dans le menu du suivi">✓ Suivi</th><th>Sujet</th>'
+    +'<th style="text-align:center;width:60px;">Degré</th>'
+    +'<th style="text-align:center;width:50px;">Assigné</th>'
+    +'<th style="width:36px;"></th></tr></thead><tbody>';
+  dFiltres.forEach(function(p){
+    var idx=d.indexOf(p);
+    var ea=(p.actif!==false);
+    var nb=cs[p.sujet]||0;
+    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(ea?'background:rgba(184,146,42,.08);':'opacity:.45;')+'">'
+      +'<td style="text-align:center;"><input type="checkbox"'+(ea?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSymToggleActifSel('+idx+',this.checked);setTimeout(function(){var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);},100)"></td>'
+      +'<td><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSymChanger('+idx+',&quot;sujet&quot;,this.value)" style="min-width:300px;width:100%;"></td>'
+      +'<td style="text-align:center;color:var(--gold2);font-weight:700;">'+(p.degre||'—')+'</td>'
+      +'<td style="text-align:center;">'+(nb>0?'<span style="font-weight:700;color:var(--gold2);">'+nb+'</span>':'<span style="color:rgba(255,255,255,.25);">—</span>')+'</td>'
+      +'<td style="text-align:center;"><button onclick="plSymSupprimer('+idx+');setTimeout(function(){var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);},100)" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
+      +'</tr>';
+  });
+  h+='</tbody></table>';
+  el.innerHTML=h;
+}
+function plSymRender(){
+  var el=document.getElementById('pl-sym-list');
+  if(!el) return;
+  var d=plSymLoad();
+  if(!d.length){
+    el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun sujet pour le moment. Utilisez "Ajouter un sujet".</p>';
+    return;
+  }
+  var filtreActif=el.dataset.filtreDegre||'';
+  var dFiltres=filtreActif?d.filter(function(p){return p.degre===filtreActif;}):d;
+  var degs=['1°','2°','3°'];
+  var tot={},sel={}; degs.forEach(function(g){tot[g]=0;sel[g]=0;});
+  d.forEach(function(p){var g=p.degre;if(g&&degs.indexOf(g)>=0){tot[g]++;if(p.actif!==false)sel[g]++;}});
+  var selFiltres=dFiltres.filter(function(p){return p.actif!==false;}).length;
+  var h='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center;">';
+  h+='<span style="font-size:11px;color:rgba(255,255,255,.5);">Totaux :</span>';
+  degs.forEach(function(g){
+    h+='<span style="font-size:11px;background:rgba(255,255,255,.07);border-radius:4px;padding:2px 10px;">'
+      +'<span style="color:var(--gold2);font-weight:700;">'+g+'</span> '
+      +'<span style="color:#fff;font-weight:600;">'+tot[g]+'</span>'
+      +(sel[g]>0?' <span style="color:rgba(184,146,42,.9);">('+sel[g]+' ✓)</span>':'')
+      +'</span>';
+  });
+  var totAll=d.length, selAll=d.filter(function(p){return p.actif!==false;}).length;
+  h+='<span style="font-size:11px;color:rgba(255,255,255,.4);margin-left:6px;">Total : '+totAll+(selAll>0?' · <span style="color:var(--gold2);font-weight:700;">'+selAll+' actifs</span>':'')+'</span>';
+  h+='</div>';
+  var BS='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;margin:0;';
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;">'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.45);margin-right:4px;">Afficher :</span>'
+    +'<button onclick="document.getElementById(\'pl-sym-list\').dataset.filtreDegre=\'\';plSymRender();" style="'+BS+'border-color:rgba(255,255,255,.3);background:'+(filtreActif===''?'rgba(255,255,255,.2)':'transparent')+';color:#fff;">Tous</button>'
+    +'<button onclick="document.getElementById(\'pl-sym-list\').dataset.filtreDegre=\'1°\';plSymRender();" style="'+BS+'border-color:rgba(51,221,102,.4);background:'+(filtreActif==='1°'?'rgba(51,221,102,.2)':'transparent')+';color:#33DD66;">Tenue au 1°</button>'
+    +'<button onclick="document.getElementById(\'pl-sym-list\').dataset.filtreDegre=\'2°\';plSymRender();" style="'+BS+'border-color:rgba(255,153,0,.4);background:'+(filtreActif==='2°'?'rgba(255,153,0,.2)':'transparent')+';color:#FF9900;">Tenue au 2°</button>'
+    +'<button onclick="document.getElementById(\'pl-sym-list\').dataset.filtreDegre=\'3°\';plSymRender();" style="'+BS+'border-color:rgba(255,68,68,.4);background:'+(filtreActif==='3°'?'rgba(255,68,68,.2)':'transparent')+';color:#FF4444;">Tenue au 3°</button>'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:6px;">'+dFiltres.length+' affiché'+(dFiltres.length>1?'s':'')+(selFiltres>0?' · <b>'+selFiltres+' actifs</b>':'')+'</span>'
+    +'</div>';
+  var suivi=plSuiviLoad();
+  var compteSujets={};
+  Object.keys(suivi).forEach(function(cle){
+    if(cle.indexOf('#nb')<0){var val=suivi[cle];if(val&&val.sujet)compteSujets[val.sujet]=(compteSujets[val.sujet]||0)+1;}
+  });
+  h+='<table class="pl-table-compact" style="width:auto;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
+    +'<th style="text-align:center;width:44px;" title="Coché = apparaît dans le menu déroulant du suivi des frères">✓ Suivi</th>'
+    +'<th>Sujet</th><th style="text-align:center;width:60px;">Degré</th>'
+    +'<th style="text-align:center;width:50px;" title="Nombre de frères ayant ce sujet dans le suivi">Assigné</th>'
+    +'<th style="width:36px;"></th></tr></thead><tbody>';
+  dFiltres.forEach(function(p){
+    var idx=d.indexOf(p);
+    var estActif=(p.actif!==false);
+    var nb=compteSujets[p.sujet]||0;
+    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(estActif?'background:rgba(184,146,42,.08);':'opacity:.45;')+'">'
+      +'<td style="text-align:center;"><input type="checkbox"'+(estActif?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSymToggleActifSel('+idx+',this.checked);plSymRender()"></td>'
+      +'<td style="width:100%;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSymChanger('+idx+',&quot;sujet&quot;,this.value)" style="min-width:480px;width:100%;"></td>'
+      +'<td style="text-align:center;color:var(--gold2);font-weight:700;font-size:13px;">'+(p.degre||'—')+'</td>'
+      +'<td style="text-align:center;">'+(nb>0?'<span style="font-weight:700;color:var(--gold2);">'+nb+'</span>':'<span style="color:rgba(255,255,255,.25);">—</span>')+'</td>'
+      +'<td style="text-align:center;"><button onclick="plSymSupprimer('+idx+');plSymRender()" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
+      +'</tr>';
+  });
+  h+='</tbody></table>';
+  el.innerHTML=h;
+}
+
 // Indépendant de la copie "Planches des frères" (onglet 5).
 var PL_SUIVI_KEY='planning_libre_suivi_freres';
 function plSuiviLoad(){
@@ -20196,47 +20352,46 @@ function plSuiviChoisirTenue(nomFrere,ligne,tenueId){
 // avant l'ajout de cette fonctionnalité, ou sujet propre au frère), le menu
 // reste sur "Saisir un sujet libre" avec le champ texte pré-rempli.
 function plSuiviCelluleSujet(nomAttr,ligne,s){
-  var banque=plSujetsLoad();
+  var banque=(s.type==='Symbolisme')?plSymLoad():plSujetsLoad();
   var degreLigne=s.degre||'';
   var sujetsFiltres=banque.filter(function(b){return b.sujet && b.actif!==false && (!degreLigne || b.degre===degreLigne);});
   var sujetActuel=s.sujet||'';
-  // Collecter tous les sujets déjà sélectionnés dans le suivi (pour ne pas les proposer une 2ème fois)
   var suivi=plSuiviLoad();
   var sujetsUtilises=[];
   Object.keys(suivi).forEach(function(cle){
-    if(cle.indexOf('#nb')<0){
-      var val=suivi[cle];
-      if(val && val.sujet && val.sujet!==sujetActuel) sujetsUtilises.push(val.sujet);
-    }
+    if(cle.indexOf('#nb')<0){var val=suivi[cle];if(val&&val.sujet&&val.sujet!==sujetActuel)sujetsUtilises.push(val.sujet);}
   });
   sujetsFiltres=sujetsFiltres.filter(function(b){return sujetsUtilises.indexOf(b.sujet)<0;});
-  var correspondDansBanque=banque.filter(function(b){return b.sujet && (!degreLigne || b.degre===degreLigne);}).some(function(b){return b.sujet===sujetActuel;});
-  var modeLibre=sujetActuel!=='' && !correspondDansBanque;
-  var h='<select onchange="plSuiviChangerSujetSelect(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this)" style="width:100%;">';
-  h+='<option value=""'+(sujetActuel===''?' selected':'')+'>—</option>';
+  var correspondDansBanque=banque.filter(function(b){return b.sujet&&(!degreLigne||b.degre===degreLigne);}).some(function(b){return b.sujet===sujetActuel;});
+  var estLibre=sujetActuel!==''&&!correspondDansBanque;
+  // Champ sujet libre (toujours visible, prioritaire si rempli)
+  var h='<input type="text" value="'+(estLibre?sujetActuel.replace(/"/g,'&quot;'):'')+'" placeholder="Sujet libre…" '
+    +'onchange="plSuiviChangerSujetLibre(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this)" '
+    +'style="width:100%;margin-bottom:2px;">';
+  // Menu déroulant de la banque (grisé si sujet libre saisi)
+  h+='<select onchange="plSuiviChangerSujetSelect(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this)" '
+    +'style="width:100%;'+(estLibre?'opacity:.4;':'')+'">';
+  h+='<option value=""'+((!sujetActuel||estLibre)?' selected':'')+'>—</option>';
   sujetsFiltres.forEach(function(b){
-    h+='<option value="'+b.sujet.replace(/"/g,'&quot;')+'"'+(b.sujet===sujetActuel?' selected':'')+'>'+b.sujet+'</option>';
+    h+='<option value="'+b.sujet.replace(/"/g,'&quot;')+'"'+(!estLibre&&b.sujet===sujetActuel?' selected':'')+'>'+b.sujet+'</option>';
   });
-  h+='<option value="__libre__"'+(modeLibre?' selected':'')+'>— Saisir un sujet libre —</option>';
   h+='</select>';
-  h+='<input type="text" value="'+sujetActuel.replace(/"/g,'&quot;')+'" onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;sujet&quot;,this.value);setTimeout(plSuiviRender,0);" placeholder="Sujet libre..." style="width:100%;margin-top:2px;'+(modeLibre?'':'display:none;')+'">';
   return h;
 }
-// Gère le choix dans le menu déroulant : un vrai sujet de la banque met à
-// jour directement le suivi et masque le champ libre ; l'option spéciale
-// affiche le champ libre juste à côté sans encore rien enregistrer (laisse
-// l'utilisateur saisir), et un changement vers "—" vide le sujet.
+// Si le champ "sujet libre" est rempli, il prend la priorité sur le menu.
+function plSuiviChangerSujetLibre(nomAttr,ligne,input){
+  var val=input.value.trim();
+  var sel=input.nextElementSibling;
+  if(val){if(sel){sel.value='';sel.style.opacity='.4';}}
+  else{if(sel){sel.style.opacity='';}}
+  plSuiviChanger(nomAttr,ligne,'sujet',val);
+  setTimeout(plSuiviRender,0);
+}
+// Menu déroulant : ignoré si le champ libre est rempli.
 function plSuiviChangerSujetSelect(nomAttr,ligne,select){
-  var champLibre=select.nextElementSibling;
-  if(select.value==='__libre__'){
-    if(champLibre) champLibre.style.display='';
-    if(champLibre) champLibre.focus();
-    return;
-  }
-  if(champLibre) champLibre.style.display='none';
+  var champLibre=select.previousElementSibling;
+  if(champLibre&&champLibre.value.trim()){select.value='';return;}
   plSuiviChanger(nomAttr,ligne,'sujet',select.value);
-  // Re-rendre tout le tableau pour que les autres déroulants
-  // reflètent immédiatement le sujet qui vient d'être pris ou libéré
   setTimeout(plSuiviRender,0);
 }
 function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDerniereLigne,nbLignes){
