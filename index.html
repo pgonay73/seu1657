@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.34</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.35</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19230,7 +19230,13 @@ function plRenderPlanning(){
     if(_dt.some(function(p){return p.profSteps&&p.profSteps.indexOf('bandeau')>=0;}))trStats[_t].band++;
     if(_dt.some(function(p){return !!(p.initDegre||p.initNom);}))trStats[_t].init++;
   });
-  var h='<table style="table-layout:fixed;width:100%;">'
+  var h='<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px;padding:5px 10px;background:rgba(255,255,255,.04);border-radius:5px;border:1px solid rgba(255,255,255,.08);">'
+    +'<span style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);font-weight:600;">Légende :</span>'
+    +'<span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#33DD66;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#33DD66;flex-shrink:0;"></span>1° Apprenti</span>'
+    +'<span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#FF9900;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FF9900;flex-shrink:0;"></span>2° Compagnon</span>'
+    +'<span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#FF4444;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FF4444;flex-shrink:0;"></span>3° Maître</span>'
+    +'</div>'
+    +'<table style="table-layout:fixed;width:100%;">'
     +'<thead><tr style="border-bottom:2px solid rgba(184,146,42,.5);">'
     +'<th style="width:22px;"></th>'
     +'<th style="width:90px;">Date</th>'
