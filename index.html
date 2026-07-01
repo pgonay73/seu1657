@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.35</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.36</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19225,7 +19225,7 @@ function plRenderPlanning(){
     if(_cl.some(function(c){return c==='obligatoire:stjean';}))trStats[_t].stjean++;
     if(_cl.some(function(c){return c==='obligatoire:inspecteur';}))trStats[_t].inspect++;
     if(_cl.some(function(c){return c==='obligatoire:installation'||c==='obligatoire:installdep';}))trStats[_t].install++;
-    if(_dt.some(function(p){return p.profSteps&&p.profSteps.indexOf('candidature')>=0;}))trStats[_t].cand++;
+    var _tit=(e.titre||'').toLowerCase();if(_tit.indexOf('candidature')>=0||_tit.indexOf('vote')>=0)trStats[_t].cand++;
     if(_dt.some(function(p){return p.profSteps&&p.profSteps.indexOf('enquete')>=0;}))trStats[_t].enq++;
     if(_dt.some(function(p){return p.profSteps&&p.profSteps.indexOf('bandeau')>=0;}))trStats[_t].band++;
     if(_dt.some(function(p){return !!(p.initDegre||p.initNom);}))trStats[_t].init++;
