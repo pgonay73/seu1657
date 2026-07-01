@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.49</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.50</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17885,22 +17885,49 @@ function plSujetSymbolisme(modulesRestants,nbBlocs){
 // rouvre le sélecteur sans rien changer).
 function plTenuesEligibles(degre,type,reservationActuelleId){
   var data=plLoad();
-  var coutType=(type==='Symbolisme')?plBaremeValeur('symbolisme'):(plBaremeValeur('planche')+plBaremeValeur('circulation'));
-  var moduleDefautGlobal=parseInt(plDureeGenereeLoad())||10;
-  var today=new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  var today=new Date().toISOString().slice(0,10);
   var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  // Compter les slots déjà assignés via le suivi (tenueId → {Planche:n, Symbolisme:n})
+  var suivi=plSuiviLoad();
+  var assignesParTenue={};
+  (D.freres||[]).forEach(function(f){
+    var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
+    var nb=plSuiviNb(suivi,nomFrere);
+    for(var i=0;i<nb;i++){
+      var s=plSuiviEntree(suivi,nomFrere,PL_SUIVI_LIGNES[i]);
+      if(s.tenueId){
+        if(!assignesParTenue[s.tenueId]) assignesParTenue[s.tenueId]={};
+        var t2=s.type||'Planche';
+        assignesParTenue[s.tenueId][t2]=(assignesParTenue[s.tenueId][t2]||0)+1;
+      }
+    }
+  });
   return evts.filter(function(e){
-    // Toujours garder la tenue actuellement réservée (pour qu'elle reste visible)
-    if(e.id===reservationActuelleId) return true;
-    // Exclure les tenues passées
-    if((e.date||'') < today) return false;
+    if(e.id===reservationActuelleId) return true; // tenue déjà réservée par cette ligne : toujours visible
+    if((e.date||'')<today) return false;
     var degTenue=e.degre||'1°';
-    var degreOk=(!degre)||(degTenue===degre)||(degTenue==='Tous');
-    if(!degreOk) return false;
-    var disponibles=moduleDefautGlobal+(e.modulesSupp||0);
-    var utilises=(e.parties||[]).reduce(function(s,p){return s+(p.modules||0);},0);
-    var restants=disponibles-utilises;
-    return restants>=coutType && coutType>0;
+    if(degre && degTenue!==degre && degTenue!=='Tous') return false;
+    var det=e.detail||[];
+    if(det.length){
+      // Compter les slots selon le type depuis le détail des rubriques
+      var nbSlots;
+      if(type==='Symbolisme'){
+        nbSlots=det.filter(function(p){return (p.symDegres&&p.symDegres.length>0)||(p.plancheSteps&&p.plancheSteps.indexOf('symbolisme')>=0);}).length;
+      } else {
+        nbSlots=det.filter(function(p){return p.plancheSteps&&p.plancheSteps.indexOf('planche')>=0;}).length;
+      }
+      if(!nbSlots) return false;
+      var assignes=(assignesParTenue[e.id]||{})[type==='Symbolisme'?'Symbolisme':'Planche']||0;
+      return nbSlots>assignes;
+    } else {
+      // Pas de détail (tenue auto-générée) : utiliser le système de modules
+      var coutType=(type==='Symbolisme')?plBaremeValeur('symbolisme'):(plBaremeValeur('planche')+plBaremeValeur('circulation'));
+      if(!coutType) return true; // barème non configuré → afficher quand même
+      var moduleDefautGlobal=parseInt(plDureeGenereeLoad())||10;
+      var disponibles=moduleDefautGlobal+(e.modulesSupp||0);
+      var utilises=(e.parties||[]).reduce(function(s,p){return s+(p.modules||0);},0);
+      return (disponibles-utilises)>=coutType;
+    }
   }).map(function(e){
     var d2=new Date(e.date+'T12:00:00');
     var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
