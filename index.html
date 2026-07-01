@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.38</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.39</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19586,6 +19586,9 @@ function plSaveForm(){
         toast('Tenue introuvable (id: '+_plEditId+'). Enregistrement impossible.');return;
       }
     } else {
+      if(data.events.some(function(ev){return ev.date===date;})){
+        toast('⚠ Une tenue existe déjà le '+date+'. Modifiez-la ou choisissez une autre date.');return;
+      }
       data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail});
     }
     plSave(data);
@@ -20678,13 +20681,9 @@ function plGenererAutomatique(){
         if(include && occ>=debut && occ<=fin && !isFerie(occ)){
           var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
           if(!data.events.some(function(e){return e.date===ds;})&&(data.deletedDates||[]).indexOf(ds)<0){
-            var degre; var nsm=numSem;
-            if(nsm===5) degre='3°';
-            else if(plEstDateTenueAu2(mo,nsm)) degre='2°';
-            else degre='1°';
             data.events.push({
-              id:'auto'+Date.now()+'_'+ds, date:ds, titre:'Tenue au '+degre,
-              heure:r.heure||heureDef, categorie:'tenue', degre:degre, duree:duree,
+              id:'auto'+Date.now()+'_'+ds, date:ds, titre:'Tenue',
+              heure:r.heure||heureDef, categorie:'tenue', degre:'1°', duree:duree,
               notes:'généré automatiquement', modeleId:r.modeleId||'',
               parties:[{key:'ouverture',modules:plBaremeValeur('ouverture')},{key:'fermeture',modules:plBaremeValeur('fermeture')}],
               tenueClassique:true
