@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.43</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.44</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -18600,7 +18600,7 @@ function plRenderFamille(famille, options){
       +'</div>'
       +'<div style="display:flex;align-items:center;gap:6px;">'
       +'<label style="margin:0;font-size:10px;white-space:nowrap;">Remplacement</label>'
-      +'<input type="date" id="'+def.key_remplace+'" onchange="plToggleFamille(&quot;'+famille+'&quot;,&quot;'+def.key+'&quot;)" style="width:auto;min-width:140px;"/>'
+      +'<input type="date" id="'+def.key_remplace+'" onchange="plDateRemplaceChange(&quot;'+famille+'&quot;,&quot;'+def.key+'&quot;)" style="width:auto;min-width:140px;"/>'
       +'</div>'
       +'</div>';
   });
@@ -18816,6 +18816,18 @@ function plToggleFamille(famille,key){
   plSave(data);
   plRenderFamilleEcran(famille, def);
   plRender();
+}
+
+// Appelé par le champ "date de remplacement" : auto-coche la case si une date est saisie,
+// puis déclenche le toggle normal (évite le piège "case décochée → décochage silencieux").
+function plDateRemplaceChange(famille, key){
+  var fam=PL_FAMILLES[famille]; if(!fam) return;
+  if(fam.dynamique) fam.defs=plCalculerDefsTenueAu3();
+  var def=(fam.defs||[]).filter(function(d){return d.key===key;})[0]; if(!def) return;
+  var di=document.getElementById(def.key_remplace);
+  var cb=document.getElementById(fam.prefixeCheck+key);
+  if(di && di.value && cb && !cb.checked) cb.checked=true;
+  plToggleFamille(famille, key);
 }
 
 // Wrappers conservés pour compatibilité avec le reste du code existant
@@ -19172,6 +19184,7 @@ function plRenderPlanning(){
   var plPerDeb=(D.loge&&D.loge.periodeDebut)||'';
   var plPerFin=(D.loge&&D.loge.periodeFin)||'';
   if(plPerDeb||plPerFin) evts=evts.filter(function(e){
+    if(plParseClesPO(e.notes).length>0) return true; // tenues obligatoires/conseillées : toujours visibles
     if(plPerDeb && (e.date||'')<plPerDeb) return false;
     if(plPerFin && (e.date||'')>plPerFin) return false;
     return true;
