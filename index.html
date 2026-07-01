@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.53</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.54</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -20364,18 +20364,18 @@ function plSuiviCelluleSujet(nomAttr,ligne,s){
   sujetsFiltres=sujetsFiltres.filter(function(b){return sujetsUtilises.indexOf(b.sujet)<0;});
   var correspondDansBanque=banque.filter(function(b){return b.sujet&&(!degreLigne||b.degre===degreLigne);}).some(function(b){return b.sujet===sujetActuel;});
   var estLibre=sujetActuel!==''&&!correspondDansBanque;
-  // Champ sujet libre (toujours visible, prioritaire si rempli)
-  var h='<input type="text" value="'+(estLibre?sujetActuel.replace(/"/g,'&quot;'):'')+'" placeholder="Sujet libre…" '
+  // Champ sujet libre + menu déroulant côte à côte
+  var h='<div style="display:flex;gap:3px;align-items:center;min-width:0;">'
+    +'<input type="text" value="'+(estLibre?sujetActuel.replace(/"/g,'&quot;'):'')+'" placeholder="Libre…" '
     +'onchange="plSuiviChangerSujetLibre(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this)" '
-    +'style="width:100%;margin-bottom:2px;">';
-  // Menu déroulant de la banque (grisé si sujet libre saisi)
+    +'style="flex:0 0 35%;min-width:0;font-size:11px;">';
   h+='<select onchange="plSuiviChangerSujetSelect(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this)" '
-    +'style="width:100%;'+(estLibre?'opacity:.4;':'')+'">';
+    +'style="flex:1;min-width:0;font-size:11px;'+(estLibre?'opacity:.4;':'')+'">';
   h+='<option value=""'+((!sujetActuel||estLibre)?' selected':'')+'>—</option>';
   sujetsFiltres.forEach(function(b){
     h+='<option value="'+b.sujet.replace(/"/g,'&quot;')+'"'+(!estLibre&&b.sujet===sujetActuel?' selected':'')+'>'+b.sujet+'</option>';
   });
-  h+='</select>';
+  h+='</select></div>';
   return h;
 }
 // Si le champ "sujet libre" est rempli, il prend la priorité sur le menu.
@@ -20410,19 +20410,19 @@ function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDer
   var tdDroite=tdInner;
   if(estPremiereLigne){
     h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
-    h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);text-align:center;vertical-align:middle;width:36px;">'
-      +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:38px;width:38px;" title="Nombre de planches">'
+    h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);text-align:center;vertical-align:middle;width:28px;">'
+      +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:28px;width:28px;" title="Nombre de planches">'
       +'<option value="1"'+(nbLignes===1?' selected':'')+'>1</option>'
       +'<option value="2"'+(nbLignes===2?' selected':'')+'>2</option>'
       +'<option value="3"'+(nbLignes===3?' selected':'')+'>3</option>'
       +'</select></td>';
   }
-  h+='<td style="'+tdInner+'text-align:center;color:rgba(255,255,255,.35);font-size:10px;width:18px;">'+ligne+'</td>'
-    +'<td style="'+tdInner+'text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;type&quot;,this.value)" style="min-width:43px;width:43px;">'
+  h+='<td style="'+tdInner+'text-align:center;color:rgba(255,255,255,.35);font-size:10px;width:14px;">'+ligne+'</td>'
+    +'<td style="'+tdInner+'text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;type&quot;,this.value)" style="min-width:34px;width:34px;">'
     +'<option value="Planche"'+(s.type==='Planche'?' selected':'')+'>P</option>'
     +'<option value="Symbolisme"'+(s.type==='Symbolisme'?' selected':'')+'>S</option>'
     +'</select></td>'
-    +'<td style="'+tdInner+'text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;degre&quot;,this.value)" style="min-width:42px;width:42px;">'
+    +'<td style="'+tdInner+'text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;degre&quot;,this.value)" style="min-width:34px;width:34px;">'
     +'<option value=""'+(!s.degre?' selected':'')+'>—</option>'
     +'<option value="1°"'+(s.degre==='1°'?' selected':'')+'>1</option>'
     +'<option value="2°"'+(s.degre==='2°'?' selected':'')+'>2</option>'
@@ -20452,18 +20452,18 @@ function plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,ligne,nbLignes){
   // Nom sur chaque ligne (pas de rowspan)
   h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
   // Select Nb planches sur chaque ligne
-  h+='<td style="text-align:center;vertical-align:middle;width:36px;">'
-    +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:38px;width:38px;" title="Nombre de planches">'
+  h+='<td style="text-align:center;vertical-align:middle;width:28px;">'
+    +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:28px;width:28px;" title="Nombre de planches">'
     +'<option value="1"'+(nbLignes===1?' selected':'')+'>1</option>'
     +'<option value="2"'+(nbLignes===2?' selected':'')+'>2</option>'
     +'<option value="3"'+(nbLignes===3?' selected':'')+'>3</option>'
     +'</select></td>';
-  h+='<td style="text-align:center;color:rgba(255,255,255,.35);font-size:10px;width:18px;">'+ligne+'</td>'
-    +'<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;type&quot;,this.value)" style="min-width:43px;width:43px;">'
+  h+='<td style="text-align:center;color:rgba(255,255,255,.35);font-size:10px;width:14px;">'+ligne+'</td>'
+    +'<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;type&quot;,this.value)" style="min-width:34px;width:34px;">'
     +'<option value="Planche"'+(s.type==='Planche'?' selected':'')+'>P</option>'
     +'<option value="Symbolisme"'+(s.type==='Symbolisme'?' selected':'')+'>S</option>'
     +'</select></td>'
-    +'<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;degre&quot;,this.value)" style="min-width:42px;width:42px;">'
+    +'<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;degre&quot;,this.value)" style="min-width:34px;width:34px;">'
     +'<option value=""'+(!s.degre?' selected':'')+'>—</option>'
     +'<option value="1°"'+(s.degre==='1°'?' selected':'')+'>1</option>'
     +'<option value="2°"'+(s.degre==='2°'?' selected':'')+'>2</option>'
@@ -20580,8 +20580,8 @@ function plSuiviRender(containerId){
   // Les frères distincts (pour le compteur de bas de page)
   var freresTries=D.freres.slice().sort(fSortNom);
   var h='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
-    +'<th style="width:12%;">Nom</th><th style="text-align:center;width:5%;">Nb</th><th style="width:3%;"></th><th style="text-align:center;width:7%;">Type</th><th style="text-align:center;width:6%;">Degré</th><th style="width:28%;">Sujet</th>'
-    +'<th style="width:30%;">Date prévue</th>'
+    +'<th style="width:9%;">Nom</th><th style="text-align:center;width:3%;">Nb</th><th style="width:2%;"></th><th style="text-align:center;width:5%;">Type</th><th style="text-align:center;width:5%;">Degré</th><th style="width:38%;">Sujet</th>'
+    +'<th style="width:33%;">Date prévue</th>'
     +'</tr></thead><tbody>';
   lignes.forEach(function(lg){
     var nomFrere=lg.nomFrere;
