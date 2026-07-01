@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.40</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.41</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19521,12 +19521,15 @@ function plOpenForm(id){
   _plEditId=id;
   var fw=document.getElementById('pl-form-wrap');if(!fw)return;
   var data=plLoad(),e=id?(data.events||[]).filter(function(x){return x.id===id;})[0]:null;
+  // Heure par défaut : issue de la première règle de config, sinon 19:30
+  var _hDefConf='19:30';
+  try{if(D.regles&&D.regles[0]&&D.regles[0].heure)_hDefConf=D.regles[0].heure;}catch(_){}
   document.getElementById('pl-inp-date').value=e?e.date:'';
-  document.getElementById('pl-inp-titre').value=e?e.titre:'';
-  document.getElementById('pl-inp-heure').value=e?e.heure:'19:30';
+  document.getElementById('pl-inp-titre').value=e?e.titre:'Tenue';
+  document.getElementById('pl-inp-heure').value=e?e.heure:_hDefConf;
   document.getElementById('pl-inp-cat').value=e?e.categorie:'tenue';
   document.getElementById('pl-inp-degre').value=e?e.degre||'1°':'1°';
-  document.getElementById('pl-inp-duree').value=e&&e.duree?e.duree:'';
+  document.getElementById('pl-inp-duree').value=e&&e.duree?e.duree:120;
   document.getElementById('pl-inp-notes').value=e?e.notes:'';
   var modSel=document.getElementById('pl-inp-modele');
   if(modSel){
@@ -19551,7 +19554,22 @@ function plOpenForm(id){
   var ft=document.getElementById('pl-form-title');if(ft)ft.textContent=e?('Modifier — '+(e.titre||'tenue')):'Nouvelle tenue';
   var sb=document.getElementById('pl-btn-suppr');if(sb)sb.style.display=e?'':'none';
   // Charger les rubriques dans l'éditeur intégré
-  var parties=e&&e.detail&&e.detail.length?e.detail:cpP(D.parDefaut||[]);
+  var parties;
+  if(!e){
+    // Nouvelle tenue : chercher le modèle "tenue au 1" et l'appliquer automatiquement
+    var _modT1=(D.modeles||[]).filter(function(m){
+      var n=(m.nom||'').toLowerCase().replace(/[°\s]/g,'');
+      return n.indexOf('tenueau1')>=0||n.indexOf('tenue1')>=0;
+    })[0];
+    if(!_modT1)_modT1=(D.modeles||[]).filter(function(m){return (m.nom||'').toLowerCase().indexOf('tenue')>=0;})[0];
+    if(_modT1&&modSel){
+      modSel.value=_modT1.id;
+      parties=cpP(_modT1.parties||[]);
+    }
+    if(!parties||!parties.length) parties=cpP(D.parDefaut||[]);
+  } else {
+    parties=e.detail&&e.detail.length?e.detail:cpP(D.parDefaut||[]);
+  }
   peRender('pe-pl-form', parties);
   fw.style.display='block';
   fw.scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -19586,29 +19604,27 @@ function plSaveForm(){
         toast('Tenue introuvable (id: '+_plEditId+'). Enregistrement impossible.');return;
       }
     } else {
+      // Upsert par date : remplace toute tenue existante (auto ou manuelle) ou en crée une
       var _existIdx=-1;
       for(var _ei=0;_ei<data.events.length;_ei++){if(data.events[_ei].date===date){_existIdx=_ei;break;}}
       if(_existIdx>=0){
-        var _existEvt=data.events[_existIdx];
-        // Si la tenue existante est auto-générée, la remplacer par la saisie manuelle
-        if((_existEvt.id||'').indexOf('auto')===0||(_existEvt.notes||'')==='généré automatiquement'){
-          data.events[_existIdx]={id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail};
-        } else {
-          toast('⚠ Une tenue existe déjà le '+date+'. Modifiez-la ou choisissez une autre date.');return;
-        }
+        data.events[_existIdx]={id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail};
       } else {
         data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail});
       }
     }
     plSave(data);
     plCloseForm();
-    // Élargir la plage de dates du filtre si la tenue est hors plage
+    // Assurer la visibilité : étendre la plage de dates (même si vide) et effacer le filtre semaine
     var inpDeb=document.getElementById('pl-crit-date-debut');
     var inpFin=document.getElementById('pl-crit-date-fin');
     if(inpDeb && inpFin){
-      if(inpDeb.value && date<inpDeb.value) inpDeb.value=date;
-      if(inpFin.value && date>inpFin.value) inpFin.value=date;
+      if(!inpDeb.value || date<inpDeb.value) inpDeb.value=date;
+      if(!inpFin.value || date>inpFin.value) inpFin.value=date;
     }
+    _plCritSemaines=[];
+    document.querySelectorAll('#pl-crit-semaines .pl-sbtn').forEach(function(b){b.classList.remove('on');});
+    plCriteresSave();
     try{plRender();}catch(e2){console.warn('plRender error:',e2);}
     try{plRenderObligatoires();}catch(e3){console.warn('plRenderObligatoires error:',e3);}
     toast('✓ Tenue enregistrée.');
