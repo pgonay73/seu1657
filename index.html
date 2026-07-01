@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.57</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.58</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17453,6 +17453,11 @@ var PA_SUGGESTIONS_MOIS={
             <div class="pl-cfg-group" style="max-width:120px;"><label>Durée (min)</label><input type="number" id="pl-inp-duree" min="0" max="480" step="15"></div>
             <div class="pl-cfg-group"><label>Notes</label><input type="text" id="pl-inp-notes"></div>
           </div>
+          <div class="pl-cfg-row">
+            <div class="pl-cfg-group"><label>Sujet planche</label><select id="pl-inp-sujet-planche"><option value="">—</option></select></div>
+            <div class="pl-cfg-group"><label>Sujet symbolisme</label><select id="pl-inp-sujet-sym"><option value="">—</option></select></div>
+            <div class="pl-cfg-group"><label>Sujet conférencier</label><input type="text" id="pl-inp-sujet-conf" placeholder="Sujet libre..."></div>
+          </div>
           <div class="pl-cfg-row" style="align-items:flex-end;gap:8px;">
             <div class="pl-cfg-group"><label>Modèle</label><select id="pl-inp-modele"><option value="">— Aucun —</option></select></div>
             <div style="padding-bottom:2px;"><button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plFormAppliquerModele()" title="Remplacer les rubriques par celles du modèle sélectionné">↻ Appliquer le modèle</button></div>
@@ -19415,6 +19420,14 @@ function plRenderPlanning(){
     h+='<tr id="pl-detail-row-'+eid+'" style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
     h+='<td></td>';
     h+='<td colspan="5" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
+    // Sujets planche / symbolisme / conférencier
+    if(e.sujetPlanche||e.sujetSymbolisme||e.sujetConferencier){
+      h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;padding:5px 8px;background:rgba(184,146,42,.07);border-radius:4px;border-left:3px solid rgba(184,146,42,.5);">';
+      if(e.sujetPlanche) h+='<span style="font-size:11.5px;"><span style="color:rgba(184,146,42,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:10px;">Planche</span> <span style="color:#fff;">'+e.sujetPlanche+'</span></span>';
+      if(e.sujetSymbolisme) h+='<span style="font-size:11.5px;"><span style="color:rgba(184,146,42,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:10px;">Symbolisme</span> <span style="color:#fff;">'+e.sujetSymbolisme+'</span></span>';
+      if(e.sujetConferencier) h+='<span style="font-size:11.5px;"><span style="color:rgba(184,146,42,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:10px;">Conf.</span> <span style="color:#fff;">'+e.sujetConferencier+'</span></span>';
+      h+='</div>';
+    }
     if(!detailParties.length){
       h+='<span style="font-size:11.5px;color:rgba(255,255,255,.4);font-style:italic;">Aucun détail saisi — cliquer sur 📋 pour compléter.</span>';
     } else {
@@ -19631,6 +19644,22 @@ function plOpenForm(id){
   document.getElementById('pl-inp-degre').value=e?e.degre||'1°':'1°';
   document.getElementById('pl-inp-duree').value=e&&e.duree?e.duree:120;
   document.getElementById('pl-inp-notes').value=e?e.notes:'';
+  // Sujets planche / symbolisme / conférencier
+  var _plSel=document.getElementById('pl-inp-sujet-planche');
+  if(_plSel){
+    var _plBank=plSujetsLoad().filter(function(s){return s.actif!==false&&s.sujet;});
+    _plSel.innerHTML='<option value="">—</option>';
+    _plBank.forEach(function(s){var o=document.createElement('option');o.value=s.sujet;o.textContent=(s.degre?s.degre+' — ':'')+s.sujet;if(e&&e.sujetPlanche===s.sujet)o.selected=true;_plSel.appendChild(o);});
+    if(e&&e.sujetPlanche&&!_plBank.some(function(s){return s.sujet===e.sujetPlanche;})){var _op=document.createElement('option');_op.value=e.sujetPlanche;_op.textContent=e.sujetPlanche;_op.selected=true;_plSel.appendChild(_op);}
+  }
+  var _symSel=document.getElementById('pl-inp-sujet-sym');
+  if(_symSel){
+    var _symBank=plSymLoad().filter(function(s){return s.actif!==false&&s.sujet;});
+    _symSel.innerHTML='<option value="">—</option>';
+    _symBank.forEach(function(s){var o=document.createElement('option');o.value=s.sujet;o.textContent=(s.degre?s.degre+' — ':'')+s.sujet;if(e&&e.sujetSymbolisme===s.sujet)o.selected=true;_symSel.appendChild(o);});
+    if(e&&e.sujetSymbolisme&&!_symBank.some(function(s){return s.sujet===e.sujetSymbolisme;})){var _op2=document.createElement('option');_op2.value=e.sujetSymbolisme;_op2.textContent=e.sujetSymbolisme;_op2.selected=true;_symSel.appendChild(_op2);}
+  }
+  (document.getElementById('pl-inp-sujet-conf')||{value:''}).value=e?e.sujetConferencier||'':'';
   var modSel=document.getElementById('pl-inp-modele');
   if(modSel){
     modSel.innerHTML='<option value="">— Aucun —</option>';
@@ -19696,6 +19725,9 @@ function plSaveForm(){
     var degre=(document.getElementById('pl-inp-degre')||{}).value||'1°';
     var duree=parseInt((document.getElementById('pl-inp-duree')||{}).value)||0;
     var notes=((document.getElementById('pl-inp-notes')||{}).value||'').trim();
+    var sujetPlanche=((document.getElementById('pl-inp-sujet-planche')||{}).value||'');
+    var sujetSymbolisme=((document.getElementById('pl-inp-sujet-sym')||{}).value||'');
+    var sujetConferencier=((document.getElementById('pl-inp-sujet-conf')||{}).value||'').trim();
     var modeleId=(document.getElementById('pl-inp-modele')||{}).value||'';
     var newDetail=peGet('pe-pl-form');
     var data=plLoad();if(!data.events)data.events=[];
@@ -19703,7 +19735,7 @@ function plSaveForm(){
       var idx=-1;for(var i=0;i<data.events.length;i++)if(data.events[i].id===_plEditId){idx=i;break;}
       if(idx>=0){
         var ex=data.events[idx];
-        data.events[idx]={id:_plEditId,date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail};
+        data.events[idx]={id:_plEditId,date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail,sujetPlanche:sujetPlanche,sujetSymbolisme:sujetSymbolisme,sujetConferencier:sujetConferencier};
         if(ex.parties!==undefined)data.events[idx].parties=ex.parties;
         if(ex.modulesSupp!==undefined)data.events[idx].modulesSupp=ex.modulesSupp;
         if(ex.nomTenue!==undefined)data.events[idx].nomTenue=ex.nomTenue;
@@ -19716,9 +19748,9 @@ function plSaveForm(){
       var _existIdx=-1;
       for(var _ei=0;_ei<data.events.length;_ei++){if(data.events[_ei].date===date){_existIdx=_ei;break;}}
       if(_existIdx>=0){
-        data.events[_existIdx]={id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail};
+        data.events[_existIdx]={id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail,sujetPlanche:sujetPlanche,sujetSymbolisme:sujetSymbolisme,sujetConferencier:sujetConferencier};
       } else {
-        data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail});
+        data.events.push({id:'pl'+Date.now(),date:date,titre:titre,heure:heure,categorie:cat,degre:degre,duree:duree,notes:notes,modeleId:modeleId,detail:newDetail,sujetPlanche:sujetPlanche,sujetSymbolisme:sujetSymbolisme,sujetConferencier:sujetConferencier});
       }
     }
     plSave(data);
