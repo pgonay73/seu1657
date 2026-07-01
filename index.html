@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.51</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.52</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19911,14 +19911,15 @@ function plSujetsRenderInto(el){
   });
   h+='<span style="font-size:11px;color:rgba(255,255,255,.35);">| Affichés : '+dFiltres.length+(selFiltres>0?' · <b style=\"color:var(--gold2)\">'+selFiltres+' sél.</b>':'')+'</span>';
   h+='</div>';
-  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
-    +'<span style="font-size:12px;color:rgba(255,255,255,.5);">Filtrer :</span>'
-    +'<select onchange="document.getElementById(\'vm-sujets-list\').dataset.filtreDegre=this.value;var e=document.getElementById(\'vm-sujets-list\');if(e)plSujetsRenderInto(e);" style="min-width:80px;">'
-    +'<option value=""'+(filtreActif===''?' selected':'')+'>Tous</option>'
-    +'<option value="1°"'+(filtreActif==='1°'?' selected':'')+'>1°</option>'
-    +'<option value="2°"'+(filtreActif==='2°'?' selected':'')+'>2°</option>'
-    +'<option value="3°"'+(filtreActif==='3°'?' selected':'')+'>3°</option>'
-    +'</select>'
+  var _elId=el.id||'vm-sujets-list';
+  var BS2='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;margin:0;';
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;">'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.45);margin-right:4px;">Afficher :</span>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'\';var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);" style="'+BS2+'border-color:rgba(255,255,255,.3);background:'+(filtreActif===''?'rgba(255,255,255,.2)':'transparent')+';color:#fff;">Tous</button>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'1°\';var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);" style="'+BS2+'border-color:rgba(51,221,102,.4);background:'+(filtreActif==='1°'?'rgba(51,221,102,.2)':'transparent')+';color:#33DD66;">Tenue au 1°</button>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'2°\';var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);" style="'+BS2+'border-color:rgba(255,153,0,.4);background:'+(filtreActif==='2°'?'rgba(255,153,0,.2)':'transparent')+';color:#FF9900;">Tenue au 2°</button>'
+    +'<button onclick="document.getElementById(\''+_elId+'\').dataset.filtreDegre=\'3°\';var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);" style="'+BS2+'border-color:rgba(255,68,68,.4);background:'+(filtreActif==='3°'?'rgba(255,68,68,.2)':'transparent')+';color:#FF4444;">Tenue au 3°</button>'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:6px;">'+dFiltres.length+' affiché'+(dFiltres.length>1?'s':'')+(selFiltres>0?' · <b>'+selFiltres+' sél.</b>':'')+'</span>'
     +'</div>';
   var suivi=(typeof plSuiviLoad==='function')?plSuiviLoad():{};
   var cs={};
@@ -19974,16 +19975,15 @@ function plSujetsRender(){
   var totAll=d.length, selAll=d.filter(function(p){return p.selectionne;}).length;
   h+='<span style="font-size:11px;color:rgba(255,255,255,.4);margin-left:6px;">Total : '+totAll+(selAll>0?' · <span style="color:var(--gold2);font-weight:700;">'+selAll+' sél.</span>':'')+'</span>';
   h+='</div>';
-  // Filtre
-  h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
-    +'<span style="font-size:12px;color:rgba(255,255,255,.5);">Filtrer par degré :</span>'
-    +'<select onchange="document.getElementById(\'pl-sujets-list\').dataset.filtreDegre=this.value;plSujetsRender();" style="min-width:80px;">'
-    +'<option value=""'+(filtreActif===''?' selected':'')+'>Tous</option>'
-    +'<option value="1°"'+(filtreActif==='1°'?' selected':'')+'>1°</option>'
-    +'<option value="2°"'+(filtreActif==='2°'?' selected':'')+'>2°</option>'
-    +'<option value="3°"'+(filtreActif==='3°'?' selected':'')+'>3°</option>'
-    +'</select>'
-    +'<span style="font-size:11px;color:rgba(255,255,255,.35);">'+dFiltres.length+' affiché'+(dFiltres.length>1?'s':'')+(selFiltres>0?' · <b>'+selFiltres+' sél.</b>':'')+'</span>'
+  // Boutons filtre par degré
+  var BS='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;margin:0;';
+  h+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;flex-wrap:wrap;">'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.45);margin-right:4px;">Afficher :</span>'
+    +'<button onclick="document.getElementById(\'pl-sujets-list\').dataset.filtreDegre=\'\';plSujetsRender();" style="'+BS+'border-color:rgba(255,255,255,.3);background:'+(filtreActif===''?'rgba(255,255,255,.2)':'transparent')+';color:#fff;">Tous</button>'
+    +'<button onclick="document.getElementById(\'pl-sujets-list\').dataset.filtreDegre=\'1°\';plSujetsRender();" style="'+BS+'border-color:rgba(51,221,102,.4);background:'+(filtreActif==='1°'?'rgba(51,221,102,.2)':'transparent')+';color:#33DD66;">Tenue au 1°</button>'
+    +'<button onclick="document.getElementById(\'pl-sujets-list\').dataset.filtreDegre=\'2°\';plSujetsRender();" style="'+BS+'border-color:rgba(255,153,0,.4);background:'+(filtreActif==='2°'?'rgba(255,153,0,.2)':'transparent')+';color:#FF9900;">Tenue au 2°</button>'
+    +'<button onclick="document.getElementById(\'pl-sujets-list\').dataset.filtreDegre=\'3°\';plSujetsRender();" style="'+BS+'border-color:rgba(255,68,68,.4);background:'+(filtreActif==='3°'?'rgba(255,68,68,.2)':'transparent')+';color:#FF4444;">Tenue au 3°</button>'
+    +'<span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:6px;">'+dFiltres.length+' affiché'+(dFiltres.length>1?'s':'')+(selFiltres>0?' · <b>'+selFiltres+' sél.</b>':'')+'</span>'
     +'</div>';
   // Suivi assigné
   var suivi=plSuiviLoad();
