@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.74</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.75</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -20409,6 +20409,7 @@ function plSuiviChangerNb(nomFrere,val){
   d[plSuiviNbCle(nomFrere)]=n;
   plSuiviSave(d);
   plSuiviRender();
+  if(_plSuiviTenueCid) plSuiviParTenueRender(_plSuiviTenueCid);
 }
 function plSuiviChanger(nomFrere,ligne,champ,val){
   var d=plSuiviLoad();
@@ -20422,7 +20423,7 @@ function plSuiviChanger(nomFrere,ligne,champ,val){
   }
   if(ligne==='A' && d[nomFrere]) delete d[nomFrere]; // nettoyage définitif de l'ancienne clé migrée
   plSuiviSave(d);
-  if(champ==='type'||champ==='degre') plSuiviRender();
+  if(champ==='type'||champ==='degre'){ plSuiviRender(); if(_plSuiviTenueCid) plSuiviParTenueRender(_plSuiviTenueCid); }
 }
 function plSuiviChoisirTenue(nomFrere,ligne,tenueId){
   var d=plSuiviLoad();
@@ -20436,6 +20437,7 @@ function plSuiviChoisirTenue(nomFrere,ligne,tenueId){
   if(ligne==='A' && d[nomFrere]) delete d[nomFrere];
   plSuiviSave(d);
   plSuiviRender();
+  if(_plSuiviTenueCid) plSuiviParTenueRender(_plSuiviTenueCid);
 }
 // Génère la cellule "Sujet" du Suivi des planches par frère et tenue : un menu déroulant filtré
 // par le degré déjà choisi sur la ligne (1°/2°/3°), alimenté par la banque
@@ -20726,163 +20728,84 @@ function plSuiviFiltresReset(){
   plSuiviRender();
 }
 // ── Vue "Par tenue" du Suivi ──────────────────────────────────────────────
-function _plPTCouleurDegre(degre){
-  return degre==='3°'?'#FF4444':degre==='2°'?'#FF9900':degre==='1°'?'#33DD66':'rgba(255,255,255,.5)';
-}
+var _plSuiviTenueCid=null;
 function plSuiviParTenueRender(cid){
-  var el=document.getElementById(cid||'pl-suivi-tenue-list');
+  _plSuiviTenueCid=cid||'pl-suivi-tenue-list';
+  var el=document.getElementById(_plSuiviTenueCid);
   if(!el) return;
-  var data=plLoad();
-  var evts=(data.events||[]).slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
-  if(!evts.length){
-    el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucune tenue trouvée.</p>';
+  if(!window.D || !Array.isArray(D.freres) || !D.freres.length){
+    el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun frère trouvé.</p>';
     return;
   }
   var suivi=plSuiviLoad();
-  // Index tenueId → assignations
-  var assignesParTenue={};
-  (D.freres||[]).forEach(function(f){
+  var evts=(plLoad().events)||[];
+  var dateParTenue={};
+  evts.forEach(function(e){ if(e.id&&e.date) dateParTenue[e.id]=e.date; });
+  var lignes=[];
+  D.freres.slice().sort(fSortNom).forEach(function(f){
     var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
-    var nb=plSuiviNb(suivi,nomFrere);
-    for(var i=0;i<nb;i++){
+    var nbLignes=plSuiviNb(suivi,nomFrere);
+    for(var i=0;i<nbLignes;i++){
       var l=PL_SUIVI_LIGNES[i];
-      var s=plSuiviEntree(suivi,nomFrere,l);
-      if(s.tenueId){
-        if(!assignesParTenue[s.tenueId]) assignesParTenue[s.tenueId]=[];
-        assignesParTenue[s.tenueId].push({nomFrere:nomFrere,ligne:l,type:s.type||'Planche',degre:s.degre||'',sujet:s.sujet||''});
-      }
+      var entree=plSuiviEntree(suivi,nomFrere,l);
+      var dateTenue=entree.tenueId?(dateParTenue[entree.tenueId]||''):'';
+      lignes.push({f:f,nomFrere:nomFrere,ligne:l,dateTenue:dateTenue,nbTotal:nbLignes});
     }
   });
-  var freresTries=(D.freres||[]).slice().sort(fSortNom);
-  var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-  var ML=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  var h='';
-  evts.forEach(function(e){
-    if(!e.id||!e.date) return;
-    var d2=new Date(e.date+'T12:00:00');
-    var ds=JC[(d2.getDay()===0)?6:(d2.getDay()-1)]+' '+d2.getDate()+' '+ML[d2.getMonth()]+' '+d2.getFullYear();
-    var degTenue=e.degre||'1°';
-    var cTenue=_plPTCouleurDegre(degTenue);
-    var tenueIdSafe=e.id.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    var assigns=assignesParTenue[e.id]||[];
-    h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-left:4px solid '+cTenue+';border-radius:6px;padding:10px 14px;margin-bottom:10px;">';
-    // En-tête tenue
-    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">';
-    h+='<span style="font-size:12px;font-weight:700;color:'+cTenue+';">'+ds+'</span>';
-    h+='<span style="font-size:10px;color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.15);border-radius:3px;padding:1px 5px;">'+degTenue+'</span>';
-    if(e.titre) h+='<span style="font-size:11px;color:rgba(255,255,255,.6);">'+e.titre+'</span>';
-    h+='</div>';
-    // Assignations existantes
-    if(assigns.length){
-      h+='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">';
-      assigns.forEach(function(a){
-        var cA=a.type==='Symbolisme'?'#C080D0':_plPTCouleurDegre(a.degre);
-        var cleAttr=(a.nomFrere+'#'+a.ligne).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-        h+='<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-left:3px solid '+cA+';border-radius:4px;padding:3px 8px;">';
-        h+='<span style="color:'+cA+';font-weight:700;font-size:10px;">'+a.type.charAt(0)+'</span>';
-        if(a.degre) h+='<span style="color:rgba(255,255,255,.4);font-size:10px;">'+a.degre+'</span>';
-        h+='<span style="color:rgba(255,255,255,.85);">'+a.nomFrere+'</span>';
-        if(a.sujet) h+='<span style="color:rgba(255,255,255,.45);font-size:10px;">&#8212; '+a.sujet+'</span>';
-        h+='<button onclick="plSuiviPTDesassigner(&quot;'+cleAttr+'&quot;)" title="Retirer" style="background:none;border:none;color:rgba(255,80,80,.7);cursor:pointer;font-size:14px;padding:0 2px;line-height:1;">&#215;</button>';
-        h+='</span>';
-      });
-      h+='</div>';
-    } else {
-      h+='<div style="font-size:11px;color:rgba(255,255,255,.25);margin-bottom:8px;font-style:italic;">Aucune assignation</div>';
+  // Tri par date croissante, sans date à la fin, puis alphabétique
+  lignes.sort(function(a,b){
+    if(a.dateTenue && !b.dateTenue) return -1;
+    if(!a.dateTenue && b.dateTenue) return 1;
+    if(a.dateTenue && b.dateTenue){
+      if(a.dateTenue<b.dateTenue) return -1;
+      if(a.dateTenue>b.dateTenue) return 1;
     }
-    // Formulaire d'assignation
-    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:6px;border-top:1px solid rgba(255,255,255,.07);">';
-    var SS='font-size:11px;padding:3px 7px;border-radius:4px;border:1px solid rgba(255,255,255,.2);background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;';
-    // Frère
-    h+='<select id="pl-pt-frere-'+tenueIdSafe+'" style="'+SS+'">';
-    h+='<option value="">— Frère —</option>';
-    freresTries.forEach(function(f){
-      var nm=((f.prenom||'')+' '+(f.nom||'')).trim();
-      h+='<option value="'+nm.replace(/"/g,'&quot;')+'">'+nm+'</option>';
-    });
-    h+='</select>';
-    // Type
-    h+='<select id="pl-pt-type-'+tenueIdSafe+'" onchange="plSuiviPTTypeChange(&quot;'+tenueIdSafe+'&quot;)" style="'+SS+'">';
-    h+='<option value="Planche">P — Planche</option>';
-    h+='<option value="Symbolisme">S — Symbolisme</option>';
-    h+='</select>';
-    // Degré
-    h+='<select id="pl-pt-degre-'+tenueIdSafe+'" onchange="plSuiviPTTypeChange(&quot;'+tenueIdSafe+'&quot;)" style="'+SS+'">';
-    h+='<option value="">— Degré —</option>';
-    h+='<option value="1°">1°</option>';
-    h+='<option value="2°">2°</option>';
-    h+='<option value="3°">3°</option>';
-    h+='</select>';
-    // Sujet (initialement planches)
-    h+='<select id="pl-pt-sujet-'+tenueIdSafe+'" style="'+SS+'min-width:130px;">';
-    h+='<option value="">— Sujet —</option>';
-    plSujetsLoad().forEach(function(s){if(s.sujet) h+='<option value="'+s.sujet.replace(/"/g,'&quot;')+'">'+s.sujet+'</option>';});
-    h+='</select>';
-    // Bouton
-    h+='<button onclick="plSuiviParTenueAssigner(&quot;'+tenueIdSafe+'&quot;)" style="font-size:11px;padding:4px 12px;border-radius:4px;border:1px solid rgba(184,146,42,.4);background:rgba(184,146,42,.15);color:rgba(220,185,70,.95);font-family:Raleway,sans-serif;font-weight:700;cursor:pointer;">Assigner</button>';
-    h+='</div>';
-    h+='</div>';
+    return fSortNom(a.f,b.f);
   });
+  var h='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
+    +'<th style="width:33%;">Date prévue</th>'
+    +'<th style="width:9%;">Nom</th>'
+    +'<th style="text-align:center;width:3%;">Nb</th>'
+    +'<th style="width:2%;"></th>'
+    +'<th style="text-align:center;width:5%;">Type</th>'
+    +'<th style="text-align:center;width:5%;">Degré</th>'
+    +'<th style="width:38%;">Sujet</th>'
+    +'</tr></thead><tbody>';
+  lignes.forEach(function(lg){
+    var nomFrere=lg.nomFrere;
+    var nomAttr=nomFrere.replace(/"/g,'&quot;');
+    var ligne=lg.ligne;
+    var nbLignes=lg.nbTotal;
+    var s=plSuiviEntree(suivi,nomFrere,ligne);
+    var tenuesOk=plTenuesEligibles(s.degre,s.type,s.tenueId);
+    var optsTenue='<option value="">—</option>';
+    tenuesOk.forEach(function(t){ optsTenue+='<option value="'+t.id+'"'+(s.tenueId===t.id?' selected':'')+'>'+t.label+'</option>'; });
+    var border='border-top:1.5px solid rgba(184,146,42,.4);border-bottom:1px solid rgba(255,255,255,.06);';
+    h+='<tr style="'+border+'">';
+    h+='<td style="'+border+'overflow:hidden;"><select onchange="plSuiviChoisirTenue(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this.value)" style="width:100%;">'+optsTenue+'</select></td>';
+    h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
+    h+='<td style="text-align:center;vertical-align:middle;width:28px;">'
+      +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:28px;width:28px;" title="Nombre de planches">'
+      +'<option value="1"'+(nbLignes===1?' selected':'')+'>1</option>'
+      +'<option value="2"'+(nbLignes===2?' selected':'')+'>2</option>'
+      +'<option value="3"'+(nbLignes===3?' selected':'')+'>3</option>'
+      +'</select></td>';
+    h+='<td style="text-align:center;color:rgba(255,255,255,.35);font-size:10px;width:14px;">'+ligne+'</td>';
+    h+='<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;type&quot;,this.value)" style="min-width:34px;width:34px;">'
+      +'<option value="Planche"'+(s.type==='Planche'?' selected':'')+'>P</option>'
+      +'<option value="Symbolisme"'+(s.type==='Symbolisme'?' selected':'')+'>S</option>'
+      +'</select></td>';
+    h+='<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;degre&quot;,this.value)" style="min-width:34px;width:34px;">'
+      +'<option value=""'+(!s.degre?' selected':'')+'>—</option>'
+      +'<option value="1°"'+(s.degre==='1°'?' selected':'')+'>1</option>'
+      +'<option value="2°"'+(s.degre==='2°'?' selected':'')+'>2</option>'
+      +'<option value="3°"'+(s.degre==='3°'?' selected':'')+'>3</option>'
+      +'</select></td>';
+    h+='<td style="overflow:hidden;">'+plSuiviCelluleSujet(nomAttr,ligne,s)+'</td>';
+    h+='</tr><tr><td colspan="7" style="height:8px;border:none;background:transparent;"></td></tr>';
+  });
+  h+='</tbody></table>';
   el.innerHTML=h;
-}
-function plSuiviPTTypeChange(tenueId){
-  var selType=document.getElementById('pl-pt-type-'+tenueId);
-  var selDegre=document.getElementById('pl-pt-degre-'+tenueId);
-  var selSujet=document.getElementById('pl-pt-sujet-'+tenueId);
-  if(!selType||!selSujet) return;
-  var type=selType.value;
-  var degre=selDegre?selDegre.value:'';
-  var banque=(type==='Symbolisme')?plSymLoad():plSujetsLoad();
-  var filtres=banque.filter(function(s){return s.sujet&&(!degre||!s.degre||s.degre===degre);});
-  var h='<option value="">— Sujet —</option>';
-  filtres.forEach(function(s){h+='<option value="'+s.sujet.replace(/"/g,'&quot;')+'">'+s.sujet+'</option>';});
-  selSujet.innerHTML=h;
-}
-function plSuiviParTenueAssigner(tenueId){
-  var selF=document.getElementById('pl-pt-frere-'+tenueId);
-  var selT=document.getElementById('pl-pt-type-'+tenueId);
-  var selD=document.getElementById('pl-pt-degre-'+tenueId);
-  var selS=document.getElementById('pl-pt-sujet-'+tenueId);
-  if(!selF||!selT) return;
-  var nomFrere=(selF.value||'').trim();
-  var type=selT.value||'Planche';
-  var degre=selD?selD.value:'';
-  var sujet=selS?selS.value:'';
-  if(!nomFrere){toast('Sélectionner un frère.');return;}
-  var d=plSuiviLoad();
-  var nb=plSuiviNb(d,nomFrere);
-  var slotLibre=null;
-  for(var i=0;i<nb;i++){
-    var l=PL_SUIVI_LIGNES[i];
-    var s=plSuiviEntree(d,nomFrere,l);
-    if(!s.tenueId){slotLibre=l;break;}
-  }
-  if(!slotLibre&&nb<3){
-    nb++;
-    d[plSuiviNbCle(nomFrere)]=nb;
-    slotLibre=PL_SUIVI_LIGNES[nb-1];
-  }
-  if(!slotLibre){toast('Ce frère a déjà 3 planches assignées à des tenues.');return;}
-  var cle=plSuiviCle(nomFrere,slotLibre);
-  var existant=plSuiviEntree(d,nomFrere,slotLibre);
-  d[cle]=Object.assign({},existant,{type:type,degre:degre,sujet:sujet,tenueId:tenueId});
-  var nomAffiche=nomFrere+' ('+slotLibre+')'+(sujet?' — '+sujet:'');
-  plReserverTenue('suivi',cle,tenueId,type,nomAffiche);
-  plSuiviSave(d);
-  plSuiviParTenueRender();
-}
-function plSuiviPTDesassigner(cle){
-  var parts=cle.split('#');
-  if(parts.length<2) return;
-  var ligne=parts[parts.length-1];
-  var nomFrere=parts.slice(0,-1).join('#');
-  var d=plSuiviLoad();
-  var cleKey=plSuiviCle(nomFrere,ligne);
-  var existant=plSuiviEntree(d,nomFrere,ligne);
-  plLibererReservation('suivi',cleKey);
-  d[cleKey]=Object.assign({},existant,{tenueId:''});
-  plSuiviSave(d);
-  plSuiviParTenueRender();
 }
 // Force la sauvegarde explicite de toutes les données de Planning libre (en
 // plus de la sauvegarde automatique déjà déclenchée à chaque modification),
