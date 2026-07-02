@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.90</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.91</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13986,6 +13986,7 @@ function getRubriqueHTML(rid, officeId){
     return '<div style="padding:12px 0;"><p style="font-size:13px;color:var(--grey);">Consultez les statistiques depuis le menu principal.</p></div>';
   }
   if(rid==='planning'){
+    if(officeId==='off-vm') return '<div id="off-planning-'+officeId+'"></div>';
     return '<div><h3 style="margin-bottom:12px;">Planning des tenues</h3><div id="off-planning-'+officeId+'"></div></div>';
   }
   if(rid==='sujets'){
@@ -14026,7 +14027,7 @@ function buildContenusRubriquesExcept(officeId, exclude){
 }
 
 function _vmDefaultRubriques(officeId, rubriques){
-  if(officeId==='off-vm') return ['planning','suivi-tenue','sujets','symbolisme'];
+  if(officeId==='off-vm') return ['suivi-tenue','sujets','symbolisme','planning'];
   return rubriques;
 }
 function renderRubriquesOffice(officeId){
@@ -14057,14 +14058,7 @@ function renderRubriquesOffice(officeId){
     if(rid==='planning'){
       var pEl=document.getElementById('off-planning-'+officeId);
       if(pEl){
-        if(officeId==='off-vm'){
-          pEl.innerHTML='<div style="text-align:center;padding:20px 0;">'
-            +'<p style="color:rgba(255,255,255,.6);font-size:13px;margin-bottom:14px;">Le planning complet est accessible depuis la page dédiée.</p>'
-            +'<button onclick="window._plFromVM=true;plLibreAutoriserEtOuvrir();" style="background:var(--gold);border:none;color:#fff;padding:8px 20px;border-radius:4px;font-family:Raleway,sans-serif;font-size:13px;font-weight:700;cursor:pointer;">&#8594; Ouvrir le Planning</button>'
-            +'</div>';
-        } else {
-          plRenderInto(pEl);
-        }
+        if(officeId!=='off-vm') plRenderInto(pEl);
       }
     }
     if(rid==='sujets'){
