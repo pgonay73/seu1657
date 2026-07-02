@@ -14116,15 +14116,15 @@ function renderOffice(n){
     var _secaContenu=(_secaD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     contenu+='<div class="cfg-box" style="margin-top:16px;">';
     contenu+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    contenu+='<input type="checkbox" id="secacc-visib" '+((_secaD.visible!==false)?'checked':'')+' onchange="secAccueilAutoSave()" style="width:16px;height:16px;accent-color:#4472C4;flex-shrink:0;" title="Afficher/masquer sur la page d'accueil">';
-    contenu+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d'accueil</h3>';
+    contenu+='<input type="checkbox" id="secacc-visib" '+((_secaD.visible!==false)?'checked':'')+' onchange="secAccueilAutoSave()" style="width:16px;height:16px;accent-color:#4472C4;flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">';
+    contenu+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>';
     contenu+='</div>';
     contenu+='<div style="margin-bottom:8px;">';
     contenu+='<input type="text" id="secacc-titre" value="'+_secaTitre+'" placeholder="Titre de la carte" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #4472C4;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
     contenu+='</div>';
     contenu+='<textarea id="secacc-contenu" rows="6" placeholder="Ex : Prochain CA le 8 janvier à 19h30 — Ordre du jour : budget, élections" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_secaContenu+'</textarea>';
-    contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d'accueil. Sauvegarde automatique.</p>';
-    
+    contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
+
     var _planchaData=accueilCartesLoad();
     var _planchaD=_planchaData.planche||{};
     var _planchaTitre=(_planchaD.titre||'Planche tracée').replace(/"/g,'&quot;').replace(/</g,'&lt;');
