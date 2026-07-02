@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.97</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.98</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6436,9 +6436,9 @@ function renderAccueilExtras(){
   var futur=evts.filter(function(e){return e.date&&new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   var planSecs=[
     {id:'accueil-planning-app', key:'planApp',  color:'#33DD66', label:'Planning hors tenues — Apprentis',
-     test:function(e){return e.degre==='2°'&&!e.tenueClassique;}},
-    {id:'accueil-planning-comp',key:'planComp', color:'#FF9900', label:'Planning hors tenues — Compagnons',
      test:function(e){return e.degre==='1°'&&!e.tenueClassique;}},
+    {id:'accueil-planning-comp',key:'planComp', color:'#FF9900', label:'Planning hors tenues — Compagnons',
+     test:function(e){return e.degre==='2°'&&!e.tenueClassique;}},
     {id:'accueil-planning-ca',  key:'planCA',   color:'#4472C4', label:'Planning — CA',
      test:function(e){var t=(e.titre||'').toLowerCase();var c=(e.categorie||'').toLowerCase();return(t==='ca'||t.indexOf('ca ')===0||t.indexOf('conseil')>=0||c.indexOf('ca')>=0||c.indexOf('conseil')>=0);}}
   ];
@@ -6500,8 +6500,19 @@ function renderAccueilExtras(){
     if(!last){el.style.display='none';return;}
     var et=document.getElementById('accueil-presences-tenue');if(et)et.textContent=(last.titre||'Tenue')+' — '+fmtDSl(last.date);
     var presObj=last.presences||{};
-    var noms=(window.D&&D.freres||[]).filter(function(f){var v=presObj[f.id];return !v||v==='P';}).map(function(f){return(f.prenom?f.prenom+' ':'')+f.nom;}).join(', ');
-    var eL=document.getElementById('accueil-presences-list');if(eL)eL.textContent=noms||'—';
+    var freres=window.D&&D.freres||[];
+    function nomF(f){return(f.prenom?f.prenom+' ':'')+f.nom;}
+    var presents=freres.filter(function(f){var v=presObj[f.id];return !v||v==='P';}).map(nomF);
+    var excuses=freres.filter(function(f){return presObj[f.id]==='E';}).map(nomF);
+    var absents=freres.filter(function(f){return presObj[f.id]==='A';}).map(nomF);
+    var eL=document.getElementById('accueil-presences-list');
+    if(eL){
+      var html='';
+      if(presents.length)html+='<div><span style="color:#1D8A5A;font-weight:600;">Présents :</span> '+presents.join(', ')+'</div>';
+      if(excuses.length)html+='<div style="margin-top:4px;"><span style="color:#E67E22;font-weight:600;">Excusés :</span> '+excuses.join(', ')+'</div>';
+      if(absents.length)html+='<div style="margin-top:4px;"><span style="color:#C0392B;font-weight:600;">Absents :</span> '+absents.join(', ')+'</div>';
+      eL.innerHTML=html||'—';
+    }
     el.style.display='';
   })();
 
