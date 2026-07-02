@@ -269,6 +269,8 @@ input, select, textarea { color: #1E3660; }
 #v-off-vm .planch-passe .planch-conf, #v-off-1surv .planch-passe .planch-conf, #v-off-2surv .planch-passe .planch-conf, #v-off-sec .planch-passe .planch-conf, #v-off-ora .planch-passe .planch-conf, #v-off-hosp .planch-passe .planch-conf, #v-off-tres .planch-passe .planch-conf, #v-off-exp .planch-passe .planch-conf, #v-off-mc .planch-passe .planch-conf, #v-off-couv .planch-passe .planch-conf, #v-off-mh .planch-passe .planch-conf, #v-off-mb .planch-passe .planch-conf, #v-off-admin .planch-passe .planch-conf, #v-off-dep .planch-passe .planch-conf, #v-planches .planch-passe .planch-conf { color: rgba(255,255,255,.5) !important; font-weight: normal !important; }
 #v-off-vm .planch-passe .planch-sujet, #v-off-1surv .planch-passe .planch-sujet, #v-off-2surv .planch-passe .planch-sujet, #v-off-sec .planch-passe .planch-sujet, #v-off-ora .planch-passe .planch-sujet, #v-off-hosp .planch-passe .planch-sujet, #v-off-tres .planch-passe .planch-sujet, #v-off-exp .planch-passe .planch-sujet, #v-off-mc .planch-passe .planch-sujet, #v-off-couv .planch-passe .planch-sujet, #v-off-mh .planch-passe .planch-sujet, #v-off-mb .planch-passe .planch-sujet, #v-off-admin .planch-passe .planch-sujet, #v-off-dep .planch-passe .planch-sujet, #v-planches .planch-passe .planch-sujet { color: rgba(255,255,255,.5) !important; }
 #v-off-vm input, #v-off-vm select, #v-off-vm textarea, #v-off-hosp input, #v-off-hosp select, #v-off-exp input, #v-off-exp select, #v-off-exp textarea { color: #FFFFFF !important; background:#1E3660 !important; border-color: rgba(255,255,255,.5) !important; }
+#v-off-vm input[type="checkbox"] { background: initial !important; border-color: initial !important; accent-color: var(--gold); }
+#v-off-vm table.pl-table-compact input, #v-off-vm table.pl-table-compact select { background: transparent !important; border: none !important; border-color: transparent !important; box-shadow: none !important; color: inherit !important; }
 #v-off-vm table, #v-off-hosp table { color: #FFFFFF !important; }
 #v-off-vm th, #v-off-vm td, #v-off-hosp th, #v-off-hosp td { color: #FFFFFF !important; }
 #v-off-vm .item-card, #v-off-hosp .item-card { background: var(--white) !important; }
@@ -683,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.86</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.87</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -14072,6 +14074,11 @@ function renderRubriquesOffice(officeId){
 }
 
 function officeRubriqueTab(officeId, rid, btn){
+  if(officeId==='off-vm' && rid==='planning'){
+    window._plFromAdmin=true;
+    plLibreAutoriserEtOuvrir();
+    return;
+  }
   var data=adminLoadResponsables();
   var rubriques=_vmDefaultRubriques(officeId, data[officeId]||[]);
   rubriques.forEach(function(r){
@@ -15181,7 +15188,7 @@ function adminRenderNavVisib(){
   NAV_ITEMS.forEach(function(item){
     var checked=(data[item.id]!==false);
     h+='<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:12px 16px;display:flex;align-items:center;gap:12px;">';
-    h+='<input type="checkbox" id="navvisib-'+item.id+'"'+(checked?' checked':'')+' style="accent-color:var(--gold);width:18px;height:18px;cursor:pointer;flex-shrink:0;"/>';
+    h+='<input type="checkbox" id="navvisib-'+item.id+'"'+(checked?' checked':'')+' onchange="adminSaveNavVisib()" style="accent-color:var(--gold);width:18px;height:18px;cursor:pointer;flex-shrink:0;"/>';
     h+='<label for="navvisib-'+item.id+'" style="font-size:14px;color:#FFFFFF;font-family:Cormorant Garamond,serif;font-weight:600;cursor:pointer;">'+item.label+'</label>';
     h+='</div>';
   });
