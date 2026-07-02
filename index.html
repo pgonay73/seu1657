@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.66</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.67</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19879,9 +19879,10 @@ function plSujetsSave(d){
 }
 function plSujetsAjouter(){
   var d=plSujetsLoad();
-  d.push({sujet:'',degre:''});
+  d.unshift({sujet:'',degre:''});
   plSujetsSave(d);
   plSujetsRender();
+  setTimeout(function(){var el=document.getElementById('pl-sujets-list');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
 }
 function plSujetsSupprimer(idx){
   var d=plSujetsLoad();
@@ -19999,9 +20000,7 @@ function plSauvegarderDetailTenue(){
 function plSujetsRenderInto(el){
   if(!el) return;
   var d=plSujetsLoad();
-  var h='<div style="display:flex;gap:8px;margin-bottom:12px;">'
-    +'<button class="btn btn-gold btn-sm" onclick="plSujetsAjouter();setTimeout(function(){plSujetsRender();var e=document.getElementById(\'vm-sujets-list\');if(e)plSujetsRenderInto(e);},100)">+ Ajouter un sujet</button>'
-    +'</div>';
+  var h='';
   if(!d||!d.length){
     h+='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun sujet pour le moment.</p>';
     el.innerHTML=h; return;
@@ -20225,7 +20224,7 @@ function plSujetsImporterColler(){
 var PL_SYM_KEY='planning_libre_sujets_symbolisme';
 function plSymLoad(){try{var d=JSON.parse(localStorage.getItem(PL_SYM_KEY));if(Array.isArray(d))return d;}catch(e){}return [];}
 function plSymSave(d){try{localStorage.setItem(PL_SYM_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_SYM_KEY,d);}
-function plSymAjouter(){var d=plSymLoad();d.push({sujet:'',degre:''});plSymSave(d);if(typeof plSymRender==='function')plSymRender();}
+function plSymAjouter(){var d=plSymLoad();d.unshift({sujet:'',degre:''});plSymSave(d);if(typeof plSymRender==='function')plSymRender();setTimeout(function(){var el=document.getElementById('pl-sym-list');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},80);}
 function plSymSupprimer(idx){var d=plSymLoad();if(!d[idx])return;d.splice(idx,1);plSymSave(d);plSymRender();}
 function plSymChanger(idx,champ,val){var d=plSymLoad();if(!d[idx])return;d[idx][champ]=val;plSymSave(d);}
 function plSymToggleActifSel(idx,checked){var d=plSymLoad();if(idx>=0&&idx<d.length){d[idx].actif=checked;d[idx].selectionne=checked?true:false;plSymSave(d);}}
@@ -20233,9 +20232,7 @@ function plSymRenderInto(el){
   if(!el) return;
   var d=plSymLoad();
   var _elId=el.id||'vm-sym-list';
-  var h='<div style="display:flex;gap:8px;margin-bottom:12px;">'
-    +'<button class="btn btn-gold btn-sm" onclick="plSymAjouter();setTimeout(function(){plSymRender();var e=document.getElementById(\''+_elId+'\');if(e)plSymRenderInto(e);},100)">+ Ajouter un sujet</button>'
-    +'</div>';
+  var h='';
   if(!d||!d.length){h+='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun sujet pour le moment.</p>';el.innerHTML=h;return;}
   var filtreActif=el.dataset.filtreDegre||'';
   var dFiltres=filtreActif?d.filter(function(p){return p.degre===filtreActif;}):d;
