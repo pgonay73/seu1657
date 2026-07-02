@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.88</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.89</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -14075,7 +14075,7 @@ function renderRubriquesOffice(officeId){
 
 function officeRubriqueTab(officeId, rid, btn){
   if(officeId==='off-vm' && rid==='planning'){
-    window._plFromAdmin=true;
+    window._plFromVM=true;
     plLibreAutoriserEtOuvrir();
     return;
   }
@@ -21129,7 +21129,23 @@ function plImprimer(titre, elementId){
 function plRenderAdminNav(){
   var el=document.getElementById('pl-admin-nav-header');
   if(!el) return;
-  if(!window._plFromAdmin){ el.style.display='none'; return; }
+  if(!window._plFromAdmin && !window._plFromVM){ el.style.display='none'; return; }
+  if(window._plFromVM){
+    var h='<div class="section-header" style="flex-wrap:wrap;gap:8px;margin-bottom:0;">';
+    h+='<div style="display:flex;flex-direction:column;align-items:center;">';
+    h+='<h2 style="margin-bottom:6px;">Vénérable Maître</h2>';
+    h+='<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'ov-office-change-mdp\').classList.add(\'open\')" style="font-size:11px;padding:4px 10px;">&#128273; Modifier le mot de passe</button>';
+    h+='</div>';
+    h+='<span style="font-size:11px;color:#FFFFFF;font-family:Raleway,sans-serif;font-style:italic;">Saisie et modifications réservées au <strong style="color:#FFFFFF;font-style:normal;">Vénérable Maître</strong></span>';
+    h+='</div>';
+    h+='<div style="display:flex;gap:0;border-bottom:2px solid var(--cream);margin-bottom:0;flex-wrap:wrap;">';
+    var vmRubs=[{id:'planning',label:'Planning'},{id:'suivi-tenue',label:'Suivi par tenue'},{id:'sujets',label:'Sujets de planche'},{id:'symbolisme',label:'Sujets de symbolisme'}];
+    vmRubs.forEach(function(r){
+      h+='<button class="cfg-tab'+(r.id==='planning'?' active':'')+'" style="color:'+(r.id==='planning'?'var(--gold)':'#FFFFFF')+';" onclick="plNavToVM(\''+r.id+'\')">'+r.label+'</button>';
+    });
+    h+='</div>';
+    el.innerHTML=h; el.style.display=''; return;
+  }
   var adminTabs=[
     {id:'offices',label:'Accès aux offices'},
     {id:'titulaires',label:'Titulaires des offices'},
@@ -21298,11 +21314,27 @@ function plLibreAutoriserEtOuvrir(){
   nav('planning-libre');
 }
 
-// ── Navigation depuis Planning libre vers l'espace admin ──
+// ── Navigation depuis Planning libre vers l'espace admin ou VM ──
 window._plFromAdmin = false;
+window._plFromVM = false;
+
+function plNavToVM(rid){
+  if(rid==='planning') return; // déjà sur la vue planning
+  window._plFromVM=false;
+  nav('off-vm');
+  setTimeout(function(){
+    var allTabs=document.querySelectorAll('#v-off-vm .cfg-tab');
+    var targetBtn=null;
+    for(var i=0;i<allTabs.length;i++){
+      var oc=allTabs[i].getAttribute('onclick')||'';
+      if(oc.indexOf("'"+rid+"'")>=0){targetBtn=allTabs[i];break;}
+    }
+    if(targetBtn) officeRubriqueTab('off-vm',rid,targetBtn);
+  },100);
+}
 
 function plNavToAdmin(tab){
-  window._plFromAdmin = false;
+  window._plFromAdmin = false; window._plFromVM = false;
   nav('off-admin');
   setTimeout(function(){
     var btn=document.querySelector('#v-off-admin .cfg-tab[onclick*="adminTab(\''+tab+'\'"]');
@@ -21312,7 +21344,7 @@ function plNavToAdmin(tab){
 
 function plNavToAdminPl(tab){
   if(tab==='planning') return;
-  window._plFromAdmin = false;
+  window._plFromAdmin = false; window._plFromVM = false;
   nav('off-admin');
   setTimeout(function(){
     var btn=document.querySelector('#v-off-admin .cfg-tab[onclick*="adminTab(\'planning\'"]');
@@ -21329,14 +21361,17 @@ function plNavToAdminPl(tab){
   var _origNavPL = nav;
   nav = function(n){
     var _fromAdmin = window._plFromAdmin; // capture avant reset
-    if(n==='planning-libre') window._plFromAdmin = false; // reset (consume once)
+    var _fromVM = window._plFromVM;       // capture avant reset
+    if(n==='planning-libre'){ window._plFromAdmin = false; window._plFromVM = false; }
     _origNavPL(n);
     if(n==='planning-libre'){
       setTimeout(function(){
         window._plFromAdmin = _fromAdmin; // restaurer pour plInitPage
+        window._plFromVM = _fromVM;       // restaurer pour plInitPage
         try{ sessionStorage.setItem(_PL_LIBRE_SESSION_KEY,'1'); }catch(e){}
         plInitPage();
         window._plFromAdmin = false; // reset après init
+        window._plFromVM = false;    // reset après init
       }, 60);
     }
   };
