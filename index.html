@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.70</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.71</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19066,7 +19066,7 @@ function plSubTab(name, btn){
   if(name==='planches') plRenderPlanchesRecap();
   if(name==='sujets') plSujetsRender();
   if(name==='symbolisme') plSymRender();
-  if(name==='suivi') plSuiviRender();
+  if(name==='suivi'){var _m=document.querySelector('.main');if(_m)_m.scrollTop=0;plSuiviRender();}
   if(name==='procedure'){ setTimeout(function(){ plProcedureLoad(); },30); }
 }
 // Clic sur l'onglet parent "Critères de sélection" : ouvre la sous-barre et
@@ -20584,6 +20584,10 @@ function plSuiviRender(containerId){
       +'<input id="pl-suivi-f-nom" type="text" placeholder="Rechercher…" oninput="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;width:130px;">'
       +'</div>'
       +'<button onclick="plSuiviFiltresReset()" style="padding:3px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:transparent;color:rgba(255,255,255,.45);font-family:Raleway,sans-serif;font-size:11px;cursor:pointer;align-self:flex-end;">✕ Réinit.</button>'
+      +'<div style="margin-left:auto;align-self:center;display:flex;gap:0;border:1px solid rgba(255,255,255,.25);border-radius:5px;overflow:hidden;">'
+      +'<button id="pl-sf-vue-frere" onclick="plSuiviVue(\'frere\')" style="'+BS+'border:none;border-right:1px solid rgba(255,255,255,.2);background:rgba(184,146,42,.3);color:rgba(230,195,80,1);">&#128101; Par frère</button>'
+      +'<button id="pl-sf-vue-tenue" onclick="plSuiviVue(\'tenue\')" style="'+BS+'border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);">&#128197; Par tenue</button>'
+      +'</div>'
       +'</div>';
   }
   _plSuiviChipUpdate();
@@ -20716,10 +20720,8 @@ function plSuiviFiltresReset(){
 var _plSuiviVue='frere';
 function plSuiviVue(mode){
   _plSuiviVue=mode;
-  var bf=document.getElementById('pl-suivi-btn-frere');
-  var bt=document.getElementById('pl-suivi-btn-tenue');
-  if(bf){bf.style.background=mode==='frere'?'rgba(184,146,42,.3)':'rgba(255,255,255,.06)';bf.style.color=mode==='frere'?'rgba(230,195,80,1)':'rgba(255,255,255,.65)';}
-  if(bt){bt.style.background=mode==='tenue'?'rgba(184,146,42,.3)':'rgba(255,255,255,.06)';bt.style.color=mode==='tenue'?'rgba(230,195,80,1)':'rgba(255,255,255,.65)';}
+  ['pl-suivi-btn-frere','pl-sf-vue-frere'].forEach(function(id){var b=document.getElementById(id);if(b){b.style.background=mode==='frere'?'rgba(184,146,42,.3)':'rgba(255,255,255,.06)';b.style.color=mode==='frere'?'rgba(230,195,80,1)':'rgba(255,255,255,.65)';}});
+  ['pl-suivi-btn-tenue','pl-sf-vue-tenue'].forEach(function(id){var b=document.getElementById(id);if(b){b.style.background=mode==='tenue'?'rgba(184,146,42,.3)':'rgba(255,255,255,.06)';b.style.color=mode==='tenue'?'rgba(230,195,80,1)':'rgba(255,255,255,.65)';}});
   var el1=document.getElementById('pl-suivi-list');
   var el2=document.getElementById('pl-suivi-tenue-list');
   var fb=document.getElementById('_pl-sf-bar');
