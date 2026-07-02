@@ -683,7 +683,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.81</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.82</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1488,15 +1488,10 @@ try {
         try { if(typeof plCriteresRestaurer==='function') plCriteresRestaurer(); } catch(ex) {}
         try { if(typeof plRenderObligatoires==='function') plRenderObligatoires(); } catch(ex) {}
         try { if(typeof plRender==='function') plRender(); } catch(ex) {}
-        try { if(typeof plSujetsRender==='function'){
-          var _el=document.getElementById('pl-sujets-list');
-          if(_el) _el.innerHTML='';
-          plSujetsRender();
-          // Mettre à jour aussi l'espace VM si ouvert
-          var _vmEl=document.getElementById('off-sujets-off-vm');
-          if(_vmEl && typeof plSujetsRenderInto==='function') plSujetsRenderInto(_vmEl);
-        }} catch(ex) {}
+        try { if(typeof _plSujetsRefreshAll==='function') _plSujetsRefreshAll(); else if(typeof plSujetsRender==='function') plSujetsRender(); } catch(ex) {}
+        try { if(typeof _plSymRefreshAll==='function') _plSymRefreshAll(); else if(typeof plSymRender==='function') plSymRender(); } catch(ex) {}
         try { if(typeof plSuiviRender==='function') plSuiviRender(); } catch(ex) {}
+        try { if(typeof _plSuiviTenueRefreshAll==='function') _plSuiviTenueRefreshAll(); } catch(ex) {}
         try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(ex) {}
         try { if(typeof adminRenderResponsables==='function') adminRenderResponsables(); } catch(ex) {}
         try { if(typeof adminRenderTitulaires==='function') adminRenderTitulaires(); } catch(ex) {}
@@ -13369,7 +13364,7 @@ function renderOffice(n){
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Sujets de planches</h3>';
     c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">Banque de sujets classés par degré — utilisés dans le suivi des planches.</p>';
     c+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
-    c+='<button class="btn btn-gold btn-sm" onclick="plSujetsAjouter();setTimeout(function(){plSujetsRender();var e=document.getElementById(\'admin-pl-sujets-list\');if(e)plSujetsRenderInto(e);},100)">+ Ajouter un sujet</button>';
+    c+='<button class="btn btn-gold btn-sm" onclick="plSujetsAjouter();setTimeout(function(){_plSujetsRefreshAll();},100)">+ Ajouter un sujet</button>';
     c+='</div>';
     c+='<div id="admin-pl-sujets-list"></div>';
     c+='</div></div>';
@@ -13377,7 +13372,7 @@ function renderOffice(n){
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Sujets de symbolisme</h3>';
     c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">Banque de sujets de symbolisme classés par degré — utilisés dans le suivi quand le type est S.</p>';
     c+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
-    c+='<button class="btn btn-gold btn-sm" onclick="plSymAjouter();setTimeout(function(){plSymRender();var e=document.getElementById(\'admin-pl-sym-list\');if(e)plSymRenderInto(e);},100)">+ Ajouter un sujet</button>';
+    c+='<button class="btn btn-gold btn-sm" onclick="plSymAjouter();setTimeout(function(){_plSymRefreshAll();},100)">+ Ajouter un sujet</button>';
     c+='</div>';
     c+='<div id="admin-pl-sym-list"></div>';
     c+='</div></div>';
@@ -13914,8 +13909,8 @@ function renderOffice(n){
 function buildContenusRubriques(officeId){
   var data=adminLoadResponsables();
   var rubriques=data[officeId]||[];
-  // off-vm a toujours au moins la rubrique sujets
-  if(officeId==='off-vm'&&!rubriques.length) rubriques=['planning','sujets'];
+  // off-vm a toujours au moins les rubriques planning/suivi/sujets/symbolisme
+  if(officeId==='off-vm'&&!rubriques.length) rubriques=['planning','suivi-tenue','sujets','symbolisme'];
   if(!rubriques.length){
     return '<div class="cfg-box" style="margin-top:16px;"><p style="font-size:13px;color:var(--grey);font-style:italic;">Aucune rubrique assignée à cet office.<br>L\'administrateur peut configurer cela dans Administrateur → Responsables.</p></div>';
   }
@@ -13939,7 +13934,8 @@ function buildContenusRubriques(officeId){
 function getRubriqueNom(rid){
   var noms={planning:'Planning',planches:'Planches',freres:'Frères',tresorerie:'Trésorerie',
     clefs:'Clefs du Temple',motexpert:"Patte de l'Expert",stats:'Statistiques',
-    infos:'Infos diverses',impression:'Impression'};
+    infos:'Infos diverses',impression:'Impression',
+    sujets:'Sujets de planche','suivi-tenue':'Suivi par tenue',symbolisme:'Sujets de symbolisme'};
   return noms[rid]||rid;
 }
 
@@ -13994,13 +13990,26 @@ function getRubriqueHTML(rid, officeId){
   }
   if(rid==='sujets'){
     var h='<div>';
-    h+='<h3 style="margin-bottom:12px;">Sujets des planches</h3>';
+    h+='<h3 style="margin-bottom:12px;">Sujets de planche</h3>';
     h+='<div style="display:flex;gap:8px;margin-bottom:12px;">';
-    h+='<button class="btn btn-gold btn-sm" onclick="plSujetsAjouter();setTimeout(function(){renderRubriquesOffice(\'off-vm\');},100)">+ Ajouter un sujet</button>';
+    h+='<button class="btn btn-gold btn-sm" onclick="plSujetsAjouter();setTimeout(function(){_plSujetsRefreshAll();},100)">+ Ajouter un sujet</button>';
     h+='</div>';
     h+='<div id="off-sujets-'+officeId+'"></div>';
     h+='</div>';
     return h;
+  }
+  if(rid==='suivi-tenue'){
+    return '<div><h3 style="margin-bottom:12px;">Suivi par tenue</h3><div id="off-suivi-tenue-'+officeId+'"></div></div>';
+  }
+  if(rid==='symbolisme'){
+    var hs='<div>';
+    hs+='<h3 style="margin-bottom:12px;">Sujets de symbolisme</h3>';
+    hs+='<div style="display:flex;gap:8px;margin-bottom:12px;">';
+    hs+='<button class="btn btn-gold btn-sm" onclick="plSymAjouter();setTimeout(function(){_plSymRefreshAll();},100)">+ Ajouter un sujet</button>';
+    hs+='</div>';
+    hs+='<div id="off-sym-'+officeId+'"></div>';
+    hs+='</div>';
+    return hs;
   }
   return '';
 }
@@ -14048,6 +14057,14 @@ function renderRubriquesOffice(officeId){
     if(rid==='sujets'){
       var sEl=document.getElementById('off-sujets-'+officeId);
       if(sEl) plSujetsRenderInto(sEl);
+    }
+    if(rid==='suivi-tenue'){
+      var stEl=document.getElementById('off-suivi-tenue-'+officeId);
+      if(stEl) plSuiviParTenueRender('off-suivi-tenue-'+officeId);
+    }
+    if(rid==='symbolisme'){
+      var symEl=document.getElementById('off-sym-'+officeId);
+      if(symEl) plSymRenderInto(symEl);
     }
   });
 }
@@ -15129,7 +15146,7 @@ function adminLoadNavVisib(){
       localStorage.setItem('admin_nav_visib',JSON.stringify(d));
     }
     // Valeur par défaut pour off-vm : rubrique sujets
-    if(!d['off-vm']||!Array.isArray(d['off-vm'])||!d['off-vm'].length) d['off-vm']=['planning','sujets'];
+    if(!d['off-vm']||!Array.isArray(d['off-vm'])||!d['off-vm'].length) d['off-vm']=['planning','suivi-tenue','sujets','symbolisme'];
     return d;
   }catch(e){return{'off-vm':['sujets']};}
 }
@@ -19898,11 +19915,36 @@ function plSujetsSave(d){
   try{localStorage.setItem(PL_SUJETS_KEY,JSON.stringify(d));}catch(e){}
   if(window.fbSet) window.fbSet(PL_SUJETS_KEY,d);
 }
+function _plSujetsRefreshAll(){
+  plSujetsRender();
+  var _ae=document.getElementById('admin-pl-sujets-list'); if(_ae) plSujetsRenderInto(_ae);
+  var _ve=document.getElementById('off-sujets-off-vm'); if(_ve) plSujetsRenderInto(_ve);
+}
+function _plSymRefreshAll(){
+  plSymRender();
+  var _ae=document.getElementById('admin-pl-sym-list'); if(_ae) plSymRenderInto(_ae);
+  var _ve=document.getElementById('off-sym-off-vm'); if(_ve) plSymRenderInto(_ve);
+}
+function _plSuiviTenueRefreshAll(){
+  if(_plSuiviTenueCid){
+    var _primary=_plSuiviTenueCid;
+    plSuiviParTenueRender(_plSuiviTenueCid);
+    _plSuiviTenueCid=_primary;
+  }
+  ['admin-pl-suivi-tenue-list','off-suivi-tenue-off-vm'].forEach(function(cid){
+    if(cid===_plSuiviTenueCid) return;
+    var _el=document.getElementById(cid);
+    if(!_el) return;
+    var _saved=_plSuiviTenueCid;
+    plSuiviParTenueRender(cid);
+    _plSuiviTenueCid=_saved;
+  });
+}
 function plSujetsAjouter(){
   var d=plSujetsLoad();
   d.unshift({sujet:'',degre:''});
   plSujetsSave(d);
-  plSujetsRender();
+  _plSujetsRefreshAll();
   setTimeout(function(){var el=document.getElementById('pl-sujets-list');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
 }
 function plSujetsSupprimer(idx){
@@ -19910,7 +19952,7 @@ function plSujetsSupprimer(idx){
   if(!d[idx]) return;
   d.splice(idx,1);
   plSujetsSave(d);
-  plSujetsRender();
+  _plSujetsRefreshAll();
 }
 function plSujetsToggleSel(idx,checked){
   var d=plSujetsLoad();
@@ -19921,7 +19963,7 @@ function plSujetsToggleActif(idx,checked){
   if(idx>=0 && idx<d.length){
     d[idx].actif=checked;
     plSujetsSave(d);
-    plSujetsRender();
+    _plSujetsRefreshAll();
   }
 }
 function plSujetsToggleActifSel(idx,checked){
@@ -20245,8 +20287,8 @@ function plSujetsImporterColler(){
 var PL_SYM_KEY='planning_libre_sujets_symbolisme';
 function plSymLoad(){try{var d=JSON.parse(localStorage.getItem(PL_SYM_KEY));if(Array.isArray(d))return d;}catch(e){}return [];}
 function plSymSave(d){try{localStorage.setItem(PL_SYM_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_SYM_KEY,d);}
-function plSymAjouter(){var d=plSymLoad();d.unshift({sujet:'',degre:''});plSymSave(d);if(typeof plSymRender==='function')plSymRender();setTimeout(function(){var el=document.getElementById('pl-sym-list');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},80);}
-function plSymSupprimer(idx){var d=plSymLoad();if(!d[idx])return;d.splice(idx,1);plSymSave(d);plSymRender();}
+function plSymAjouter(){var d=plSymLoad();d.unshift({sujet:'',degre:''});plSymSave(d);_plSymRefreshAll();setTimeout(function(){var el=document.getElementById('pl-sym-list');if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},80);}
+function plSymSupprimer(idx){var d=plSymLoad();if(!d[idx])return;d.splice(idx,1);plSymSave(d);_plSymRefreshAll();}
 function plSymChanger(idx,champ,val){var d=plSymLoad();if(!d[idx])return;d[idx][champ]=val;plSymSave(d);}
 function plSymToggleActifSel(idx,checked){var d=plSymLoad();if(idx>=0&&idx<d.length){d[idx].actif=checked;d[idx].selectionne=checked?true:false;plSymSave(d);}}
 function plSymRenderInto(el){
@@ -20410,7 +20452,7 @@ function plSuiviChangerNb(nomFrere,val){
   d[plSuiviNbCle(nomFrere)]=n;
   plSuiviSave(d);
   plSuiviRender();
-  if(_plSuiviTenueCid) plSuiviParTenueRender(_plSuiviTenueCid);
+  _plSuiviTenueRefreshAll();
 }
 function plSuiviChanger(nomFrere,ligne,champ,val){
   var d=plSuiviLoad();
@@ -20424,7 +20466,7 @@ function plSuiviChanger(nomFrere,ligne,champ,val){
   }
   if(ligne==='A' && d[nomFrere]) delete d[nomFrere]; // nettoyage définitif de l'ancienne clé migrée
   plSuiviSave(d);
-  if(champ==='type'||champ==='degre'){ plSuiviRender(); if(_plSuiviTenueCid) plSuiviParTenueRender(_plSuiviTenueCid); }
+  if(champ==='type'||champ==='degre'){ plSuiviRender(); _plSuiviTenueRefreshAll(); }
 }
 function plSuiviChoisirTenue(nomFrere,ligne,tenueId){
   var d=plSuiviLoad();
@@ -20438,7 +20480,7 @@ function plSuiviChoisirTenue(nomFrere,ligne,tenueId){
   if(ligne==='A' && d[nomFrere]) delete d[nomFrere];
   plSuiviSave(d);
   plSuiviRender();
-  if(_plSuiviTenueCid) plSuiviParTenueRender(_plSuiviTenueCid);
+  _plSuiviTenueRefreshAll();
 }
 // Génère la cellule "Sujet" du Suivi des planches par frère et tenue : un menu déroulant filtré
 // par le degré déjà choisi sur la ligne (1°/2°/3°), alimenté par la banque
