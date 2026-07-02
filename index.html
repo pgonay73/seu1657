@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.98 </span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.99</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -749,37 +749,19 @@ function loginVerif(){
         </div>
         </div>
 
-        <!-- Planning hors tenues des Apprentis -->
-        <div id="accueil-planning-app" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #33DD66;padding:14px 18px;margin-bottom:12px;"></div>
-        <!-- Planning Compagnons -->
-        <div id="accueil-planning-comp" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #FF9900;padding:14px 18px;margin-bottom:12px;"></div>
-        <!-- Planning CA -->
-        <div id="accueil-planning-ca" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #4472C4;padding:14px 18px;margin-bottom:12px;"></div>
-        <!-- Dernière playlist MH -->
-        <div id="accueil-playlist-mh" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid var(--gold);padding:14px 18px;margin-bottom:12px;">
-          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernière playlist — <span id="accueil-playlist-mh-tenue" style="font-size:13px;font-weight:400;color:var(--grey);"></span></div>
-          <div id="accueil-playlist-mh-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
-        </div>
-        <!-- Dernier menu Agapes -->
-        <div id="accueil-menu-agapes" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #E74C3C;padding:14px 18px;margin-bottom:12px;">
-          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernier menu des Agapes — <span id="accueil-menu-agapes-tenue" style="font-size:13px;font-weight:400;color:var(--grey);"></span></div>
-          <div id="accueil-menu-agapes-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
-        </div>
+        <!-- Cartes accueil définies par l'administrateur -->
+        <div id="accueil-carte-app"           style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #33DD66;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-comp"          style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #FF9900;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-ca"            style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #4472C4;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-playlist"      style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #D4AF5A;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-agapes"        style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #E74C3C;padding:14px 18px;margin-bottom:12px;"></div>
         <!-- Présents dernière tenue -->
         <div id="accueil-presences" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #1D8A5A;padding:14px 18px;margin-bottom:12px;">
           <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:8px;">Présents à la dernière tenue — <span id="accueil-presences-tenue" style="font-size:13px;font-weight:400;color:var(--grey);"></span></div>
           <div id="accueil-presences-list" style="font-size:13px;color:var(--grey);line-height:1.9;"></div>
         </div>
-        <!-- Dernière planche tracée -->
-        <div id="accueil-planches-tracees" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #8E44AD;padding:14px 18px;margin-bottom:12px;">
-          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernière planche tracée</div>
-          <div id="accueil-planches-tracees-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
-        </div>
-        <!-- Dernière correspondance -->
-        <div id="accueil-correspondance" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #2C3E50;padding:14px 18px;margin-bottom:12px;">
-          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernière correspondance</div>
-          <div id="accueil-correspondance-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
-        </div>
+        <div id="accueil-carte-planche"       style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #8E44AD;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-correspondance" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #2C3E50;padding:14px 18px;margin-bottom:12px;"></div>
       </div>
 
     </div>
@@ -1466,7 +1448,7 @@ try {
     'obs_admin_offices','obs_admin_titulaires','obs_admin_navigation','obs_admin_responsables',
     'obs_admin_config','obs_admin_planning_libre',
     'obs_off_1surv','obs_off_2surv','obs_off_mb','obs_off_mh','obs_off_mc','obs_off_couv',
-    'tenuesSpec','inv-infos-loge'
+    'tenuesSpec','inv-infos-loge','accueil_cartes'
   ];
   window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
   // Effacer les timestamps locaux pour toujours lire depuis Firebase au démarrage
@@ -5798,6 +5780,7 @@ function cfgTab(name, btn){
   if(name==='modeles') renderModeles();
   if(name==='durees') renderDureesReleves();
   if(name==='accueil') setTimeout(cfgAccueilRubriquesRender, 0);
+  if(name==='cartes') setTimeout(cfgAccueilCartesRender, 0);
   if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); if(!D.parDefaut)D.parDefaut=[]; [{nom:'ÉLECTION',dur:0,elecSteps:[]},{nom:'INSTALLATION',dur:0,instSteps:[]},{nom:'INTERVENTION',dur:0,interSteps:[]},{nom:'CÉRÉMONIE',dur:0,cerCardSteps:[]},{nom:'RÉUNION HORS TENUE',dur:0,reunSteps:[]}].forEach(function(s){if(!D.parDefaut.some(function(p){return p.nom===s.nom;}))D.parDefaut.push(s);}); peRender('pe-defaut',D.parDefaut); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
   // Bouton imprimer global géré par dispatchImprimer()
   window._cfgCurrentTab = name;
@@ -6403,97 +6386,91 @@ function accueilRubriquesVisibSave(){
 
 function cfgAccueilRubriquesRender(){
   var visib=accueilRubriquesVisibLoad();
-  var items=[
-    {key:'planApp',   label:'Planning hors tenues — Apprentis'},
-    {key:'planComp',  label:'Planning hors tenues — Compagnons'},
-    {key:'planCA',    label:'Planning — CA'},
-    {key:'playlistMH',label:"Dernière playlist du Maître d'Harmonie"},
-    {key:'menuAgapes',label:'Dernier menu des Agapes'},
-    {key:'presences', label:'Liste des présents à la dernière tenue'},
-    {key:'planchesTracees',label:'Dernière planche tracée'},
-    {key:'correspondance',  label:'Dernière correspondance'}
-  ];
   var el=document.getElementById('cfg-accueil-rubriques-list');if(!el)return;
+  // Seule la rubrique "présents" reste automatique — les 7 cartes sont gérées dans l'onglet "Cartes accueil"
+  var h='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;">';
+  h+='<input type="checkbox" id="cfg-arv-presences" '+(visib.presences!==false?'checked':'')+' onchange="accueilRubriquesVisibSave()" style="width:16px;height:16px;accent-color:var(--gold);">';
+  h+='<label for="cfg-arv-presences" style="font-size:13px;color:#FFFFFF;cursor:pointer;">Liste des présents à la dernière tenue (auto-générée)</label>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+// ---- Cartes accueil (contenu libre défini par l'administrateur) ----
+var _ACCUEIL_CARTES_DEF=[
+  {key:'app',           color:'#33DD66', titre:'Réunions Apprentis'},
+  {key:'comp',          color:'#FF9900', titre:'Réunions Compagnons'},
+  {key:'ca',            color:'#4472C4', titre:'CA'},
+  {key:'playlist',      color:'#D4AF5A', titre:'Playlist'},
+  {key:'agapes',        color:'#E74C3C', titre:'Agapes'},
+  {key:'planche',       color:'#8E44AD', titre:'Planche tracée'},
+  {key:'correspondance',color:'#2C3E50', titre:'Correspondance'}
+];
+
+function accueilCartesLoad(){
+  var def={};
+  _ACCUEIL_CARTES_DEF.forEach(function(c){def[c.key]={visible:true,titre:c.titre,contenu:''};});
+  try{var s=localStorage.getItem('accueil_cartes');if(s){var p=JSON.parse(s);Object.keys(p).forEach(function(k){if(def[k])def[k]=Object.assign(def[k],p[k]);});}}catch(e){}
+  return def;
+}
+
+function accueilCartesSave(){
+  var data=accueilCartesLoad();
+  _ACCUEIL_CARTES_DEF.forEach(function(c){
+    var cb=document.getElementById('cfg-carte-visib-'+c.key);
+    var ti=document.getElementById('cfg-carte-titre-'+c.key);
+    var tx=document.getElementById('cfg-carte-contenu-'+c.key);
+    if(cb)data[c.key].visible=cb.checked;
+    if(ti)data[c.key].titre=ti.value;
+    if(tx)data[c.key].contenu=tx.value;
+  });
+  try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+  if(window.fbSet) window.fbSet('accueil_cartes',data);
+  renderAccueilCartes();
+  toast('✓ Cartes d\'accueil sauvegardées');
+}
+
+function renderAccueilCartes(){
+  var data=accueilCartesLoad();
+  _ACCUEIL_CARTES_DEF.forEach(function(c){
+    var el=document.getElementById('accueil-carte-'+c.key);if(!el)return;
+    var d=data[c.key]||{};
+    if(!d.visible||!(d.contenu||'').trim()){el.style.display='none';return;}
+    var titre=(d.titre||c.titre).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    var contenu=(d.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    el.innerHTML='<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:16px;font-weight:700;color:'+c.color+';letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid '+c.color+';">'+titre+'</div>'
+      +'<div style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;">'+contenu+'</div>';
+    el.style.display='';
+  });
+}
+
+function cfgAccueilCartesRender(){
+  var data=accueilCartesLoad();
+  var el=document.getElementById('cfg-cartes-list');if(!el)return;
   var h='';
-  items.forEach(function(item){
-    h+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);">';
-    h+='<input type="checkbox" id="cfg-arv-'+item.key+'" '+(visib[item.key]!==false?'checked':'')+' onchange="accueilRubriquesVisibSave()" style="width:16px;height:16px;accent-color:var(--gold);">';
-    h+='<label for="cfg-arv-'+item.key+'" style="font-size:13px;color:#FFFFFF;cursor:pointer;">'+item.label+'</label>';
+  _ACCUEIL_CARTES_DEF.forEach(function(c){
+    var d=data[c.key]||{};
+    var titre=(d.titre||c.titre).replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var contenu=(d.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:4px solid '+c.color+';border-radius:6px;padding:14px 16px;margin-bottom:14px;">';
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">';
+    h+='<input type="checkbox" id="cfg-carte-visib-'+c.key+'" '+(d.visible!==false?'checked':'')+' style="width:16px;height:16px;accent-color:'+c.color+';flex-shrink:0;" title="Afficher/masquer">';
+    h+='<input type="text" id="cfg-carte-titre-'+c.key+'" value="'+titre+'" placeholder="Titre de la carte" style="flex:1;background:transparent;border:none;border-bottom:2px solid '+c.color+';padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
+    h+='</div>';
+    h+='<textarea id="cfg-carte-contenu-'+c.key+'" rows="4" placeholder="Contenu affiché à l\'accueil (laisser vide pour masquer)…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+contenu+'</textarea>';
     h+='</div>';
   });
   el.innerHTML=h;
 }
 
 function renderAccueilExtras(){
-  var visib=accueilRubriquesVisibLoad();
-  var today=new Date();today.setHours(0,0,0,0);
-  var mois=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-  var fmtD=function(d){if(!d)return'';var dt=new Date(d+'T12:00:00');return dt.getDate()+' '+mois[dt.getMonth()]+' '+dt.getFullYear();};
-  var fmtDSl=function(d){if(!d)return'';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
+  renderAccueilCartes();
 
-  // ---- Planning sections ----
-  var evts=(typeof plLoad==='function'?(plLoad().events||[]):[]);
-  var futur=evts.filter(function(e){return e.date&&new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-  var planSecs=[
-    {id:'accueil-planning-app', key:'planApp',  color:'#33DD66', label:'Planning hors tenues — Apprentis',
-     test:function(e){return e.degre==='1°'&&!e.tenueClassique;}},
-    {id:'accueil-planning-comp',key:'planComp', color:'#FF9900', label:'Planning hors tenues — Compagnons',
-     test:function(e){return e.degre==='2°'&&!e.tenueClassique;}},
-    {id:'accueil-planning-ca',  key:'planCA',   color:'#4472C4', label:'Planning — CA',
-     test:function(e){var t=(e.titre||'').toLowerCase();var c=(e.categorie||'').toLowerCase();return(t==='ca'||t.indexOf('ca ')===0||t.indexOf('conseil')>=0||c.indexOf('ca')>=0||c.indexOf('conseil')>=0);}}
-  ];
-  planSecs.forEach(function(sec){
-    var el=document.getElementById(sec.id);if(!el)return;
-    if(!visib[sec.key]){el.style.display='none';return;}
-    var list=futur.filter(sec.test);
-    if(!list.length){el.style.display='none';return;}
-    var h='<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:16px;font-weight:700;color:'+sec.color+';letter-spacing:.5px;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid '+sec.color+';">'+sec.label+'</div>';
-    h+='<div style="display:flex;flex-direction:column;gap:4px;">';
-    list.slice(0,6).forEach(function(e){
-      var notes=e.notes||'';
-      var isKey=/^(obligatoire|conseillee|troisieme):/.test(notes);
-      h+='<div style="display:flex;gap:12px;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);">';
-      h+='<span style="font-size:12px;font-weight:700;color:var(--gold2);white-space:nowrap;min-width:110px;">'+fmtD(e.date)+(e.heure?' '+e.heure:'')+'</span>';
-      h+='<span style="font-size:13px;color:var(--grey);">'+(e.titre||'').replace(/</g,'&lt;')+'</span>';
-      if(!isKey&&notes.trim()) h+='<span style="font-size:11px;color:var(--grey);font-style:italic;">'+notes.replace(/</g,'&lt;')+'</span>';
-      h+='</div>';
-    });
-    h+='</div>';
-    el.innerHTML=h;el.style.display='';
-  });
-
-  // ---- Playlist MH ----
+  // ---- Présents dernière tenue (auto-générée) ----
   (function(){
-    var el=document.getElementById('accueil-playlist-mh');if(!el)return;
-    if(!visib.playlistMH){el.style.display='none';return;}
-    var mhData={};try{var s=localStorage.getItem('mh_playlists');if(s)mhData=JSON.parse(s);}catch(e){}
-    var ts=(window.D&&D.tenues||[]).slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
-    var last=null,pl='';
-    for(var i=0;i<ts.length;i++){var v=mhData[ts[i].id];if(v&&(typeof v==='string'?v:'').trim()){last=ts[i];pl=v;break;}}
-    if(!last){el.style.display='none';return;}
-    var et=document.getElementById('accueil-playlist-mh-tenue');if(et)et.textContent=(last.titre||'Tenue')+' — '+fmtDSl(last.date);
-    var ep=document.getElementById('accueil-playlist-mh-text');if(ep)ep.textContent=pl;
-    el.style.display='';
-  })();
-
-  // ---- Menu Agapes ----
-  (function(){
-    var el=document.getElementById('accueil-menu-agapes');if(!el)return;
-    if(!visib.menuAgapes){el.style.display='none';return;}
-    var mbData={};try{var s=localStorage.getItem('mb_menus');if(s)mbData=JSON.parse(s);}catch(e){}
-    var ts=(window.D&&D.tenues||[]).slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
-    var last=null,menu='';
-    for(var i=0;i<ts.length;i++){var rec=mbData[ts[i].id]||{};if(typeof rec==='string')rec={menu:rec};var m=rec.menu||'';if(m.trim()){last=ts[i];menu=m;break;}}
-    if(!last){el.style.display='none';return;}
-    var et=document.getElementById('accueil-menu-agapes-tenue');if(et)et.textContent=(last.titre||'Tenue')+' — '+fmtDSl(last.date);
-    var em=document.getElementById('accueil-menu-agapes-text');if(em)em.textContent=menu;
-    el.style.display='';
-  })();
-
-  // ---- Présents dernière tenue ----
-  (function(){
+    var visib=accueilRubriquesVisibLoad();
     var el=document.getElementById('accueil-presences');if(!el)return;
     if(!visib.presences){el.style.display='none';return;}
+    var fmtDSl=function(d){if(!d)return'';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var ts=(window.D&&D.tenues||[]).slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
     var last=null;
     for(var i=0;i<ts.length;i++){if(ts[i].presences&&Object.keys(ts[i].presences).length>0){last=ts[i];break;}}
@@ -6515,28 +6492,7 @@ function renderAccueilExtras(){
     }
     el.style.display='';
   })();
-
-  // ---- Planches tracées ----
-  (function(){
-    var el=document.getElementById('accueil-planches-tracees');if(!el)return;
-    if(!visib.planchesTracees){el.style.display='none';return;}
-    var txt='';try{txt=localStorage.getItem('admin_text_planches-tracees')||'';}catch(e){}
-    if(!txt.trim()){el.style.display='none';return;}
-    var et=document.getElementById('accueil-planches-tracees-text');if(et)et.textContent=txt;
-    el.style.display='';
-  })();
-
-  // ---- Correspondance ----
-  (function(){
-    var el=document.getElementById('accueil-correspondance');if(!el)return;
-    if(!visib.correspondance){el.style.display='none';return;}
-    var txt='';try{txt=localStorage.getItem('admin_text_correspondance')||'';}catch(e){}
-    if(!txt.trim()){el.style.display='none';return;}
-    var et=document.getElementById('accueil-correspondance-text');if(et)et.textContent=txt;
-    el.style.display='';
-  })();
 }
-
 function saveConfig(){
   saveStatsth();
   // Ne mettre à jour D.loge/D.parDefaut que si le panneau Configuration a
@@ -13481,6 +13437,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="cfgTab(\'periode\',this)">Période du logiciel</button>';
     c+='<button class="cfg-tab" onclick="cfgTab(\'infos\',this)">Infos diverses</button>';
     c+='<button class="cfg-tab" onclick="cfgTab(\'accueil\',this)">Texte d\'accueil</button>';
+    c+='<button class="cfg-tab" onclick="cfgTab(\'cartes\',this)">🗂 Cartes accueil</button>';
 
     c+='<button onclick="imprimerCfgOnglet(window._cfgCurrentTab||\'identite\')" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
     c+='</div>';
@@ -13495,6 +13452,7 @@ function renderOffice(n){
 
     c+='<div id="cfg-panel-accueil" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Texte d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Texte affiché centré sur la page d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>Titre (optionnel)</label><input type="text" id="cfg-accueil-titre" placeholder="Ex : Bienvenue à la Loge Sagesse en Uzège" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Texte principal</label><textarea id="cfg-accueil-texte" rows="5" placeholder="Saisissez ici le texte qui s\'affichera sur la page d\'accueil…" onchange="saveConfig()" style="min-height:100px;resize:none;overflow:hidden;"></textarea></div></div></div><div class="cfg-box" style="margin-top:16px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Les news</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Trois cases affichées sous le texte d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>News 1</label><textarea id="cfg-accueil-news1" rows="3" placeholder="Contenu de la 1ère case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 2</label><textarea id="cfg-accueil-news2" rows="3" placeholder="Contenu de la 2ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 3</label><textarea id="cfg-accueil-news3" rows="3" placeholder="Contenu de la 3ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div></div></div>'
       +'<div class="cfg-box" style="margin-top:16px;border:2px solid var(--gold);border-radius:6px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:var(--gold);font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Rubriques dynamiques à l\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:14px;">Choisissez les informations affichées automatiquement sur la page d\'accueil. Une rubrique est cachée si elle est décochée ou si ses données sont vides.</p><div id="cfg-accueil-rubriques-list"></div></div></div>';
+    c+='<div id="cfg-panel-cartes" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Cartes de la page d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:18px;">Pour chaque carte : cochez pour l\'afficher, modifiez le titre, saisissez le contenu. Laisser le contenu vide masque la carte même si elle est cochée.</p><div id="cfg-cartes-list"></div><div style="margin-top:18px;"><button class="btn" onclick="accueilCartesSave()" style="background:var(--gold);color:#1E3660;font-weight:700;padding:8px 22px;border-radius:4px;border:none;cursor:pointer;font-size:14px;">💾 Sauvegarder les cartes</button></div></div></div>';
     c+='</div>';
     // PANEL PLANNING ANNUEL
 
