@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-02.105</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-02.107</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6527,6 +6527,40 @@ function mbAccueilAutoSave(){
     renderAccueilCartes();
   },400);
 }
+var _plancheAccueilTimer=null;
+function plancheAccueilAutoSave(){
+  clearTimeout(_plancheAccueilTimer);
+  _plancheAccueilTimer=setTimeout(function(){
+    var data=accueilCartesLoad();
+    var cb=document.getElementById('plancheacc-visib');
+    var ti=document.getElementById('plancheacc-titre');
+    var tx=document.getElementById('plancheacc-contenu');
+    if(!data.planche) data.planche={visible:true,titre:'Planche tracée',contenu:''};
+    if(cb) data.planche.visible=cb.checked;
+    if(ti) data.planche.titre=ti.value;
+    if(tx) data.planche.contenu=tx.value;
+    try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+    if(window.fbSet) window.fbSet('accueil_cartes',data);
+    renderAccueilCartes();
+  },400);
+}
+var _corrAccueilTimer=null;
+function corrAccueilAutoSave(){
+  clearTimeout(_corrAccueilTimer);
+  _corrAccueilTimer=setTimeout(function(){
+    var data=accueilCartesLoad();
+    var cb=document.getElementById('corracc-visib');
+    var ti=document.getElementById('corracc-titre');
+    var tx=document.getElementById('corracc-contenu');
+    if(!data.correspondance) data.correspondance={visible:true,titre:'Correspondance',contenu:''};
+    if(cb) data.correspondance.visible=cb.checked;
+    if(ti) data.correspondance.titre=ti.value;
+    if(tx) data.correspondance.contenu=tx.value;
+    try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+    if(window.fbSet) window.fbSet('accueil_cartes',data);
+    renderAccueilCartes();
+  },400);
+}
 function accueilCartesSave(){
   clearTimeout(_cartesAutoSaveTimer);
   var data=_accueilCartesCollect();
@@ -6555,7 +6589,7 @@ function cfgAccueilCartesRender(){
   var el=document.getElementById('cfg-cartes-list');if(!el)return;
   var h='';
   _ACCUEIL_CARTES_DEF.forEach(function(c){
-    if(c.key==='app'||c.key==='comp'||c.key==='ca'||c.key==='playlist'||c.key==='agapes') return;
+    if(c.key==='app'||c.key==='comp'||c.key==='ca'||c.key==='playlist'||c.key==='agapes'||c.key==='planche'||c.key==='correspondance') return;
     var d=data[c.key]||{};
     var titre=(d.titre||c.titre).replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var contenu=(d.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -14090,7 +14124,38 @@ function renderOffice(n){
     contenu+='</div>';
     contenu+='<textarea id="secacc-contenu" rows="6" placeholder="Ex : Prochain CA le 8 janvier à 19h30 — Ordre du jour : budget, élections" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_secaContenu+'</textarea>';
     contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d'accueil. Sauvegarde automatique.</p>';
+    
+    var _planchaData=accueilCartesLoad();
+    var _planchaD=_planchaData.planche||{};
+    var _planchaTitre=(_planchaD.titre||'Planche tracée').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var _planchaContenu=(_planchaD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    contenu+='<div class="cfg-box" style="margin-top:16px;">';
+    contenu+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
+    contenu+='<input type="checkbox" id="plancheacc-visib" '+(_planchaD.visible!==false?'checked':'')+' onchange="plancheAccueilAutoSave()" style="width:16px;height:16px;accent-color:#8E44AD;flex-shrink:0;">';
+    contenu+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Planche tracée)</h3>';
     contenu+='</div>';
+    contenu+='<div style="margin-bottom:8px;">';
+    contenu+='<input type="text" id="plancheacc-titre" value="'+_planchaTitre+'" placeholder="Titre de la carte" oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #8E44AD;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
+    contenu+='</div>';
+    contenu+='<textarea id="plancheacc-contenu" rows="6" placeholder="Ex : Tenue du 10 décembre — Planche de F∴ Dupont sur le thème de la fraternité." oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_planchaContenu+'</textarea>';
+    contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
+    contenu+='</div>';
+    var _corrData=accueilCartesLoad();
+    var _corrD=_corrData.correspondance||{};
+    var _corrTitre=(_corrD.titre||'Correspondance').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var _corrContenu=(_corrD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    contenu+='<div class="cfg-box" style="margin-top:16px;">';
+    contenu+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
+    contenu+='<input type="checkbox" id="corracc-visib" '+(_corrD.visible!==false?'checked':'')+' onchange="corrAccueilAutoSave()" style="width:16px;height:16px;accent-color:#7F8C8D;flex-shrink:0;">';
+    contenu+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Correspondance)</h3>';
+    contenu+='</div>';
+    contenu+='<div style="margin-bottom:8px;">';
+    contenu+='<input type="text" id="corracc-titre" value="'+_corrTitre+'" placeholder="Titre de la carte" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #7F8C8D;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
+    contenu+='</div>';
+    contenu+='<textarea id="corracc-contenu" rows="6" placeholder="Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_corrContenu+'</textarea>';
+    contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
+    contenu+='</div>';
+contenu+='</div>';
   }
 
     // Pour offices sans contenu specifique : generer depuis rubriques assignees
