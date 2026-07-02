@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.75</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.76</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -20490,23 +20490,22 @@ function plSuiviChangerSujetSelect(nomAttr,ligne,select){
   plSuiviChanger(nomAttr,ligne,'sujet',select.value);
   setTimeout(plSuiviRender,0);
 }
-function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDerniereLigne,nbLignes){
+function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDerniereLigne,nbLignes,withGoldBorder,addSpacer){
+  if(withGoldBorder===undefined) withGoldBorder=estPremiereLigne;
+  if(addSpacer===undefined) addSpacer=estDerniereLigne;
   var s=plSuiviEntree(suivi,nomFrere,ligne);
   var tenuesOk=plTenuesEligibles(s.degre,s.type,s.tenueId);
   var optsTenue='<option value="">—</option>';
   tenuesOk.forEach(function(t){
     optsTenue+='<option value="'+t.id+'"'+(s.tenueId===t.id?' selected':'')+'>'+t.label+'</option>';
   });
-  // Trait de séparation entre frères : ligne fine en haut de la 1ère ligne de chaque groupe (sauf le 1er frère)
-  var bordureHaut=estPremiereLigne?'border-top:1.5px solid rgba(184,146,42,.4);':'';
+  var bordTop=withGoldBorder?'border-top:1.5px solid rgba(184,146,42,.4);':'';
   var bordureBas='border-bottom:1px solid rgba(255,255,255,.06);';
-  var h='<tr style="'+bordureHaut+bordureBas+'">';
+  var h='<tr style="'+bordTop+bordureBas+'">';
   var tdInner='border-bottom:1px solid rgba(255,255,255,.06);';
-  var tdGauche=tdInner;
-  var tdDroite=tdInner;
   if(estPremiereLigne){
-    h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
-    h+='<td rowspan="'+nbLignes+'" style="border-top:1.5px solid rgba(184,146,42,.4);text-align:center;vertical-align:middle;width:28px;">'
+    h+='<td rowspan="'+nbLignes+'" style="'+bordTop+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
+    h+='<td rowspan="'+nbLignes+'" style="'+bordTop+'text-align:center;vertical-align:middle;width:28px;">'
       +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:28px;width:28px;" title="Nombre de planches">'
       +'<option value="1"'+(nbLignes===1?' selected':'')+'>1</option>'
       +'<option value="2"'+(nbLignes===2?' selected':'')+'>2</option>'
@@ -20527,8 +20526,7 @@ function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDer
     +'<td style="'+tdInner+'overflow:hidden;">'+plSuiviCelluleSujet(nomAttr,ligne,s)+'</td>'
     +'<td style="'+tdInner+'overflow:hidden;"><select onchange="plSuiviChoisirTenue(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this.value)" style="width:100%;">'+optsTenue+'</select></td>'
     +'</tr>';
-  // Ligne d'espacement entre chaque frère (visible uniquement après la dernière ligne du groupe)
-  if(estDerniereLigne){
+  if(addSpacer){
     h+='<tr><td colspan="7" style="height:8px;border:none;background:transparent;"></td></tr>';
   }
   return h;
@@ -20536,18 +20534,19 @@ function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDer
 // Variante de plSuiviRenderLigne où chaque ligne est autonome (rowspan=1),
 // utilisée pour le tri ligne par ligne. Le nom et le select "Nb planches"
 // sont affichés sur chaque ligne, ce qui permet de les trier indépendamment.
-function plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,ligne,nbLignes){
+function plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,ligne,nbLignes,withGoldBorder,addSpacer){
+  if(withGoldBorder===undefined) withGoldBorder=true;
+  if(addSpacer===undefined) addSpacer=true;
   var s=plSuiviEntree(suivi,nomFrere,ligne);
   var tenuesOk=plTenuesEligibles(s.degre,s.type,s.tenueId);
   var optsTenue='<option value="">—</option>';
   tenuesOk.forEach(function(t){
     optsTenue+='<option value="'+t.id+'"'+(s.tenueId===t.id?' selected':'')+'>'+t.label+'</option>';
   });
-  var border='border-top:1.5px solid rgba(184,146,42,.4);border-bottom:1px solid rgba(255,255,255,.06);';
+  var bordTop=withGoldBorder?'border-top:1.5px solid rgba(184,146,42,.4);':'border-top:1px solid rgba(255,255,255,.06);';
+  var border=bordTop+'border-bottom:1px solid rgba(255,255,255,.06);';
   var h='<tr style="'+border+'">';
-  // Nom sur chaque ligne (pas de rowspan)
   h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
-  // Select Nb planches sur chaque ligne
   h+='<td style="text-align:center;vertical-align:middle;width:28px;">'
     +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:28px;width:28px;" title="Nombre de planches">'
     +'<option value="1"'+(nbLignes===1?' selected':'')+'>1</option>'
@@ -20567,8 +20566,10 @@ function plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,ligne,nbLignes){
     +'</select></td>'
     +'<td style="overflow:hidden;">'+plSuiviCelluleSujet(nomAttr,ligne,s)+'</td>'
     +'<td style="overflow:hidden;"><select onchange="plSuiviChoisirTenue(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this.value)" style="width:100%;">'+optsTenue+'</select></td>'
-    +'</tr>'
-    +'<tr><td colspan="7" style="height:8px;border:none;background:transparent;"></td></tr>';
+    +'</tr>';
+  if(addSpacer){
+    h+='<tr><td colspan="7" style="height:8px;border:none;background:transparent;"></td></tr>';
+  }
   return h;
 }
 function plSuiviRender(containerId){
@@ -20675,24 +20676,29 @@ function plSuiviRender(containerId){
     +'<th style="width:9%;">Nom</th><th style="text-align:center;width:3%;">Nb</th><th style="width:2%;"></th><th style="text-align:center;width:5%;">Type</th><th style="text-align:center;width:5%;">Degré</th><th style="width:38%;">Sujet</th>'
     +'<th style="width:33%;">Date prévue</th>'
     +'</tr></thead><tbody>';
-  lignes.forEach(function(lg){
+  for(var li=0;li<lignes.length;li++){
+    var lg=lignes[li];
+    var prevSame=li>0 && lignes[li-1].nomFrere===lg.nomFrere;
+    var nextSame=li+1<lignes.length && lignes[li+1].nomFrere===lg.nomFrere;
+    var withGold=!prevSame;
+    var addSpc=!nextSame;
     var nomFrere=lg.nomFrere;
     var nomAttr=nomFrere.replace(/"/g,'&quot;');
     var vraiNb=lg.nbTotal;
     if(lg.groupeSansDate && lg.lignesSansDate.length>1){
       // Groupe de planches sans date : rendu groupé avec rowspan sur le nom
       var nbGroupe=lg.lignesSansDate.length;
-      var premiereLigne=true;
-      lg.lignesSansDate.forEach(function(l){
-        var estDerniere=l===lg.lignesSansDate[lg.lignesSansDate.length-1];
-        h+=plSuiviRenderLigne(suivi,nomFrere,nomAttr,l,premiereLigne,estDerniere,nbGroupe);
-        premiereLigne=false;
-      });
+      for(var gi=0;gi<lg.lignesSansDate.length;gi++){
+        var gl=lg.lignesSansDate[gi];
+        var estPrem=gi===0;
+        var estDern=gi===lg.lignesSansDate.length-1;
+        h+=plSuiviRenderLigne(suivi,nomFrere,nomAttr,gl,estPrem,estDern,nbGroupe,withGold&&estPrem,estDern&&addSpc);
+      }
     } else {
       // Ligne individuelle (avec date, ou une seule planche sans date)
-      h+=plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,lg.ligne,vraiNb);
+      h+=plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,lg.ligne,vraiNb,withGold,addSpc);
     }
-  });
+  }
   h+='</tbody></table><p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">'+freresTries.length+' frère'+(freresTries.length>1?'s':'')+' &bull; nombre de planches réglable par frère (1 à 3).</p>';
   el.innerHTML=h;
 }
@@ -20748,8 +20754,9 @@ function plSuiviParTenueRender(cid){
     for(var i=0;i<nbLignes;i++){
       var l=PL_SUIVI_LIGNES[i];
       var entree=plSuiviEntree(suivi,nomFrere,l);
-      var dateTenue=entree.tenueId?(dateParTenue[entree.tenueId]||''):'';
-      lignes.push({f:f,nomFrere:nomFrere,ligne:l,dateTenue:dateTenue,nbTotal:nbLignes});
+      var tid=entree.tenueId||'';
+      var dateTenue=tid?(dateParTenue[tid]||''):'';
+      lignes.push({f:f,nomFrere:nomFrere,ligne:l,dateTenue:dateTenue,tenueId:tid,nbTotal:nbLignes});
     }
   });
   // Tri par date croissante, sans date à la fin, puis alphabétique
@@ -20771,7 +20778,8 @@ function plSuiviParTenueRender(cid){
     +'<th style="text-align:center;width:5%;">Degré</th>'
     +'<th style="width:38%;">Sujet</th>'
     +'</tr></thead><tbody>';
-  lignes.forEach(function(lg){
+  for(var li=0;li<lignes.length;li++){
+    var lg=lignes[li];
     var nomFrere=lg.nomFrere;
     var nomAttr=nomFrere.replace(/"/g,'&quot;');
     var ligne=lg.ligne;
@@ -20780,7 +20788,11 @@ function plSuiviParTenueRender(cid){
     var tenuesOk=plTenuesEligibles(s.degre,s.type,s.tenueId);
     var optsTenue='<option value="">—</option>';
     tenuesOk.forEach(function(t){ optsTenue+='<option value="'+t.id+'"'+(s.tenueId===t.id?' selected':'')+'>'+t.label+'</option>'; });
-    var border='border-top:1.5px solid rgba(184,146,42,.4);border-bottom:1px solid rgba(255,255,255,.06);';
+    // Regroupement par tenue : même tenueId non vide → pas d'espace entre les lignes
+    var prevSameTenue=li>0 && lg.tenueId && lignes[li-1].tenueId===lg.tenueId;
+    var nextSameTenue=li+1<lignes.length && lg.tenueId && lignes[li+1].tenueId===lg.tenueId;
+    var bordTop=prevSameTenue?'border-top:1px solid rgba(255,255,255,.06);':'border-top:1.5px solid rgba(184,146,42,.4);';
+    var border=bordTop+'border-bottom:1px solid rgba(255,255,255,.06);';
     h+='<tr style="'+border+'">';
     h+='<td style="'+border+'overflow:hidden;"><select onchange="plSuiviChoisirTenue(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this.value)" style="width:100%;">'+optsTenue+'</select></td>';
     h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
@@ -20802,8 +20814,11 @@ function plSuiviParTenueRender(cid){
       +'<option value="3°"'+(s.degre==='3°'?' selected':'')+'>3</option>'
       +'</select></td>';
     h+='<td style="overflow:hidden;">'+plSuiviCelluleSujet(nomAttr,ligne,s)+'</td>';
-    h+='</tr><tr><td colspan="7" style="height:8px;border:none;background:transparent;"></td></tr>';
-  });
+    h+='</tr>';
+    if(!nextSameTenue){
+      h+='<tr><td colspan="7" style="height:8px;border:none;background:transparent;"></td></tr>';
+    }
+  }
   h+='</tbody></table>';
   el.innerHTML=h;
 }
