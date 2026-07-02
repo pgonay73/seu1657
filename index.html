@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.100</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.101</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6420,7 +6420,7 @@ function accueilCartesLoad(){
   return def;
 }
 
-function accueilCartesSave(){
+function _accueilCartesCollect(){
   var data=accueilCartesLoad();
   _ACCUEIL_CARTES_DEF.forEach(function(c){
     var cb=document.getElementById('cfg-carte-visib-'+c.key);
@@ -6430,6 +6430,21 @@ function accueilCartesSave(){
     if(ti)data[c.key].titre=ti.value;
     if(tx)data[c.key].contenu=tx.value;
   });
+  return data;
+}
+var _cartesAutoSaveTimer=null;
+function accueilCartesAutoSave(){
+  clearTimeout(_cartesAutoSaveTimer);
+  _cartesAutoSaveTimer=setTimeout(function(){
+    var data=_accueilCartesCollect();
+    try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+    if(window.fbSet) window.fbSet('accueil_cartes',data);
+    renderAccueilCartes();
+  },400);
+}
+function accueilCartesSave(){
+  clearTimeout(_cartesAutoSaveTimer);
+  var data=_accueilCartesCollect();
   try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
   if(window.fbSet) window.fbSet('accueil_cartes',data);
   renderAccueilCartes();
@@ -6460,10 +6475,10 @@ function cfgAccueilCartesRender(){
     var contenu=(d.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:4px solid '+c.color+';border-radius:6px;padding:14px 16px;margin-bottom:14px;">';
     h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">';
-    h+='<input type="checkbox" id="cfg-carte-visib-'+c.key+'" '+(d.visible!==false?'checked':'')+' style="width:16px;height:16px;accent-color:'+c.color+';flex-shrink:0;" title="Afficher/masquer">';
-    h+='<input type="text" id="cfg-carte-titre-'+c.key+'" value="'+titre+'" placeholder="Titre de la carte" style="flex:1;background:transparent;border:none;border-bottom:2px solid '+c.color+';padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
+    h+='<input type="checkbox" id="cfg-carte-visib-'+c.key+'" '+(d.visible!==false?'checked':'')+' onchange="accueilCartesAutoSave()" style="width:16px;height:16px;accent-color:'+c.color+';flex-shrink:0;" title="Afficher/masquer">';
+    h+='<input type="text" id="cfg-carte-titre-'+c.key+'" value="'+titre+'" placeholder="Titre de la carte" oninput="accueilCartesAutoSave()" style="flex:1;background:transparent;border:none;border-bottom:2px solid '+c.color+';padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
     h+='</div>';
-    h+='<textarea id="cfg-carte-contenu-'+c.key+'" rows="5" placeholder="'+c.hint.replace(/"/g,'&quot;')+'" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+contenu+'</textarea>';
+    h+='<textarea id="cfg-carte-contenu-'+c.key+'" rows="5" placeholder="'+c.hint.replace(/"/g,'&quot;')+'" oninput="accueilCartesAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+contenu+'</textarea>';
     h+='</div>';
   });
   el.innerHTML=h;
