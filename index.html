@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.93</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.95</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -747,6 +747,38 @@ function loginVerif(){
             <div id="accueil-news3" style="font-size:13px;color:var(--grey);line-height:1.7;white-space:pre-wrap;flex:1;"></div>
           </div>
         </div>
+        </div>
+
+        <!-- Planning hors tenues des Apprentis -->
+        <div id="accueil-planning-app" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #33DD66;padding:14px 18px;margin-bottom:12px;"></div>
+        <!-- Planning Compagnons -->
+        <div id="accueil-planning-comp" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #FF9900;padding:14px 18px;margin-bottom:12px;"></div>
+        <!-- Planning CA -->
+        <div id="accueil-planning-ca" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #4472C4;padding:14px 18px;margin-bottom:12px;"></div>
+        <!-- Dernière playlist MH -->
+        <div id="accueil-playlist-mh" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid var(--gold);padding:14px 18px;margin-bottom:12px;">
+          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernière playlist — <span id="accueil-playlist-mh-tenue" style="font-size:13px;font-weight:400;color:var(--grey);"></span></div>
+          <div id="accueil-playlist-mh-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
+        </div>
+        <!-- Dernier menu Agapes -->
+        <div id="accueil-menu-agapes" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #E74C3C;padding:14px 18px;margin-bottom:12px;">
+          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernier menu des Agapes — <span id="accueil-menu-agapes-tenue" style="font-size:13px;font-weight:400;color:var(--grey);"></span></div>
+          <div id="accueil-menu-agapes-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
+        </div>
+        <!-- Présents dernière tenue -->
+        <div id="accueil-presences" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #1D8A5A;padding:14px 18px;margin-bottom:12px;">
+          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:8px;">Présents à la dernière tenue — <span id="accueil-presences-tenue" style="font-size:13px;font-weight:400;color:var(--grey);"></span></div>
+          <div id="accueil-presences-list" style="font-size:13px;color:var(--grey);line-height:1.9;"></div>
+        </div>
+        <!-- Dernière planche tracée -->
+        <div id="accueil-planches-tracees" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #8E44AD;padding:14px 18px;margin-bottom:12px;">
+          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernière planche tracée</div>
+          <div id="accueil-planches-tracees-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
+        </div>
+        <!-- Dernière correspondance -->
+        <div id="accueil-correspondance" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #2C3E50;padding:14px 18px;margin-bottom:12px;">
+          <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:6px;">Dernière correspondance</div>
+          <div id="accueil-correspondance-text" style="font-size:13px;color:var(--grey);white-space:pre-wrap;line-height:1.7;"></div>
         </div>
       </div>
 
@@ -1412,7 +1444,7 @@ try {
     'admin_text_planches-tracees','admin_text_correspondance',
     'planning_libre_data','planning_libre_bareme_parties',
     'planning_libre_suivi_freres',
-    'planning_libre_duree_generee','admin_nav_visib','planning_libre_criteres','planning_libre_sujets_planches',
+    'planning_libre_duree_generee','admin_nav_visib','accueil_rubriques_visib','planning_libre_criteres','planning_libre_sujets_planches',
     'planning_libre_procedure',
     'planning_libre_fonct_bareme','planning_libre_fonct_critmens','planning_libre_fonct_obligatoires','planning_libre_fonct_candidature',
     'planning_libre_fonct_deuxieme','planning_libre_fonct_troisieme',
@@ -5786,6 +5818,7 @@ function cfgTab(name, btn){
   if(name==='regles') renderRegles();
   if(name==='modeles') renderModeles();
   if(name==='durees') renderDureesReleves();
+  if(name==='accueil') setTimeout(cfgAccueilRubriquesRender, 0);
   if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); if(!D.parDefaut)D.parDefaut=[]; [{nom:'ÉLECTION',dur:0,elecSteps:[]},{nom:'INSTALLATION',dur:0,instSteps:[]},{nom:'INTERVENTION',dur:0,interSteps:[]},{nom:'CÉRÉMONIE',dur:0,cerCardSteps:[]},{nom:'RÉUNION HORS TENUE',dur:0,reunSteps:[]}].forEach(function(s){if(!D.parDefaut.some(function(p){return p.nom===s.nom;}))D.parDefaut.push(s);}); peRender('pe-defaut',D.parDefaut); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
   // Bouton imprimer global géré par dispatchImprimer()
   window._cfgCurrentTab = name;
@@ -6371,6 +6404,147 @@ function renderAccueilTexte(){
   var c3=document.getElementById('accueil-news-card3'); if(c3) c3.style.display=v3.trim()?'flex':'none';
   var sec=document.getElementById('accueil-news-section'); if(sec) sec.style.display=(v1.trim()||v2.trim()||v3.trim())?'':'none';
   renderAccueilProchaineTenue();
+  renderAccueilExtras();
+}
+
+function accueilRubriquesVisibLoad(){
+  var def={planApp:true,planComp:true,planCA:true,playlistMH:true,menuAgapes:true,presences:true,planchesTracees:true,correspondance:true};
+  try{var s=localStorage.getItem('accueil_rubriques_visib');if(s)return Object.assign(def,JSON.parse(s));}catch(e){}
+  return def;
+}
+
+function accueilRubriquesVisibSave(){
+  var keys=['planApp','planComp','planCA','playlistMH','menuAgapes','presences','planchesTracees','correspondance'];
+  var data={};
+  keys.forEach(function(k){var cb=document.getElementById('cfg-arv-'+k);if(cb)data[k]=cb.checked;else data[k]=accueilRubriquesVisibLoad()[k];});
+  try{localStorage.setItem('accueil_rubriques_visib',JSON.stringify(data));}catch(e){}
+  if(window.fbSet) window.fbSet('accueil_rubriques_visib',data);
+  renderAccueilExtras();
+}
+
+function cfgAccueilRubriquesRender(){
+  var visib=accueilRubriquesVisibLoad();
+  var items=[
+    {key:'planApp',   label:'Planning hors tenues — Apprentis'},
+    {key:'planComp',  label:'Planning hors tenues — Compagnons'},
+    {key:'planCA',    label:'Planning — CA'},
+    {key:'playlistMH',label:"Dernière playlist du Maître d'Harmonie"},
+    {key:'menuAgapes',label:'Dernier menu des Agapes'},
+    {key:'presences', label:'Liste des présents à la dernière tenue'},
+    {key:'planchesTracees',label:'Dernière planche tracée'},
+    {key:'correspondance',  label:'Dernière correspondance'}
+  ];
+  var el=document.getElementById('cfg-accueil-rubriques-list');if(!el)return;
+  var h='';
+  items.forEach(function(item){
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.07);">';
+    h+='<input type="checkbox" id="cfg-arv-'+item.key+'" '+(visib[item.key]!==false?'checked':'')+' onchange="accueilRubriquesVisibSave()" style="width:16px;height:16px;accent-color:var(--gold);">';
+    h+='<label for="cfg-arv-'+item.key+'" style="font-size:13px;color:#FFFFFF;cursor:pointer;">'+item.label+'</label>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+
+function renderAccueilExtras(){
+  var visib=accueilRubriquesVisibLoad();
+  var today=new Date();today.setHours(0,0,0,0);
+  var mois=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+  var fmtD=function(d){if(!d)return'';var dt=new Date(d+'T12:00:00');return dt.getDate()+' '+mois[dt.getMonth()]+' '+dt.getFullYear();};
+  var fmtDSl=function(d){if(!d)return'';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
+
+  // ---- Planning sections ----
+  var evts=(typeof plLoad==='function'?(plLoad().events||[]):[]);
+  var futur=evts.filter(function(e){return e.date&&new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var planSecs=[
+    {id:'accueil-planning-app', key:'planApp',  color:'#33DD66', label:'Planning hors tenues — Apprentis',
+     test:function(e){return e.degre==='1°'&&!e.tenueClassique;}},
+    {id:'accueil-planning-comp',key:'planComp', color:'#FF9900', label:'Planning hors tenues — Compagnons',
+     test:function(e){return e.degre==='2°'&&!e.tenueClassique;}},
+    {id:'accueil-planning-ca',  key:'planCA',   color:'#4472C4', label:'Planning — CA',
+     test:function(e){var t=(e.titre||'').toLowerCase();var c=(e.categorie||'').toLowerCase();return(t==='ca'||t.indexOf('ca ')===0||t.indexOf('conseil')>=0||c.indexOf('ca')>=0||c.indexOf('conseil')>=0);}}
+  ];
+  planSecs.forEach(function(sec){
+    var el=document.getElementById(sec.id);if(!el)return;
+    if(!visib[sec.key]){el.style.display='none';return;}
+    var list=futur.filter(sec.test);
+    if(!list.length){el.style.display='none';return;}
+    var h='<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:16px;font-weight:700;color:'+sec.color+';letter-spacing:.5px;margin-bottom:10px;padding-bottom:5px;border-bottom:2px solid '+sec.color+';">'+sec.label+'</div>';
+    h+='<div style="display:flex;flex-direction:column;gap:4px;">';
+    list.slice(0,6).forEach(function(e){
+      var notes=e.notes||'';
+      var isKey=/^(obligatoire|conseillee|troisieme):/.test(notes);
+      h+='<div style="display:flex;gap:12px;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.06);">';
+      h+='<span style="font-size:12px;font-weight:700;color:var(--gold2);white-space:nowrap;min-width:110px;">'+fmtD(e.date)+(e.heure?' '+e.heure:'')+'</span>';
+      h+='<span style="font-size:13px;color:var(--grey);">'+(e.titre||'').replace(/</g,'&lt;')+'</span>';
+      if(!isKey&&notes.trim()) h+='<span style="font-size:11px;color:var(--grey);font-style:italic;">'+notes.replace(/</g,'&lt;')+'</span>';
+      h+='</div>';
+    });
+    h+='</div>';
+    el.innerHTML=h;el.style.display='';
+  });
+
+  // ---- Playlist MH ----
+  (function(){
+    var el=document.getElementById('accueil-playlist-mh');if(!el)return;
+    if(!visib.playlistMH){el.style.display='none';return;}
+    var mhData={};try{var s=localStorage.getItem('mh_playlists');if(s)mhData=JSON.parse(s);}catch(e){}
+    var ts=(window.D&&D.tenues||[]).slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+    var last=null,pl='';
+    for(var i=0;i<ts.length;i++){var v=mhData[ts[i].id];if(v&&(typeof v==='string'?v:'').trim()){last=ts[i];pl=v;break;}}
+    if(!last){el.style.display='none';return;}
+    var et=document.getElementById('accueil-playlist-mh-tenue');if(et)et.textContent=(last.titre||'Tenue')+' — '+fmtDSl(last.date);
+    var ep=document.getElementById('accueil-playlist-mh-text');if(ep)ep.textContent=pl;
+    el.style.display='';
+  })();
+
+  // ---- Menu Agapes ----
+  (function(){
+    var el=document.getElementById('accueil-menu-agapes');if(!el)return;
+    if(!visib.menuAgapes){el.style.display='none';return;}
+    var mbData={};try{var s=localStorage.getItem('mb_menus');if(s)mbData=JSON.parse(s);}catch(e){}
+    var ts=(window.D&&D.tenues||[]).slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+    var last=null,menu='';
+    for(var i=0;i<ts.length;i++){var rec=mbData[ts[i].id]||{};if(typeof rec==='string')rec={menu:rec};var m=rec.menu||'';if(m.trim()){last=ts[i];menu=m;break;}}
+    if(!last){el.style.display='none';return;}
+    var et=document.getElementById('accueil-menu-agapes-tenue');if(et)et.textContent=(last.titre||'Tenue')+' — '+fmtDSl(last.date);
+    var em=document.getElementById('accueil-menu-agapes-text');if(em)em.textContent=menu;
+    el.style.display='';
+  })();
+
+  // ---- Présents dernière tenue ----
+  (function(){
+    var el=document.getElementById('accueil-presences');if(!el)return;
+    if(!visib.presences){el.style.display='none';return;}
+    var ts=(window.D&&D.tenues||[]).slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+    var last=null;
+    for(var i=0;i<ts.length;i++){if(ts[i].presences&&Object.keys(ts[i].presences).length>0){last=ts[i];break;}}
+    if(!last){el.style.display='none';return;}
+    var et=document.getElementById('accueil-presences-tenue');if(et)et.textContent=(last.titre||'Tenue')+' — '+fmtDSl(last.date);
+    var presObj=last.presences||{};
+    var noms=(window.D&&D.freres||[]).filter(function(f){var v=presObj[f.id];return !v||v==='P';}).map(function(f){return(f.prenom?f.prenom+' ':'')+f.nom;}).join(', ');
+    var eL=document.getElementById('accueil-presences-list');if(eL)eL.textContent=noms||'—';
+    el.style.display='';
+  })();
+
+  // ---- Planches tracées ----
+  (function(){
+    var el=document.getElementById('accueil-planches-tracees');if(!el)return;
+    if(!visib.planchesTracees){el.style.display='none';return;}
+    var txt='';try{txt=localStorage.getItem('admin_text_planches-tracees')||'';}catch(e){}
+    if(!txt.trim()){el.style.display='none';return;}
+    var et=document.getElementById('accueil-planches-tracees-text');if(et)et.textContent=txt;
+    el.style.display='';
+  })();
+
+  // ---- Correspondance ----
+  (function(){
+    var el=document.getElementById('accueil-correspondance');if(!el)return;
+    if(!visib.correspondance){el.style.display='none';return;}
+    var txt='';try{txt=localStorage.getItem('admin_text_correspondance')||'';}catch(e){}
+    if(!txt.trim()){el.style.display='none';return;}
+    var et=document.getElementById('accueil-correspondance-text');if(et)et.textContent=txt;
+    el.style.display='';
+  })();
 }
 
 function saveConfig(){
@@ -13329,7 +13503,8 @@ function renderOffice(n){
     c+='<div id="cfg-panel-periode" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Période du logiciel</h3><p style="font-size:13px;color:var(--grey);margin-bottom:14px">Définissez la période couverte par le logiciel. Une tenue créée ou générée en dehors de cette période déclenchera un avertissement (la création reste possible).</p><div class="cfg-row"><div class="cfg-group" style="max-width:200px;"><label>Date de début</label><input type="date" id="cfg-periode-debut" onchange="saveConfig()"/></div><div class="cfg-group" style="max-width:200px;"><label>Date de fin</label><input type="date" id="cfg-periode-fin" onchange="saveConfig()"/></div></div></div></div>';
     c+='<div id="cfg-panel-infos" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Infos diverses</h3><div id="infos-list"></div><div style="display:flex;gap:8px;margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="infosAjouter()">+ Ajouter une rubrique</button></div></div></div>';
 
-    c+='<div id="cfg-panel-accueil" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Texte d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Texte affiché centré sur la page d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>Titre (optionnel)</label><input type="text" id="cfg-accueil-titre" placeholder="Ex : Bienvenue à la Loge Sagesse en Uzège" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Texte principal</label><textarea id="cfg-accueil-texte" rows="5" placeholder="Saisissez ici le texte qui s\'affichera sur la page d\'accueil…" onchange="saveConfig()" style="min-height:100px;resize:none;overflow:hidden;"></textarea></div></div></div><div class="cfg-box" style="margin-top:16px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Les news</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Trois cases affichées sous le texte d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>News 1</label><textarea id="cfg-accueil-news1" rows="3" placeholder="Contenu de la 1ère case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 2</label><textarea id="cfg-accueil-news2" rows="3" placeholder="Contenu de la 2ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 3</label><textarea id="cfg-accueil-news3" rows="3" placeholder="Contenu de la 3ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div></div></div></div>';
+    c+='<div id="cfg-panel-accueil" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Texte d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Texte affiché centré sur la page d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>Titre (optionnel)</label><input type="text" id="cfg-accueil-titre" placeholder="Ex : Bienvenue à la Loge Sagesse en Uzège" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Texte principal</label><textarea id="cfg-accueil-texte" rows="5" placeholder="Saisissez ici le texte qui s\'affichera sur la page d\'accueil…" onchange="saveConfig()" style="min-height:100px;resize:none;overflow:hidden;"></textarea></div></div></div><div class="cfg-box" style="margin-top:16px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Les news</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Trois cases affichées sous le texte d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>News 1</label><textarea id="cfg-accueil-news1" rows="3" placeholder="Contenu de la 1ère case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 2</label><textarea id="cfg-accueil-news2" rows="3" placeholder="Contenu de la 2ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 3</label><textarea id="cfg-accueil-news3" rows="3" placeholder="Contenu de la 3ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div></div></div>'
+      +'<div class="cfg-box" style="margin-top:16px;border:2px solid var(--gold);border-radius:6px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:var(--gold);font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Rubriques dynamiques à l\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:14px;">Choisissez les informations affichées automatiquement sur la page d\'accueil. Une rubrique est cachée si elle est décochée ou si ses données sont vides.</p><div id="cfg-accueil-rubriques-list"></div></div></div>';
     c+='</div>';
     // PANEL PLANNING ANNUEL
 
@@ -21124,9 +21299,18 @@ function plImprimer(titre, elementId){
   // CSS spécifique : planning généré — colonnes alignées, Titre en colonne large
   var cssPlanning = elementId==='pl-list'
     ? 'table{table-layout:fixed;width:100%;border-collapse:collapse;}'
-      +'th{white-space:normal;word-break:break-word;font-size:8.5px;}'
-      +'td{white-space:normal;word-break:break-word;}'
-      // Bandeaux de trimestre
+      +'th{white-space:normal;word-break:break-word;font-size:8.5px;padding:4px 6px;}'
+      +'td{white-space:normal;word-break:break-word;padding:4px 6px;}'
+      // Cacher la colonne bouton expand (1er td, vide après suppression du bouton)
+      +'td:nth-child(1):not([colspan]){display:none;}'
+      // Largeurs des th (le 1er th vide a déjà été supprimé par plHtmlPourImpression)
+      // th[1]=Date, th[2]=Degré, th[3]=P, th[4]=S, th[5]=Titre
+      +'th:nth-child(1){width:16% !important;}'
+      +'th:nth-child(2){width:10% !important;text-align:center;}'
+      +'th:nth-child(3){width:5% !important;text-align:center;}'
+      +'th:nth-child(4){width:5% !important;text-align:center;}'
+      // Titre prend les ~64% restants
+      // Bandeaux trimestriels
       +'td[colspan]{font-weight:700;font-size:12px;color:#1E3660 !important;background:#f5edd8 !important;}'
       // Ligne détail dépliée
       +'td[colspan="6"]{background:#fafafa !important;color:#333 !important;font-size:10px;}'
