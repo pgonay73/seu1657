@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.96</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.97</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6436,9 +6436,9 @@ function renderAccueilExtras(){
   var futur=evts.filter(function(e){return e.date&&new Date(e.date+'T12:00:00')>=today;}).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   var planSecs=[
     {id:'accueil-planning-app', key:'planApp',  color:'#33DD66', label:'Planning hors tenues — Apprentis',
-     test:function(e){return e.degre==='1°'&&!e.tenueClassique;}},
-    {id:'accueil-planning-comp',key:'planComp', color:'#FF9900', label:'Planning hors tenues — Compagnons',
      test:function(e){return e.degre==='2°'&&!e.tenueClassique;}},
+    {id:'accueil-planning-comp',key:'planComp', color:'#FF9900', label:'Planning hors tenues — Compagnons',
+     test:function(e){return e.degre==='1°'&&!e.tenueClassique;}},
     {id:'accueil-planning-ca',  key:'planCA',   color:'#4472C4', label:'Planning — CA',
      test:function(e){var t=(e.titre||'').toLowerCase();var c=(e.categorie||'').toLowerCase();return(t==='ca'||t.indexOf('ca ')===0||t.indexOf('conseil')>=0||c.indexOf('ca')>=0||c.indexOf('conseil')>=0);}}
   ];
