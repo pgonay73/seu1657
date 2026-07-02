@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.99</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.100</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6397,13 +6397,20 @@ function cfgAccueilRubriquesRender(){
 
 // ---- Cartes accueil (contenu libre défini par l'administrateur) ----
 var _ACCUEIL_CARTES_DEF=[
-  {key:'app',           color:'#33DD66', titre:'Réunions Apprentis'},
-  {key:'comp',          color:'#FF9900', titre:'Réunions Compagnons'},
-  {key:'ca',            color:'#4472C4', titre:'CA'},
-  {key:'playlist',      color:'#D4AF5A', titre:'Playlist'},
-  {key:'agapes',        color:'#E74C3C', titre:'Agapes'},
-  {key:'planche',       color:'#8E44AD', titre:'Planche tracée'},
-  {key:'correspondance',color:'#2C3E50', titre:'Correspondance'}
+  {key:'app',           color:'#33DD66', titre:'Réunions Apprentis',
+   hint:'Ex : Prochaine réunion le 15 janvier à 20h — Thème : Initiation symbolique\nSuivante : 12 février — Thème : à définir'},
+  {key:'comp',          color:'#FF9900', titre:'Réunions Compagnons',
+   hint:'Ex : Prochaine réunion le 22 janvier à 20h — Thème : Le compagnonnage\nSuivante : 19 février — Thème : à définir'},
+  {key:'ca',            color:'#4472C4', titre:'CA',
+   hint:'Ex : Prochain CA le 8 janvier à 19h30 — Ordre du jour : budget, élections\nAdresse : salle habituelle'},
+  {key:'playlist',      color:'#D4AF5A', titre:'Playlist',
+   hint:'Ex : Ouverture : Fratres (Pärt)\nSolomon (Haendel)\nChœur des pèlerins (Wagner)\nFermeture : Lacrimosa (Mozart)'},
+  {key:'agapes',        color:'#E74C3C', titre:'Agapes',
+   hint:'Ex : Menu du 15 janvier\n— Velouté de potimarron\n— Filet de bœuf sauce bordelaise\n— Plateau de fromages\n— Tarte Tatin'},
+  {key:'planche',       color:'#8E44AD', titre:'Planche tracée',
+   hint:'Ex : Tenue du 10 décembre\nPlanche de F∴ Dupont sur le thème de la fraternité.\nRésumé : ...'},
+  {key:'correspondance',color:'#2C3E50', titre:'Correspondance',
+   hint:'Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars\nCourrier du 2e Surveillant de la Loge X...'}
 ];
 
 function accueilCartesLoad(){
@@ -6456,7 +6463,7 @@ function cfgAccueilCartesRender(){
     h+='<input type="checkbox" id="cfg-carte-visib-'+c.key+'" '+(d.visible!==false?'checked':'')+' style="width:16px;height:16px;accent-color:'+c.color+';flex-shrink:0;" title="Afficher/masquer">';
     h+='<input type="text" id="cfg-carte-titre-'+c.key+'" value="'+titre+'" placeholder="Titre de la carte" style="flex:1;background:transparent;border:none;border-bottom:2px solid '+c.color+';padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
     h+='</div>';
-    h+='<textarea id="cfg-carte-contenu-'+c.key+'" rows="4" placeholder="Contenu affiché à l\'accueil (laisser vide pour masquer)…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+contenu+'</textarea>';
+    h+='<textarea id="cfg-carte-contenu-'+c.key+'" rows="5" placeholder="'+c.hint.replace(/"/g,'&quot;')+'" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+contenu+'</textarea>';
     h+='</div>';
   });
   el.innerHTML=h;
