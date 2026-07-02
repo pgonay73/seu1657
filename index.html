@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-02.102</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-02.103</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6459,6 +6459,23 @@ function surv2AccueilAutoSave(){
     renderAccueilCartes();
   },400);
 }
+var _surv1AccueilTimer=null;
+function surv1AccueilAutoSave(){
+  clearTimeout(_surv1AccueilTimer);
+  _surv1AccueilTimer=setTimeout(function(){
+    var data=accueilCartesLoad();
+    var cb=document.getElementById('s1acc-visib');
+    var ti=document.getElementById('s1acc-titre');
+    var tx=document.getElementById('s1acc-contenu');
+    if(!data.comp) data.comp={visible:true,titre:'Réunions Compagnons',contenu:''};
+    if(cb) data.comp.visible=cb.checked;
+    if(ti) data.comp.titre=ti.value;
+    if(tx) data.comp.contenu=tx.value;
+    try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+    if(window.fbSet) window.fbSet('accueil_cartes',data);
+    renderAccueilCartes();
+  },400);
+}
 function accueilCartesSave(){
   clearTimeout(_cartesAutoSaveTimer);
   var data=_accueilCartesCollect();
@@ -6487,7 +6504,7 @@ function cfgAccueilCartesRender(){
   var el=document.getElementById('cfg-cartes-list');if(!el)return;
   var h='';
   _ACCUEIL_CARTES_DEF.forEach(function(c){
-    if(c.key==='app') return;
+    if(c.key==='app'||c.key==='comp') return;
     var d=data[c.key]||{};
     var titre=(d.titre||c.titre).replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var contenu=(d.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -13694,6 +13711,21 @@ function renderOffice(n){
       sc+=surv1RowHTML(ri, r.date||'', r.odj||'', r.par||'', r.not||'', inpS);
     }
     sc+='</tbody></table></div>';
+    var _s1accData=accueilCartesLoad();
+    var _s1accD=_s1accData.comp||{};
+    var _s1accTitre=(_s1accD.titre||'Réunions Compagnons').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var _s1accContenu=(_s1accD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    sc+='<div class="cfg-box" style="margin-top:16px;">';
+    sc+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
+    sc+='<input type="checkbox" id="s1acc-visib" '+((_s1accD.visible!==false)?'checked':'')+' onchange="surv1AccueilAutoSave()" style="width:16px;height:16px;accent-color:#FF9900;flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">';
+    sc+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>';
+    sc+='</div>';
+    sc+='<div style="margin-bottom:8px;">';
+    sc+='<input type="text" id="s1acc-titre" value="'+_s1accTitre+'" placeholder="Titre de la carte" oninput="surv1AccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #FF9900;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
+    sc+='</div>';
+    sc+='<textarea id="s1acc-contenu" rows="6" placeholder="Ex : Prochaine réunion le 22 janvier à 20h — Thème : Le compagnonnage" oninput="surv1AccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_s1accContenu+'</textarea>';
+    sc+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
+    sc+='</div>';
     sc+=obsHTML('off_1surv');
     contenu=sc;
   }
