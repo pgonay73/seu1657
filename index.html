@@ -683,7 +683,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.80</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.81</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -20759,7 +20759,36 @@ function plSuiviParTenueRender(cid){
       lignes.push({f:f,nomFrere:nomFrere,ligne:l,dateTenue:dateTenue,tenueId:tid,nbTotal:nbLignes});
     }
   });
-  // Tri par date croissante, sans date à la fin, puis alphabétique
+  // Index des événements par id
+  var evtsIndex={};
+  evts.forEach(function(e){ if(e.id) evtsIndex[e.id]=e; });
+  // Compter les assignations existantes par (tenueId, type)
+  var assignesParTenueType={};
+  lignes.forEach(function(lg){
+    if(!lg.tenueId) return;
+    var s2=plSuiviEntree(suivi,lg.nomFrere,lg.ligne);
+    var key=lg.tenueId+'|'+(s2.type||'Planche');
+    assignesParTenueType[key]=(assignesParTenueType[key]||0)+1;
+  });
+  // Ajouter des lignes vides pour les slots de planches/symbolismes non encore assignés
+  var tenueIdsVus={};
+  lignes.forEach(function(lg){ if(lg.tenueId) tenueIdsVus[lg.tenueId]=true; });
+  Object.keys(tenueIdsVus).forEach(function(tid){
+    var evt=evtsIndex[tid];
+    if(!evt) return;
+    var det=evt.detail||[];
+    if(!det.length) return;
+    var nbP=det.filter(function(p){ return p.plancheSteps&&p.plancheSteps.indexOf('planche')>=0; }).length;
+    var nbS=det.filter(function(p){ return (p.symDegres&&p.symDegres.length>0)||(p.plancheSteps&&p.plancheSteps.indexOf('symbolisme')>=0); }).length;
+    var dTenue=dateParTenue[tid]||'';
+    for(var ip=0;ip<nbP-(assignesParTenueType[tid+'|Planche']||0);ip++){
+      lignes.push({f:null,nomFrere:'',ligne:'',dateTenue:dTenue,tenueId:tid,nbTotal:0,isEmpty:true,emptyType:'Planche'});
+    }
+    for(var is2=0;is2<nbS-(assignesParTenueType[tid+'|Symbolisme']||0);is2++){
+      lignes.push({f:null,nomFrere:'',ligne:'',dateTenue:dTenue,tenueId:tid,nbTotal:0,isEmpty:true,emptyType:'Symbolisme'});
+    }
+  });
+  // Tri par date croissante, sans date à la fin ; lignes réelles avant lignes vides dans le même groupe
   lignes.sort(function(a,b){
     if(a.dateTenue && !b.dateTenue) return -1;
     if(!a.dateTenue && b.dateTenue) return 1;
@@ -20767,8 +20796,13 @@ function plSuiviParTenueRender(cid){
       if(a.dateTenue<b.dateTenue) return -1;
       if(a.dateTenue>b.dateTenue) return 1;
     }
-    return fSortNom(a.f,b.f);
+    if(!a.isEmpty && b.isEmpty) return -1;
+    if(a.isEmpty && !b.isEmpty) return 1;
+    if(!a.isEmpty && !b.isEmpty) return fSortNom(a.f,b.f);
+    return 0;
   });
+  var JC2=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  var ML2=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   var h='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
     +'<th style="width:33%;">Date prévue</th>'
     +'<th style="width:9%;">Nom</th>'
@@ -20780,6 +20814,22 @@ function plSuiviParTenueRender(cid){
     +'</tr></thead><tbody>';
   for(var li=0;li<lignes.length;li++){
     var lg=lignes[li];
+    var prevSameTenue=li>0 && lg.tenueId && lignes[li-1].tenueId===lg.tenueId;
+    var nextSameTenue=li+1<lignes.length && lg.tenueId && lignes[li+1].tenueId===lg.tenueId;
+    var bordTop=prevSameTenue?'border-top:1px solid rgba(255,255,255,.06);':'';
+    var border=bordTop+'border-bottom:1px solid rgba(255,255,255,.06);';
+    var spacer=!nextSameTenue?'<tr><td colspan="7" style="height:10px;border:none;padding:0;background:linear-gradient(transparent 4px,rgba(184,146,42,.75) 4px,rgba(184,146,42,.75) 6px,transparent 6px);"></td></tr>':'';
+    // Ligne vide (slot non assigné)
+    if(lg.isEmpty){
+      var evtV=evtsIndex[lg.tenueId];
+      var lblV='';
+      if(evtV&&evtV.date){var d2v=new Date(evtV.date+'T12:00:00');lblV=JC2[(d2v.getDay()===0)?6:(d2v.getDay()-1)]+' '+d2v.getDate()+' '+ML2[d2v.getMonth()]+' '+d2v.getFullYear()+(evtV.titre?' — '+evtV.titre:'');}
+      h+='<tr style="'+border+'">'
+        +'<td style="'+border+'overflow:hidden;font-style:italic;color:rgba(255,255,255,.3);">'+lblV+'</td>'
+        +'<td colspan="6" style="font-style:italic;color:rgba(255,255,255,.22);padding-left:6px;">— '+lg.emptyType+' non assigné —</td>'
+        +'</tr>'+spacer;
+      continue;
+    }
     var nomFrere=lg.nomFrere;
     var nomAttr=nomFrere.replace(/"/g,'&quot;');
     var ligne=lg.ligne;
@@ -20788,11 +20838,6 @@ function plSuiviParTenueRender(cid){
     var tenuesOk=plTenuesEligibles(s.degre,s.type,s.tenueId);
     var optsTenue='<option value="">—</option>';
     tenuesOk.forEach(function(t){ optsTenue+='<option value="'+t.id+'"'+(s.tenueId===t.id?' selected':'')+'>'+t.label+'</option>'; });
-    // Regroupement par tenue : même tenueId non vide → pas d'espace entre les lignes
-    var prevSameTenue=li>0 && lg.tenueId && lignes[li-1].tenueId===lg.tenueId;
-    var nextSameTenue=li+1<lignes.length && lg.tenueId && lignes[li+1].tenueId===lg.tenueId;
-    var bordTop=prevSameTenue?'border-top:1px solid rgba(255,255,255,.06);':'';
-    var border=bordTop+'border-bottom:1px solid rgba(255,255,255,.06);';
     h+='<tr style="'+border+'">';
     h+='<td style="'+border+'overflow:hidden;"><select onchange="plSuiviChoisirTenue(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this.value)" style="width:100%;">'+optsTenue+'</select></td>';
     h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
@@ -20814,10 +20859,7 @@ function plSuiviParTenueRender(cid){
       +'<option value="3°"'+(s.degre==='3°'?' selected':'')+'>3</option>'
       +'</select></td>';
     h+='<td style="overflow:hidden;">'+plSuiviCelluleSujet(nomAttr,ligne,s)+'</td>';
-    h+='</tr>';
-    if(!nextSameTenue){
-      h+='<tr><td colspan="7" style="height:10px;border:none;padding:0;background:linear-gradient(transparent 4px,rgba(184,146,42,.75) 4px,rgba(184,146,42,.75) 6px,transparent 6px);"></td></tr>';
-    }
+    h+='</tr>'+spacer;
   }
   h+='</tbody></table>';
   el.innerHTML=h;
