@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.71</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.72</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17264,7 +17264,8 @@ var PA_SUGGESTIONS_MOIS={
       <button class="cfg-tab" id="pl-subtab-planning" onclick="plSubTab('planning',this)">Détail des tenues</button>
       <button class="cfg-tab" id="pl-subtab-sujets" onclick="plSubTab('sujets',this)">Sujets de planches</button>
       <button class="cfg-tab" id="pl-subtab-symbolisme" onclick="plSubTab('symbolisme',this)">Sujets de symbolisme</button>
-      <button class="cfg-tab" id="pl-subtab-suivi" onclick="plSubTab('suivi',this)">Suivi des planches</button>
+      <button class="cfg-tab" id="pl-subtab-suivi" onclick="plSubTab('suivi',this)">Suivi — Par frère</button>
+      <button class="cfg-tab" id="pl-subtab-suivi-tenue" onclick="plSubTab('suivi-tenue',this)">Suivi — Par tenue</button>
       <button class="cfg-tab" id="pl-subtab-planches" onclick="plSubTab('planches',this)">📋 Dispo P/S</button>
       <button class="cfg-tab" id="pl-subtab-procedure" onclick="plSubTab('procedure',this)">📝 Procédure</button>
       <span id="pl-btn-imprimer-wrap" style="margin-left:auto;align-self:center;"><button onclick="dispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button></span>
@@ -17556,18 +17557,13 @@ var PA_SUGGESTIONS_MOIS={
     <!-- ── Sous-onglet 6 : Suivi des planches par frère et tenue (tous les frères, 1 ligne fixe chacun) ── -->
     <div id="pl-sub-suivi" style="display:none;">
       <div class="pl-cfg-box" style="background:rgba(255,255,255,.05);">
-        <div style="margin-bottom:12px;">
-          <h4 style="margin:0 0 10px;">Suivi des planches par frère et tenue</h4>
-          <div style="display:flex;gap:0;border:1px solid rgba(255,255,255,.2);border-radius:5px;overflow:hidden;width:fit-content;">
-            <button id="pl-suivi-btn-frere" onclick="plSuiviVue('frere')" style="padding:6px 18px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(184,146,42,.3);border:none;border-right:1px solid rgba(255,255,255,.2);color:rgba(230,195,80,1);">&#128101; Par frère</button>
-            <button id="pl-suivi-btn-tenue" onclick="plSuiviVue('tenue')" style="padding:6px 18px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.65);">&#128197; Par tenue</button>
-          </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+          <h4 style="margin:0;">Suivi des planches par frère et tenue</h4>
         </div>
         <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:10px;">
           Une ligne par frère de la loge. Indépendant de l'onglet « Planches des frères ».
         </p>
         <div id="pl-suivi-list"></div>
-        <div id="pl-suivi-tenue-list" style="display:none;"></div>
       </div>
       <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
         <h4 style="margin:0 0 8px;">Observations</h4>
@@ -17575,6 +17571,19 @@ var PA_SUGGESTIONS_MOIS={
       </div>
     </div>
 
+
+    <!-- ── Sous-onglet : Suivi par tenue ── -->
+    <div id="pl-sub-suivi-tenue" style="display:none;">
+      <div class="pl-cfg-box" style="background:rgba(255,255,255,.05);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+          <h4 style="margin:0;">Suivi des planches et symbolismes par tenue</h4>
+        </div>
+        <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:14px;">
+          Tenues classées par date. Pour chaque tenue : frères assignés + formulaire d'assignation.
+        </p>
+        <div id="pl-suivi-tenue-list"></div>
+      </div>
+    </div>
 
     <!-- ── Sous-onglet : Disponibilités planches & symbolismes ── -->
     <div id="pl-sub-planches" style="display:none;">
@@ -19036,7 +19045,7 @@ function plGenererSelonCriteres(){
 var PL_CRITERES_ENFANTS=['critmens','obligatoires','candidature','deuxieme','troisieme'];
 function plSubTab(name, btn){
   _currentPlSubTab = name;
-  document.querySelectorAll('#pl-subtab-bareme,#pl-subtab-criteres-parent,#pl-subtab-critmens,#pl-subtab-obligatoires,#pl-subtab-candidature,#pl-subtab-deuxieme,#pl-subtab-troisieme,#pl-subtab-planning,#pl-subtab-sujets,#pl-subtab-symbolisme,#pl-subtab-suivi,#pl-subtab-planches,#pl-subtab-procedure').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('#pl-subtab-bareme,#pl-subtab-criteres-parent,#pl-subtab-critmens,#pl-subtab-obligatoires,#pl-subtab-candidature,#pl-subtab-deuxieme,#pl-subtab-troisieme,#pl-subtab-planning,#pl-subtab-sujets,#pl-subtab-symbolisme,#pl-subtab-suivi,#pl-subtab-suivi-tenue,#pl-subtab-planches,#pl-subtab-procedure').forEach(function(b){b.classList.remove('active');});
   var estEnfantCriteres=(PL_CRITERES_ENFANTS.indexOf(name)>=0);
   var subbar=document.getElementById('pl-criteres-subbar');
   var plBtnWrap=document.getElementById('pl-btn-imprimer-wrap');
@@ -19053,7 +19062,7 @@ function plSubTab(name, btn){
     // Barre principale → montrer bouton principal
     if(plBtnWrap) plBtnWrap.style.display='';
   }
-  var panels={bareme:'pl-sub-bareme',critmens:'pl-sub-critmens',obligatoires:'pl-sub-obligatoires',candidature:'pl-sub-candidature',deuxieme:'pl-sub-deuxieme',troisieme:'pl-sub-troisieme',planning:'pl-sub-planning',planches:'pl-sub-planches',sujets:'pl-sub-sujets',symbolisme:'pl-sub-symbolisme',suivi:'pl-sub-suivi',procedure:'pl-sub-procedure'};
+  var panels={bareme:'pl-sub-bareme',critmens:'pl-sub-critmens',obligatoires:'pl-sub-obligatoires',candidature:'pl-sub-candidature',deuxieme:'pl-sub-deuxieme',troisieme:'pl-sub-troisieme',planning:'pl-sub-planning',planches:'pl-sub-planches',sujets:'pl-sub-sujets',symbolisme:'pl-sub-symbolisme',suivi:'pl-sub-suivi','suivi-tenue':'pl-sub-suivi-tenue',procedure:'pl-sub-procedure'};
   Object.keys(panels).forEach(function(key){
     var el=document.getElementById(panels[key]);
     if(el) el.style.display=(key===name)?'':'none';
@@ -19067,6 +19076,7 @@ function plSubTab(name, btn){
   if(name==='sujets') plSujetsRender();
   if(name==='symbolisme') plSymRender();
   if(name==='suivi'){var _m=document.querySelector('.main');if(_m)_m.scrollTop=0;plSuiviRender();}
+  if(name==='suivi-tenue'){var _m2=document.querySelector('.main');if(_m2)_m2.scrollTop=0;plSuiviParTenueRender('pl-suivi-tenue-list');}
   if(name==='procedure'){ setTimeout(function(){ plProcedureLoad(); },30); }
 }
 // Clic sur l'onglet parent "Critères de sélection" : ouvre la sous-barre et
@@ -20584,9 +20594,6 @@ function plSuiviRender(containerId){
       +'<input id="pl-suivi-f-nom" type="text" placeholder="Rechercher…" oninput="plSuiviRender()" style="padding:4px 8px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;width:130px;">'
       +'</div>'
       +'<button onclick="plSuiviFiltresReset()" style="padding:3px 10px;border:1px solid rgba(255,255,255,.2);border-radius:4px;background:transparent;color:rgba(255,255,255,.45);font-family:Raleway,sans-serif;font-size:11px;cursor:pointer;align-self:flex-end;">✕ Réinit.</button>'
-      +'<div style="margin-left:auto;align-self:center;display:flex;gap:0;border:1px solid rgba(255,255,255,.25);border-radius:5px;overflow:hidden;">'
-      +'<button id="pl-sf-vue-frere" onclick="plSuiviVue(\'frere\')" style="'+BS+'border:none;border-right:1px solid rgba(255,255,255,.2);background:rgba(184,146,42,.3);color:rgba(230,195,80,1);">&#128101; Par frère</button>'
-      +'<button id="pl-sf-vue-tenue" onclick="plSuiviVue(\'tenue\')" style="'+BS+'border:none;background:rgba(255,255,255,.06);color:rgba(255,255,255,.6);">&#128197; Par tenue</button>'
       +'</div>'
       +'</div>';
   }
@@ -20717,31 +20724,11 @@ function plSuiviFiltresReset(){
   plSuiviRender();
 }
 // ── Vue "Par tenue" du Suivi ──────────────────────────────────────────────
-var _plSuiviVue='frere';
-function plSuiviVue(mode){
-  _plSuiviVue=mode;
-  ['pl-suivi-btn-frere','pl-sf-vue-frere'].forEach(function(id){var b=document.getElementById(id);if(b){b.style.background=mode==='frere'?'rgba(184,146,42,.3)':'rgba(255,255,255,.06)';b.style.color=mode==='frere'?'rgba(230,195,80,1)':'rgba(255,255,255,.65)';}});
-  ['pl-suivi-btn-tenue','pl-sf-vue-tenue'].forEach(function(id){var b=document.getElementById(id);if(b){b.style.background=mode==='tenue'?'rgba(184,146,42,.3)':'rgba(255,255,255,.06)';b.style.color=mode==='tenue'?'rgba(230,195,80,1)':'rgba(255,255,255,.65)';}});
-  var el1=document.getElementById('pl-suivi-list');
-  var el2=document.getElementById('pl-suivi-tenue-list');
-  var fb=document.getElementById('_pl-sf-bar');
-  if(mode==='tenue'){
-    if(el1) el1.style.display='none';
-    if(el2) el2.style.display='';
-    if(fb) fb.style.display='none';
-    plSuiviParTenueRender();
-  } else {
-    if(el1) el1.style.display='';
-    if(el2) el2.style.display='none';
-    if(fb) fb.style.display='';
-    plSuiviRender();
-  }
-}
 function _plPTCouleurDegre(degre){
   return degre==='3°'?'#FF4444':degre==='2°'?'#FF9900':degre==='1°'?'#33DD66':'rgba(255,255,255,.5)';
 }
-function plSuiviParTenueRender(){
-  var el=document.getElementById('pl-suivi-tenue-list');
+function plSuiviParTenueRender(cid){
+  var el=document.getElementById(cid||'pl-suivi-tenue-list');
   if(!el) return;
   var data=plLoad();
   var evts=(data.events||[]).slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
