@@ -682,7 +682,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.68</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-01.69</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17556,15 +17556,18 @@ var PA_SUGGESTIONS_MOIS={
     <!-- ── Sous-onglet 6 : Suivi des planches par frère et tenue (tous les frères, 1 ligne fixe chacun) ── -->
     <div id="pl-sub-suivi" style="display:none;">
       <div class="pl-cfg-box" style="background:rgba(255,255,255,.05);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
           <h4 style="margin:0;">Suivi des planches par frère et tenue</h4>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:6px;">
+            <button id="pl-suivi-btn-frere" onclick="plSuiviVue('frere')" style="padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(184,146,42,.25);border:1px solid rgba(184,146,42,.5);color:rgba(220,185,70,.95);">Par frère</button>
+            <button id="pl-suivi-btn-tenue" onclick="plSuiviVue('tenue')" style="padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55);">Par tenue</button>
           </div>
         </div>
         <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:10px;">
           Une ligne par frère de la loge. Indépendant de l'onglet « Planches des frères ».
         </p>
         <div id="pl-suivi-list"></div>
+        <div id="pl-suivi-tenue-list" style="display:none;"></div>
       </div>
       <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
         <h4 style="margin:0 0 8px;">Observations</h4>
@@ -20708,6 +20711,189 @@ function plSuiviFiltresReset(){
   var el=document.getElementById('pl-suivi-f-nom');if(el)el.value='';
   _plSuiviChipUpdate();
   plSuiviRender();
+}
+// ── Vue "Par tenue" du Suivi ──────────────────────────────────────────────
+var _plSuiviVue='frere';
+function plSuiviVue(mode){
+  _plSuiviVue=mode;
+  var ACTIF='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(184,146,42,.25);border:1px solid rgba(184,146,42,.5);color:rgba(220,185,70,.95);';
+  var INACT='padding:4px 14px;border-radius:4px;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.55);';
+  var bf=document.getElementById('pl-suivi-btn-frere');
+  var bt=document.getElementById('pl-suivi-btn-tenue');
+  if(bf) bf.style.cssText=(mode==='frere'?ACTIF:INACT);
+  if(bt) bt.style.cssText=(mode==='tenue'?ACTIF:INACT);
+  var el1=document.getElementById('pl-suivi-list');
+  var el2=document.getElementById('pl-suivi-tenue-list');
+  var fb=document.getElementById('_pl-sf-bar');
+  if(mode==='tenue'){
+    if(el1) el1.style.display='none';
+    if(el2) el2.style.display='';
+    if(fb) fb.style.display='none';
+    plSuiviParTenueRender();
+  } else {
+    if(el1) el1.style.display='';
+    if(el2) el2.style.display='none';
+    if(fb) fb.style.display='';
+    plSuiviRender();
+  }
+}
+function _plPTCouleurDegre(degre){
+  return degre==='3°'?'#FF4444':degre==='2°'?'#FF9900':degre==='1°'?'#33DD66':'rgba(255,255,255,.5)';
+}
+function plSuiviParTenueRender(){
+  var el=document.getElementById('pl-suivi-tenue-list');
+  if(!el) return;
+  var data=plLoad();
+  var evts=(data.events||[]).slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
+  if(!evts.length){
+    el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucune tenue trouvée.</p>';
+    return;
+  }
+  var suivi=plSuiviLoad();
+  // Index tenueId → assignations
+  var assignesParTenue={};
+  (D.freres||[]).forEach(function(f){
+    var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
+    var nb=plSuiviNb(suivi,nomFrere);
+    for(var i=0;i<nb;i++){
+      var l=PL_SUIVI_LIGNES[i];
+      var s=plSuiviEntree(suivi,nomFrere,l);
+      if(s.tenueId){
+        if(!assignesParTenue[s.tenueId]) assignesParTenue[s.tenueId]=[];
+        assignesParTenue[s.tenueId].push({nomFrere:nomFrere,ligne:l,type:s.type||'Planche',degre:s.degre||'',sujet:s.sujet||''});
+      }
+    }
+  });
+  var freresTries=(D.freres||[]).slice().sort(fSortNom);
+  var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  var ML=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  var h='';
+  evts.forEach(function(e){
+    if(!e.id||!e.date) return;
+    var d2=new Date(e.date+'T12:00:00');
+    var ds=JC[(d2.getDay()===0)?6:(d2.getDay()-1)]+' '+d2.getDate()+' '+ML[d2.getMonth()]+' '+d2.getFullYear();
+    var degTenue=e.degre||'1°';
+    var cTenue=_plPTCouleurDegre(degTenue);
+    var tenueIdSafe=e.id.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    var assigns=assignesParTenue[e.id]||[];
+    h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-left:4px solid '+cTenue+';border-radius:6px;padding:10px 14px;margin-bottom:10px;">';
+    // En-tête tenue
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">';
+    h+='<span style="font-size:12px;font-weight:700;color:'+cTenue+';">'+ds+'</span>';
+    h+='<span style="font-size:10px;color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.15);border-radius:3px;padding:1px 5px;">'+degTenue+'</span>';
+    if(e.titre) h+='<span style="font-size:11px;color:rgba(255,255,255,.6);">'+e.titre+'</span>';
+    h+='</div>';
+    // Assignations existantes
+    if(assigns.length){
+      h+='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">';
+      assigns.forEach(function(a){
+        var cA=a.type==='Symbolisme'?'#C080D0':_plPTCouleurDegre(a.degre);
+        var cleAttr=(a.nomFrere+'#'+a.ligne).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+        h+='<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-left:3px solid '+cA+';border-radius:4px;padding:3px 8px;">';
+        h+='<span style="color:'+cA+';font-weight:700;font-size:10px;">'+a.type.charAt(0)+'</span>';
+        if(a.degre) h+='<span style="color:rgba(255,255,255,.4);font-size:10px;">'+a.degre+'</span>';
+        h+='<span style="color:rgba(255,255,255,.85);">'+a.nomFrere+'</span>';
+        if(a.sujet) h+='<span style="color:rgba(255,255,255,.45);font-size:10px;">&#8212; '+a.sujet+'</span>';
+        h+='<button onclick="plSuiviPTDesassigner(&quot;'+cleAttr+'&quot;)" title="Retirer" style="background:none;border:none;color:rgba(255,80,80,.7);cursor:pointer;font-size:14px;padding:0 2px;line-height:1;">&#215;</button>';
+        h+='</span>';
+      });
+      h+='</div>';
+    } else {
+      h+='<div style="font-size:11px;color:rgba(255,255,255,.25);margin-bottom:8px;font-style:italic;">Aucune assignation</div>';
+    }
+    // Formulaire d'assignation
+    h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:6px;border-top:1px solid rgba(255,255,255,.07);">';
+    var SS='font-size:11px;padding:3px 7px;border-radius:4px;border:1px solid rgba(255,255,255,.2);background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;';
+    // Frère
+    h+='<select id="pl-pt-frere-'+tenueIdSafe+'" style="'+SS+'">';
+    h+='<option value="">— Frère —</option>';
+    freresTries.forEach(function(f){
+      var nm=((f.prenom||'')+' '+(f.nom||'')).trim();
+      h+='<option value="'+nm.replace(/"/g,'&quot;')+'">'+nm+'</option>';
+    });
+    h+='</select>';
+    // Type
+    h+='<select id="pl-pt-type-'+tenueIdSafe+'" onchange="plSuiviPTTypeChange(&quot;'+tenueIdSafe+'&quot;)" style="'+SS+'">';
+    h+='<option value="Planche">P — Planche</option>';
+    h+='<option value="Symbolisme">S — Symbolisme</option>';
+    h+='</select>';
+    // Degré
+    h+='<select id="pl-pt-degre-'+tenueIdSafe+'" onchange="plSuiviPTTypeChange(&quot;'+tenueIdSafe+'&quot;)" style="'+SS+'">';
+    h+='<option value="">— Degré —</option>';
+    h+='<option value="1°">1°</option>';
+    h+='<option value="2°">2°</option>';
+    h+='<option value="3°">3°</option>';
+    h+='</select>';
+    // Sujet (initialement planches)
+    h+='<select id="pl-pt-sujet-'+tenueIdSafe+'" style="'+SS+'min-width:130px;">';
+    h+='<option value="">— Sujet —</option>';
+    plSujetsLoad().forEach(function(s){if(s.sujet) h+='<option value="'+s.sujet.replace(/"/g,'&quot;')+'">'+s.sujet+'</option>';});
+    h+='</select>';
+    // Bouton
+    h+='<button onclick="plSuiviParTenueAssigner(&quot;'+tenueIdSafe+'&quot;)" style="font-size:11px;padding:4px 12px;border-radius:4px;border:1px solid rgba(184,146,42,.4);background:rgba(184,146,42,.15);color:rgba(220,185,70,.95);font-family:Raleway,sans-serif;font-weight:700;cursor:pointer;">Assigner</button>';
+    h+='</div>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function plSuiviPTTypeChange(tenueId){
+  var selType=document.getElementById('pl-pt-type-'+tenueId);
+  var selDegre=document.getElementById('pl-pt-degre-'+tenueId);
+  var selSujet=document.getElementById('pl-pt-sujet-'+tenueId);
+  if(!selType||!selSujet) return;
+  var type=selType.value;
+  var degre=selDegre?selDegre.value:'';
+  var banque=(type==='Symbolisme')?plSymLoad():plSujetsLoad();
+  var filtres=banque.filter(function(s){return s.sujet&&(!degre||!s.degre||s.degre===degre);});
+  var h='<option value="">— Sujet —</option>';
+  filtres.forEach(function(s){h+='<option value="'+s.sujet.replace(/"/g,'&quot;')+'">'+s.sujet+'</option>';});
+  selSujet.innerHTML=h;
+}
+function plSuiviParTenueAssigner(tenueId){
+  var selF=document.getElementById('pl-pt-frere-'+tenueId);
+  var selT=document.getElementById('pl-pt-type-'+tenueId);
+  var selD=document.getElementById('pl-pt-degre-'+tenueId);
+  var selS=document.getElementById('pl-pt-sujet-'+tenueId);
+  if(!selF||!selT) return;
+  var nomFrere=(selF.value||'').trim();
+  var type=selT.value||'Planche';
+  var degre=selD?selD.value:'';
+  var sujet=selS?selS.value:'';
+  if(!nomFrere){toast('Sélectionner un frère.');return;}
+  var d=plSuiviLoad();
+  var nb=plSuiviNb(d,nomFrere);
+  var slotLibre=null;
+  for(var i=0;i<nb;i++){
+    var l=PL_SUIVI_LIGNES[i];
+    var s=plSuiviEntree(d,nomFrere,l);
+    if(!s.tenueId){slotLibre=l;break;}
+  }
+  if(!slotLibre&&nb<3){
+    nb++;
+    d[plSuiviNbCle(nomFrere)]=nb;
+    slotLibre=PL_SUIVI_LIGNES[nb-1];
+  }
+  if(!slotLibre){toast('Ce frère a déjà 3 planches assignées à des tenues.');return;}
+  var cle=plSuiviCle(nomFrere,slotLibre);
+  var existant=plSuiviEntree(d,nomFrere,slotLibre);
+  d[cle]=Object.assign({},existant,{type:type,degre:degre,sujet:sujet,tenueId:tenueId});
+  var nomAffiche=nomFrere+' ('+slotLibre+')'+(sujet?' — '+sujet:'');
+  plReserverTenue('suivi',cle,tenueId,type,nomAffiche);
+  plSuiviSave(d);
+  plSuiviParTenueRender();
+}
+function plSuiviPTDesassigner(cle){
+  var parts=cle.split('#');
+  if(parts.length<2) return;
+  var ligne=parts[parts.length-1];
+  var nomFrere=parts.slice(0,-1).join('#');
+  var d=plSuiviLoad();
+  var cleKey=plSuiviCle(nomFrere,ligne);
+  var existant=plSuiviEntree(d,nomFrere,ligne);
+  plLibererReservation('suivi',cleKey);
+  d[cleKey]=Object.assign({},existant,{tenueId:''});
+  plSuiviSave(d);
+  plSuiviParTenueRender();
 }
 // Force la sauvegarde explicite de toutes les données de Planning libre (en
 // plus de la sauvegarde automatique déjà déclenchée à chaque modification),
