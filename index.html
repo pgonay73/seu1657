@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.110</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.111</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1592,6 +1592,17 @@ try {
 var D = {};
 var TR = {cotisStatuts:{actif:0,affilie:0,honoraire:0,visiteur:0}, cotisFreres:{}, achats:[]};
 var TR2 = {tarifs:{actif:0,affilie:0,honoraire:0,visiteur:0}, cotisations:{}};
+
+// Bridge Planning Libre — défini ici pour être disponible dès le démarrage
+// (le bloc PL plus bas redéfinit les mêmes fonctions, ce qui est sans effet)
+var PL_KEY='planning_libre_data';
+function plLoad(){try{var s=localStorage.getItem(PL_KEY);return s?JSON.parse(s):{events:[]};}catch(e){return{events:[]};}}
+function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_KEY,d);}
+function getTenues(){return(plLoad().events||[]);}
+function plTenueUpdate(id,fields){var d=plLoad();for(var i=0;i<d.events.length;i++){if(d.events[i].id===id){Object.assign(d.events[i],fields);break;}}plSave(d);}
+function plTenueAdd(t){var d=plLoad();d.events.push(t);plSave(d);}
+function plTenueDelete(id){var d=plLoad();d.events=d.events.filter(function(e){return e.id!==id;});plSave(d);}
+function plTenueSetPresences(id,presences,presents){plTenueUpdate(id,{presences:presences,presents:presents});}
 
 var JOURS=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
 var MOIS=['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
