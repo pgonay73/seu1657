@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.117</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.118</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1524,15 +1524,18 @@ try {
             if(_fbEvN.length!==_fbPldO.events.length){_fbPldO.events=_fbEvN;localStorage.setItem('planning_libre_data',JSON.stringify(_fbPldO));if(window.fbSet)window.fbSet('planning_libre_data',_fbPldO);}
           }}
         }catch(e_pld){}
-        // v117 — migration D.tenues → planning_libre_data après chargement Firebase
+        // v118 — fusion D.tenues → planning_libre_data après chargement Firebase
         try{
-          var _plM2=plLoad();
-          var _plH2=(_plM2.events||[]).filter(function(e){return !e.id||e.id.indexOf('gen_')!==0;}).length>0;
-          if(!_plH2 && window.D && window.D.tenues && window.D.tenues.length){
-            _plM2.events=window.D.tenues.slice();
-            localStorage.setItem('planning_libre_data',JSON.stringify(_plM2));
-            if(window.fbSet) window.fbSet('planning_libre_data',_plM2);
-            try{if(typeof plRender==='function')setTimeout(plRender,100);}catch(_re){}
+          if(window.D && window.D.tenues && window.D.tenues.length){
+            var _plM2=plLoad(); if(!_plM2.events)_plM2.events=[];
+            var _plIds2={}; _plM2.events.forEach(function(e){if(e.id)_plIds2[e.id]=true;});
+            var _added2=0;
+            window.D.tenues.forEach(function(t){if(!t.id||!_plIds2[t.id]){_plM2.events.push(t);_added2++;}});
+            if(_added2>0){
+              localStorage.setItem('planning_libre_data',JSON.stringify(_plM2));
+              if(window.fbSet) window.fbSet('planning_libre_data',_plM2);
+              try{if(typeof plRender==='function')setTimeout(plRender,100);}catch(_re){}
+            }
           }
         }catch(e_m2){}
         try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(ex) {}
@@ -10454,15 +10457,16 @@ load();
     var _ev2=_pld2.events.filter(function(e){return !e.id||e.id.indexOf('gen_')!==0;});
     if(_ev2.length!==_pld2.events.length){_pld2.events=_ev2;plSave(_pld2);}
   }catch(e_clean){console.warn('cleanup v113:',e_clean);}
-  // v117 — migration D.tenues → planning_libre_data (tenues créées avant v110)
+  // v118 — fusion D.tenues → planning_libre_data (migration progressive par ID)
   try{
-    var _plMig=plLoad();
-    var _plHas=(_plMig.events||[]).filter(function(e){return !e.id||e.id.indexOf('gen_')!==0;}).length>0;
-    if(!_plHas && window.D && window.D.tenues && window.D.tenues.length){
-      _plMig.events=window.D.tenues.slice();
-      plSave(_plMig);
+    if(window.D && window.D.tenues && window.D.tenues.length){
+      var _plMrg=plLoad(); if(!_plMrg.events)_plMrg.events=[];
+      var _plIds={}; _plMrg.events.forEach(function(e){if(e.id)_plIds[e.id]=true;});
+      var _added=0;
+      window.D.tenues.forEach(function(t){if(!t.id||!_plIds[t.id]){_plMrg.events.push(t);_added++;}});
+      if(_added>0){plSave(_plMrg);}
     }
-  }catch(e_mig){console.warn('migration D.tenues:',e_mig);}
+  }catch(e_mig){console.warn('fusion D.tenues:',e_mig);}
   // Si localStorage vide, sauvegarder les données intégrées dans le fichier
   try{if(!localStorage.getItem('planningTenues'))save();}catch(e){}
 initRegleButtons();
