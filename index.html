@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.114</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.115</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1508,6 +1508,22 @@ try {
         try { if(typeof _plSymRefreshAll==='function') _plSymRefreshAll(); else if(typeof plSymRender==='function') plSymRender(); } catch(ex) {}
         try { if(typeof plSuiviRender==='function') plSuiviRender(); } catch(ex) {}
         try { if(typeof _plSuiviTenueRefreshAll==='function') _plSuiviTenueRefreshAll(); } catch(ex) {}
+        // v115 — corriger admin_nav_visib et planning_libre_data chargés depuis Firebase
+        try{
+          var _fbNv=localStorage.getItem('admin_nav_visib');
+          if(_fbNv){var _fbNvd=JSON.parse(_fbNv);var _fbNvCh=false;
+            if(_fbNvd.hasOwnProperty('planning')){delete _fbNvd['planning'];_fbNvCh=true;}
+            if(_fbNvd['planning-libre']===false){delete _fbNvd['planning-libre'];_fbNvCh=true;}
+            if(_fbNvCh){localStorage.setItem('admin_nav_visib',JSON.stringify(_fbNvd));if(window.fbSet)window.fbSet('admin_nav_visib',_fbNvd);}
+          }
+        }catch(e_nv){}
+        try{
+          var _fbPld=localStorage.getItem('planning_libre_data');
+          if(_fbPld){var _fbPldO=JSON.parse(_fbPld);if(_fbPldO&&_fbPldO.events){
+            var _fbEvN=_fbPldO.events.filter(function(e){return !e.id||e.id.indexOf('gen_')!==0;});
+            if(_fbEvN.length!==_fbPldO.events.length){_fbPldO.events=_fbEvN;localStorage.setItem('planning_libre_data',JSON.stringify(_fbPldO));if(window.fbSet)window.fbSet('planning_libre_data',_fbPldO);}
+          }}
+        }catch(e_pld){}
         try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(ex) {}
         try { if(typeof adminRenderResponsables==='function') adminRenderResponsables(); } catch(ex) {}
         try { if(typeof adminRenderTitulaires==='function') adminRenderTitulaires(); } catch(ex) {}
