@@ -695,7 +695,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.124</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.125</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -772,6 +772,12 @@ function loginVerif(){
         </div>
         <div id="accueil-carte-planche"       style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #8E44AD;padding:14px 18px;margin-bottom:12px;"></div>
         <div id="accueil-carte-correspondance" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #2C3E50;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-vm"   style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #B8860B;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-hosp" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #27AE60;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-ora"  style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #7D3C98;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-exp"  style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #2471A3;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-tres" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #1A5276;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-dep"  style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #5D6D7E;padding:14px 18px;margin-bottom:12px;"></div>
       </div>
 
     </div>
@@ -6221,7 +6227,19 @@ var _ACCUEIL_CARTES_DEF=[
   {key:'planche',       color:'#8E44AD', titre:'Planche tracée',
    hint:'Ex : Tenue du 10 décembre\nPlanche de F∴ Dupont sur le thème de la fraternité.\nRésumé : ...'},
   {key:'correspondance',color:'#2C3E50', titre:'Correspondance',
-   hint:'Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars\nCourrier du 2e Surveillant de la Loge X...'}
+   hint:'Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars\nCourrier du 2e Surveillant de la Loge X...'},
+  {key:'vm',   color:'#B8860B', titre:'Vénérable Maître',
+   hint:'Ex : Message du VM — Prochaine tenue le 10 mars à 20h\nThème : ...'},
+  {key:'hosp', color:'#27AE60', titre:'Hospitalier',
+   hint:'Ex : Point de situation — Visite du F∴ X prévue le 12 mars\nContactez-moi pour tout besoin.'},
+  {key:'ora',  color:'#7D3C98', titre:'Orateur',
+   hint:'Ex : Planche du 10 mars — F∴ Dupont sur la fraternité\nProchaine planche : à définir'},
+  {key:'exp',  color:'#2471A3', titre:'Expert',
+   hint:'Ex : Patte de l\'Expert mise à jour — voir document joint\nPrécisions : ...'},
+  {key:'tres', color:'#1A5276', titre:'Trésorier',
+   hint:'Ex : Capitations 2025 — rappel de paiement\nSolde disponible : ...'},
+  {key:'dep',  color:'#5D6D7E', titre:'Député',
+   hint:'Ex : Retour de la GL — séance du 15 mars\nPoints à l\'ordre du jour : ...'}
 ];
 
 function accueilCartesLoad(){
@@ -6372,6 +6390,25 @@ function corrAccueilAutoSave(){
     renderAccueilCartes();
   },400);
 }
+function _genericOfficeAccueilSave(key,idPfx,defTitre){
+  var data=accueilCartesLoad();
+  var cb=document.getElementById(idPfx+'-visib');
+  var ti=document.getElementById(idPfx+'-titre');
+  var tx=document.getElementById(idPfx+'-contenu');
+  if(!data[key])data[key]={visible:true,titre:defTitre,contenu:''};
+  if(cb)data[key].visible=cb.checked;
+  if(ti)data[key].titre=ti.value;
+  if(tx)data[key].contenu=tx.value;
+  try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+  if(window.fbSet)window.fbSet('accueil_cartes',data);
+  renderAccueilCartes();
+}
+var _vmAccT=null; function vmAccueilAutoSave(){clearTimeout(_vmAccT);_vmAccT=setTimeout(function(){_genericOfficeAccueilSave('vm','vmacc','Vénérable Maître');},400);}
+var _hospAccT=null; function hospAccueilAutoSave(){clearTimeout(_hospAccT);_hospAccT=setTimeout(function(){_genericOfficeAccueilSave('hosp','hospacc','Hospitalier');},400);}
+var _oraAccT=null; function oraAccueilAutoSave(){clearTimeout(_oraAccT);_oraAccT=setTimeout(function(){_genericOfficeAccueilSave('ora','oraacc','Orateur');},400);}
+var _expAccT=null; function expAccueilAutoSave(){clearTimeout(_expAccT);_expAccT=setTimeout(function(){_genericOfficeAccueilSave('exp','expacc','Expert');},400);}
+var _tresAccT=null; function tresAccueilAutoSave(){clearTimeout(_tresAccT);_tresAccT=setTimeout(function(){_genericOfficeAccueilSave('tres','tresacc','Trésorier');},400);}
+var _depAccT=null; function depAccueilAutoSave(){clearTimeout(_depAccT);_depAccT=setTimeout(function(){_genericOfficeAccueilSave('dep','depacc','Député');},400);}
 function accueilCartesSave(){
   clearTimeout(_cartesAutoSaveTimer);
   var data=_accueilCartesCollect();
@@ -13412,21 +13449,6 @@ function renderOffice(n){
       sc2+=surv2RowHTML(ri2, r2.date||'', r2.odj||'', r2.par||'', r2.not||'', inpS2);
     }
     sc2+='</tbody></table></div>';
-    var _s2accData=accueilCartesLoad();
-    var _s2accD=_s2accData.app||{};
-    var _s2accTitre=(_s2accD.titre||'Réunions Apprentis').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var _s2accContenu=(_s2accD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    sc2+='<div class="cfg-box" style="margin-top:16px;">';
-    sc2+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    sc2+='<input type="checkbox" id="s2acc-visib" '+((_s2accD.visible!==false)?'checked':'')+' onchange="surv2AccueilAutoSave()" style="width:16px;height:16px;accent-color:#33DD66;flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">';
-    sc2+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>';
-    sc2+='</div>';
-    sc2+='<div style="margin-bottom:8px;">';
-    sc2+='<input type="text" id="s2acc-titre" value="'+_s2accTitre+'" placeholder="Titre de la carte" oninput="surv2AccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #33DD66;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
-    sc2+='</div>';
-    sc2+='<textarea id="s2acc-contenu" rows="6" placeholder="Ex : Prochaine réunion le 15 janvier à 20h — Thème : Initiation symbolique" oninput="surv2AccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_s2accContenu+'</textarea>';
-    sc2+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
-    sc2+='</div>';
     sc2+=obsHTML('off_2surv');
     contenu=sc2;
   }
@@ -13479,21 +13501,6 @@ function renderOffice(n){
       sc+=surv1RowHTML(ri, r.date||'', r.odj||'', r.par||'', r.not||'', inpS);
     }
     sc+='</tbody></table></div>';
-    var _s1accData=accueilCartesLoad();
-    var _s1accD=_s1accData.comp||{};
-    var _s1accTitre=(_s1accD.titre||'Réunions Compagnons').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var _s1accContenu=(_s1accD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    sc+='<div class="cfg-box" style="margin-top:16px;">';
-    sc+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    sc+='<input type="checkbox" id="s1acc-visib" '+((_s1accD.visible!==false)?'checked':'')+' onchange="surv1AccueilAutoSave()" style="width:16px;height:16px;accent-color:#FF9900;flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">';
-    sc+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>';
-    sc+='</div>';
-    sc+='<div style="margin-bottom:8px;">';
-    sc+='<input type="text" id="s1acc-titre" value="'+_s1accTitre+'" placeholder="Titre de la carte" oninput="surv1AccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #FF9900;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
-    sc+='</div>';
-    sc+='<textarea id="s1acc-contenu" rows="6" placeholder="Ex : Prochaine réunion le 22 janvier à 20h — Thème : Le compagnonnage" oninput="surv1AccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_s1accContenu+'</textarea>';
-    sc+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
-    sc+='</div>';
     sc+=obsHTML('off_1surv');
     contenu=sc;
   }
@@ -13584,21 +13591,6 @@ function renderOffice(n){
       mc+='</tr>';
     }
     mc+='</tbody></table></div>';
-    var _mbaData=accueilCartesLoad();
-    var _mbaD=_mbaData.agapes||{};
-    var _mbaTitre=(_mbaD.titre||'Agapes').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var _mbaContenu=(_mbaD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    mc+='<div class="cfg-box" style="margin-top:16px;">';
-    mc+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    mc+='<input type="checkbox" id="mbacc-visib" '+((_mbaD.visible!==false)?'checked':'')+' onchange="mbAccueilAutoSave()" style="width:16px;height:16px;accent-color:#E74C3C;flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">';
-    mc+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>';
-    mc+='</div>';
-    mc+='<div style="margin-bottom:8px;">';
-    mc+='<input type="text" id="mbacc-titre" value="'+_mbaTitre+'" placeholder="Titre de la carte" oninput="mbAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #E74C3C;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
-    mc+='</div>';
-    mc+='<textarea id="mbacc-contenu" rows="6" placeholder="Ex : Menu du 15 janvier\n— Velouté de potimarron\n— Filet de bœuf\n— Plateau de fromages\n— Tarte Tatin" oninput="mbAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_mbaContenu+'</textarea>';
-    mc+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
-    mc+='</div>';
     mc+=obsHTML('off_mb');
     contenu=mc;
   }
@@ -13638,21 +13630,6 @@ function renderOffice(n){
       mc+='</tr>';
     }
     mc+='</tbody></table></div>';
-    var _mhaData=accueilCartesLoad();
-    var _mhaD=_mhaData.playlist||{};
-    var _mhaTitre=(_mhaD.titre||'Playlist').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var _mhaContenu=(_mhaD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    mc+='<div class="cfg-box" style="margin-top:16px;">';
-    mc+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    mc+='<input type="checkbox" id="mhacc-visib" '+((_mhaD.visible!==false)?'checked':'')+' onchange="mhAccueilAutoSave()" style="width:16px;height:16px;accent-color:#D4AF5A;flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">';
-    mc+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>';
-    mc+='</div>';
-    mc+='<div style="margin-bottom:8px;">';
-    mc+='<input type="text" id="mhacc-titre" value="'+_mhaTitre+'" placeholder="Titre de la carte" oninput="mhAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #D4AF5A;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
-    mc+='</div>';
-    mc+='<textarea id="mhacc-contenu" rows="6" placeholder="Ex : Ouverture : Fratres (Pärt)\nSolomon (Haendel)\nFermeture : Lacrimosa (Mozart)" oninput="mhAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_mhaContenu+'</textarea>';
-    mc+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
-    mc+='</div>';
     mc+=obsHTML('off_mh');
     contenu=mc;
   }
@@ -13723,7 +13700,45 @@ function renderOffice(n){
 
   if(n==='off-sec'){
     window.freresEditable=true;
-    contenu='<div id="off-sec-content">'
+    var _secaData0=accueilCartesLoad();
+    var _secaD0=_secaData0.ca||{};
+    var _secaTitre0=(_secaD0.titre||'CA').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var _secaContenu0=(_secaD0.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var _planchaD0=_secaData0.planche||{};
+    var _planchaTitre0=(_planchaD0.titre||'Planche tracée').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var _planchaContenu0=(_planchaD0.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var _corrD0=_secaData0.correspondance||{};
+    var _corrTitre0=(_corrD0.titre||'Correspondance').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var _corrContenu0=(_corrD0.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var _secAccueilTop=''
+      +'<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid #4472C4;">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+      +'<input type="checkbox" id="secacc-visib" '+(_secaD0.visible!==false?'checked':'')+' onchange="secAccueilAutoSave()" style="width:16px;height:16px;accent-color:#4472C4;flex-shrink:0;">'
+      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (CA)</h3>'
+      +'</div><div style="margin-bottom:8px;">'
+      +'<input type="text" id="secacc-titre" value="'+_secaTitre0+'" placeholder="Titre" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #4472C4;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'</div>'
+      +'<textarea id="secacc-contenu" rows="4" placeholder="Ex : Prochain CA le 8 janvier à 19h30" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_secaContenu0+'</textarea>'
+      +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p></div>'
+      +'<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid #8E44AD;">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+      +'<input type="checkbox" id="plancheacc-visib" '+(_planchaD0.visible!==false?'checked':'')+' onchange="plancheAccueilAutoSave()" style="width:16px;height:16px;accent-color:#8E44AD;flex-shrink:0;">'
+      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Planche tracée)</h3>'
+      +'</div><div style="margin-bottom:8px;">'
+      +'<input type="text" id="plancheacc-titre" value="'+_planchaTitre0+'" placeholder="Titre" oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #8E44AD;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'</div>'
+      +'<textarea id="plancheacc-contenu" rows="4" placeholder="Ex : Tenue du 10 décembre — Planche de F∴ Dupont" oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_planchaContenu0+'</textarea>'
+      +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p></div>'
+      +'<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid #7F8C8D;">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+      +'<input type="checkbox" id="corracc-visib" '+(_corrD0.visible!==false?'checked':'')+' onchange="corrAccueilAutoSave()" style="width:16px;height:16px;accent-color:#7F8C8D;flex-shrink:0;">'
+      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Correspondance)</h3>'
+      +'</div><div style="margin-bottom:8px;">'
+      +'<input type="text" id="corracc-titre" value="'+_corrTitre0+'" placeholder="Titre" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #7F8C8D;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'</div>'
+      +'<textarea id="corracc-contenu" rows="4" placeholder="Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_corrContenu0+'</textarea>'
+      +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p></div>';
+    contenu=_secAccueilTop+'<div id="off-sec-content">'
       +'<div id="sec-tab-bar" style="display:flex;gap:0;border-bottom:2px solid rgba(184,146,42,.55);margin-bottom:14px;flex-wrap:wrap;align-items:flex-end;">'
       +'<button class="cfg-tab active" id="sec-tab-freres" onclick="secTab(\'freres\',this)">&#128101; Frères</button>'
       +'<button class="cfg-tab" id="sec-tab-presences" onclick="secTab(\'presences\',this)">&#10003; Présences aux tenues</button>'
@@ -13793,52 +13808,6 @@ function renderOffice(n){
       +'<div id="ora-clefs-content"></div>'
       +'</div>'
       +'</div>';
-    var _secaData=accueilCartesLoad();
-    var _secaD=_secaData.ca||{};
-    var _secaTitre=(_secaD.titre||'CA').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var _secaContenu=(_secaD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    contenu+='<div class="cfg-box" style="margin-top:16px;">';
-    contenu+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    contenu+='<input type="checkbox" id="secacc-visib" '+((_secaD.visible!==false)?'checked':'')+' onchange="secAccueilAutoSave()" style="width:16px;height:16px;accent-color:#4472C4;flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">';
-    contenu+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>';
-    contenu+='</div>';
-    contenu+='<div style="margin-bottom:8px;">';
-    contenu+='<input type="text" id="secacc-titre" value="'+_secaTitre+'" placeholder="Titre de la carte" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #4472C4;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
-    contenu+='</div>';
-    contenu+='<textarea id="secacc-contenu" rows="6" placeholder="Ex : Prochain CA le 8 janvier à 19h30 — Ordre du jour : budget, élections" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_secaContenu+'</textarea>';
-    contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
-
-    var _planchaData=accueilCartesLoad();
-    var _planchaD=_planchaData.planche||{};
-    var _planchaTitre=(_planchaD.titre||'Planche tracée').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var _planchaContenu=(_planchaD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    contenu+='<div class="cfg-box" style="margin-top:16px;">';
-    contenu+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    contenu+='<input type="checkbox" id="plancheacc-visib" '+(_planchaD.visible!==false?'checked':'')+' onchange="plancheAccueilAutoSave()" style="width:16px;height:16px;accent-color:#8E44AD;flex-shrink:0;">';
-    contenu+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Planche tracée)</h3>';
-    contenu+='</div>';
-    contenu+='<div style="margin-bottom:8px;">';
-    contenu+='<input type="text" id="plancheacc-titre" value="'+_planchaTitre+'" placeholder="Titre de la carte" oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #8E44AD;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
-    contenu+='</div>';
-    contenu+='<textarea id="plancheacc-contenu" rows="6" placeholder="Ex : Tenue du 10 décembre — Planche de F∴ Dupont sur le thème de la fraternité." oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_planchaContenu+'</textarea>';
-    contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
-    contenu+='</div>';
-    var _corrData=accueilCartesLoad();
-    var _corrD=_corrData.correspondance||{};
-    var _corrTitre=(_corrD.titre||'Correspondance').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var _corrContenu=(_corrD.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    contenu+='<div class="cfg-box" style="margin-top:16px;">';
-    contenu+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">';
-    contenu+='<input type="checkbox" id="corracc-visib" '+(_corrD.visible!==false?'checked':'')+' onchange="corrAccueilAutoSave()" style="width:16px;height:16px;accent-color:#7F8C8D;flex-shrink:0;">';
-    contenu+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Correspondance)</h3>';
-    contenu+='</div>';
-    contenu+='<div style="margin-bottom:8px;">';
-    contenu+='<input type="text" id="corracc-titre" value="'+_corrTitre+'" placeholder="Titre de la carte" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #7F8C8D;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
-    contenu+='</div>';
-    contenu+='<textarea id="corracc-contenu" rows="6" placeholder="Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_corrContenu+'</textarea>';
-    contenu+='<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>';
-    contenu+='</div>';
-contenu+='</div>';
   }
 
     // Pour offices sans contenu specifique : generer depuis rubriques assignees
@@ -13892,6 +13861,38 @@ contenu+='</div>';
       +'<div id="ora-clefs-content"></div>'
       +'</div>'
       +'</div>';
+  }
+
+  // ── Bloc "Texte de la page d'accueil" en tête de chaque office ──
+  var _offAccMap={
+    'off-2surv':{key:'app',     idPfx:'s2acc',   color:'#33DD66',fn:'surv2AccueilAutoSave',hint:'Ex : Prochaine réunion le 15 janvier à 20h — Thème : Initiation symbolique'},
+    'off-1surv':{key:'comp',    idPfx:'s1acc',   color:'#FF9900',fn:'surv1AccueilAutoSave',hint:'Ex : Prochaine réunion le 22 janvier à 20h — Thème : Le compagnonnage'},
+    'off-mb':   {key:'agapes',  idPfx:'mbacc',   color:'#E74C3C',fn:'mbAccueilAutoSave',   hint:'Ex : Menu du 15 janvier\n— Velouté de potimarron\n— Filet de bœuf'},
+    'off-mh':   {key:'playlist',idPfx:'mhacc',   color:'#D4AF5A',fn:'mhAccueilAutoSave',   hint:'Ex : Ouverture : Fratres (Pärt)\nSolomon (Haendel)\nFermeture : Lacrimosa (Mozart)'},
+    'off-vm':   {key:'vm',      idPfx:'vmacc',   color:'#B8860B',fn:'vmAccueilAutoSave',   hint:'Ex : Message du VM — Prochaine tenue le 10 mars à 20h'},
+    'off-hosp': {key:'hosp',    idPfx:'hospacc', color:'#27AE60',fn:'hospAccueilAutoSave', hint:'Ex : Point de situation — Visite du F∴ X prévue le 12 mars'},
+    'off-ora':  {key:'ora',     idPfx:'oraacc',  color:'#7D3C98',fn:'oraAccueilAutoSave',  hint:'Ex : Prochaine planche — F∴ Dupont sur la fraternité'},
+    'off-exp':  {key:'exp',     idPfx:'expacc',  color:'#2471A3',fn:'expAccueilAutoSave',  hint:'Ex : Patte de l\'Expert mise à jour — voir document joint'},
+    'off-tres': {key:'tres',    idPfx:'tresacc', color:'#1A5276',fn:'tresAccueilAutoSave', hint:'Ex : Capitations 2025 — rappel de paiement avant le 31 mars'},
+    'off-dep':  {key:'dep',     idPfx:'depacc',  color:'#5D6D7E',fn:'depAccueilAutoSave',  hint:'Ex : Retour de la GL — séance du 15 mars\nPoints à l\'ordre du jour : ...'}
+  };
+  if(_offAccMap[n]){
+    var _oa=_offAccMap[n];
+    var _oad=accueilCartesLoad()[_oa.key]||{};
+    var _oat=(_oad.titre||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var _oac=(_oad.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    contenu='<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid '+_oa.color+';">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+      +'<input type="checkbox" id="'+_oa.idPfx+'-visib" '+(_oad.visible!==false?'checked':'')+' onchange="'+_oa.fn+'()" style="width:16px;height:16px;accent-color:'+_oa.color+';flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">'
+      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>'
+      +'</div>'
+      +'<div style="margin-bottom:8px;">'
+      +'<input type="text" id="'+_oa.idPfx+'-titre" value="'+_oat+'" placeholder="Titre de la carte" oninput="'+_oa.fn+'()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid '+_oa.color+';padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'</div>'
+      +'<textarea id="'+_oa.idPfx+'-contenu" rows="4" placeholder="'+_oa.hint.replace(/"/g,'&quot;')+'" oninput="'+_oa.fn+'()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_oac+'</textarea>'
+      +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>'
+      +'</div>'
+      +contenu;
   }
 
   // Bouton imprimer par office
