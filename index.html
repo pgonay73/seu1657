@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-02.109</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.110</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1394,8 +1394,7 @@ try {
     window.D = val;
     if(!window.D.loge) window.D.loge={nom:'',num:''};
     if(!window.D.freres) window.D.freres = [];
-    if(!window.D.tenues) window.D.tenues = [];
-    if(!window.D.modeles) window.D.modeles = [];
+        if(!window.D.modeles) window.D.modeles = [];
     if(!window.D.regles) window.D.regles=[];
     if(!window.D.dureesReleves) window.D.dureesReleves=[];
     if(!window.D.parDefaut||!window.D.parDefaut.length) window.D.parDefaut=[{nom:'Ouverture des Travaux',dur:15},{nom:'Lecture du PV',dur:10},{nom:'Planche et Symbolisme',dur:30},{nom:'Questions diverses',dur:10},{nom:'Cloture des Travaux',dur:10},{nom:'Agape',dur:60},{nom:'St Jean',dur:0},{nom:'Visite Inspecteur',dur:0}];
@@ -1472,8 +1471,7 @@ try {
           // juste avant (au tout premier rendu local).
           if(!window.D.loge) window.D.loge={nom:'',num:''};
           if(!window.D.freres)  window.D.freres  = [];
-          if(!window.D.tenues)  window.D.tenues  = [];
-          if(!window.D.modeles) window.D.modeles = [];
+                    if(!window.D.modeles) window.D.modeles = [];
           if(!window.D.regles) window.D.regles=[];
           if(!window.D.dureesReleves) window.D.dureesReleves=[];
           if(!window.D.parDefaut||!window.D.parDefaut.length) window.D.parDefaut=[{nom:'Ouverture des Travaux',dur:15},{nom:'Lecture du PV',dur:10},{nom:'Planche et Symbolisme',dur:30},{nom:'Questions diverses',dur:10},{nom:'Cloture des Travaux',dur:10},{nom:'Agape',dur:60},{nom:'St Jean',dur:0},{nom:'Visite Inspecteur',dur:0}];
@@ -1668,8 +1666,7 @@ function load(){
   }catch(e){}
   if(!D.loge)D.loge={nom:'',num:''};
   if(!D.freres)D.freres=[];
-  if(!D.tenues)D.tenues=[];
-  if(!D.modeles)D.modeles=[];
+    if(!D.modeles)D.modeles=[];
   if(!D.regles)D.regles=[];
   if(!D.dureesReleves)D.dureesReleves=[];
   if(!D.parDefaut||!D.parDefaut.length)D.parDefaut=[{nom:'Ouverture des Travaux',dur:15},{nom:'Lecture du PV',dur:10},{nom:'Planche et Symbolisme',dur:30},{nom:'Questions diverses',dur:10},{nom:'Cloture des Travaux',dur:10},{nom:'Agape',dur:60},{nom:'St Jean',dur:0},{nom:'Visite Inspecteur',dur:0}];
@@ -1705,7 +1702,7 @@ function pdSave(d){try{localStorage.setItem('planchesDisponibles',JSON.stringify
 function pdDeprogrammer(tenueId, partieIdx){
   // Trouver la tenue
   var tenue=null;
-  for(var i=0;i<D.tenues.length;i++){if(D.tenues[i].id===tenueId){tenue=D.tenues[i];break;}}
+  tenue=getTenues().filter(function(e){return e.id===tenueId;})[0]||null;
   if(!tenue||!tenue.parties||!tenue.parties[partieIdx]){toast('Planche introuvable.');return;}
   var p=tenue.parties[partieIdx];
   // Récupérer les infos avant de vider
@@ -1806,7 +1803,7 @@ function pdGetFreresOpts(selected){
 
 function pdGetDatesOpts(selected, typeFiltre){
   var opts='<option value="">-- Date --</option>';
-  var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i];
     if(!t.date)continue;
@@ -1843,8 +1840,9 @@ function pdDebug(){
   var el=document.getElementById('pd-debug');
   if(!el)return;
   var lines=[];
-  for(var i=0;i<D.tenues.length;i++){
-    var t=D.tenues[i];
+  var _tpd=getTenues();
+  for(var i=0;i<_tpd.length;i++){
+    var t=_tpd[i];
     if(!t.date)continue;
     var noms=(t.parties||[]).map(function(p){return p.nom;}).join(', ');
     var nb=(t.parties||[]).filter(function(p){var n=(p.nom||'').toLowerCase().trim();return n==='planche et symbolisme'||n==='planche'||n==='symbolisme';}).length;
@@ -1865,7 +1863,7 @@ function pdRender(){
   if(selDate){
     var prevDate=selDate.value;
     selDate.innerHTML='<option value="">Toutes les dates</option>';
-    var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     for(var ti=0;ti<tenues.length;ti++){
       var t=tenues[ti];
       if(!t.date)continue;
@@ -1966,9 +1964,7 @@ function pdValider(idx){
 
   // Chercher la tenue à cette date
   var tenue=null;
-  for(var i=0;i<D.tenues.length;i++){
-    if(D.tenues[i].date===row.date){tenue=D.tenues[i];break;}
-  }
+  tenue=getTenues().filter(function(e){return e.date===row.date;})[0]||null;
   if(!tenue){toast('Aucune tenue trouvée à cette date.');return;}
   if(!tenue.parties)tenue.parties=[];
 
@@ -2026,9 +2022,7 @@ function syncPlanchesToTenues(){
     if(!row.date||!row.nom) continue;
     // Trouver la tenue à cette date
     var tenue=null;
-    for(var j=0;j<D.tenues.length;j++){
-      if(D.tenues[j].date===row.date){tenue=D.tenues[j];break;}
-    }
+    tenue=getTenues().filter(function(e){return e.date===row.date;})[0]||null;
     if(!tenue||!tenue.parties) continue;
     // Chercher une partie Planche ou Symbolisme dans cette tenue
     var typeRecherche=row.type==='Symbolisme'?'symbolisme':'planche';
@@ -2145,7 +2139,7 @@ function _renderPlanchesProgr(today){
   if(!el)return;
 
   // Collecter toutes les tenues ayant au moins un slot planche/symbolisme
-  var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   var fresAvecPlanche={};
 
   var h='<div class="cfg-box" style="margin-bottom:16px;">';
@@ -2240,8 +2234,9 @@ function _renderPlanchesProgr(today){
   }
   // Construire index des 3 dernières planches passées par frère (toutes dates)
   var toutesLesPlanches={};
-  for(var i=0;i<D.tenues.length;i++){
-    var t=D.tenues[i];
+  var _tpd=getTenues();
+  for(var i=0;i<_tpd.length;i++){
+    var t=_tpd[i];
     if(!t.parties||!t.date)continue;
     for(var j=0;j<t.parties.length;j++){
       var p=t.parties[j];
@@ -4124,14 +4119,12 @@ function tcHTML(t, moisLabel, forceVM, hideDate){
 
 // Sauvegarde inline d'un champ tenue depuis la vue VM tableau
 function vmInlineChange(id, field, val){
-  for(var i=0;i<D.tenues.length;i++){
-    if(D.tenues[i].id===id){D.tenues[i][field]=val;break;}
-  }
+  var _upd={};_upd[field]=val;plTenueUpdate(id,_upd);
   if(field==='titre'){
     var row=document.querySelector('tr[data-tenue-id="'+id+'"]');
     if(row){
       var mc='var(--navy)';
-      var t=D.tenues.filter(function(x){return x.id===id;})[0];
+      var t=getTenues().filter(function(x){return x.id===id;})[0];
       if(t){
         if(t.modeleId){var mm=getModele(t.modeleId);if(mm&&mm.couleur)mc=mm.couleur;}
         if(!t.titre){var mDef=getModeleDefaut();if(mDef&&mDef.couleur)mc=mDef.couleur;}
@@ -4272,7 +4265,7 @@ function secPlanchesRender(){
 
   // Récolter toutes les planches / symbolismes avec clé stable (tId_pIdx)
   var items=[];
-  (D.tenues||[]).forEach(function(t){
+  getTenues().forEach(function(t){
     if(t.ferie) return;
     (t.parties||[]).forEach(function(p,pIdx){
       var nomL=(p.nom||'').toLowerCase();
@@ -4681,7 +4674,7 @@ function secPresRender(){
   var today=new Date().toISOString().slice(0,10);
   var moisNoms=['jan.','fév.','mars','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   var jours=['Dim.','Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.'];
-  var tenues=(D.tenues||[]).filter(function(t){
+  var tenues=getTenues().filter(function(t){
     if(t.ferie||!t.date) return false;
     if(filtre==='past')   return t.date<today;
     if(filtre==='future') return t.date>=today;
@@ -4864,14 +4857,7 @@ function secPresSave(tid){
       presents.push(f.id);
     }
   });
-  for(var i=0;i<D.tenues.length;i++){
-    if(D.tenues[i].id===tid){
-      D.tenues[i].presences=presences;
-      D.tenues[i].presents=presents;
-      break;
-    }
-  }
-  save();
+  plTenueSetPresences(tid,presences,presents);
 
   // Replier le corps
   body.style.display='none';
@@ -4914,7 +4900,7 @@ function presSelectAll(sel){
 function calcTauxPresence(){
   var today=new Date().toISOString().slice(0,10);
   // Tenues passées avec liste de présents saisie (au moins 1 coché)
-  var tenuesPasses=D.tenues.filter(function(t){
+  var tenuesPasses=getTenues().filter(function(t){
     return !t.ferie && t.date<=today && t.presents && t.presents.length>0;
   });
   if(!tenuesPasses.length) return null;
@@ -4965,9 +4951,9 @@ function saveTenue(){
   presChecks.forEach(function(cb){presents.push(cb.value);});
 
   var t={id:editTenueId||String(Date.now()),date:date,heure:document.getElementById('t-heure').value,modeleId:document.getElementById('t-modele').value,titre:document.getElementById('t-titre').value,notes:document.getElementById('t-notes').value,compteRendu:document.getElementById('t-compte-rendu').value,prolongationDuree:parseInt(document.getElementById('t-prolongation-duree').value)||0,prolongationNotes:document.getElementById('t-prolongation-notes').value.trim(),ferie:false,parties:pf,orateurs:[],officiers:[],presents:presents};
-  if(editTenueId){for(var i=0;i<D.tenues.length;i++)if(D.tenues[i].id===editTenueId){t.ferie=D.tenues[i].ferie||false;D.tenues[i]=t;break;}}
-  else D.tenues.push(t);
-  save();document.getElementById('ov-tenue').classList.remove('open');renderPlanning();toast('Tenue enregistree.');
+  if(editTenueId){var _eFt=getTenues().filter(function(e){return e.id===editTenueId;})[0];t.ferie=_eFt?(_eFt.ferie||false):false;plTenueUpdate(editTenueId,t);}
+  else plTenueAdd(t);
+  document.getElementById('ov-tenue').classList.remove('open');renderPlanning();toast('Tenue enregistree.');
 }
 
 function saveAllTenues(){
@@ -4978,7 +4964,7 @@ function saveAllTenues(){
     var card=cards[c];
     var id=card.getAttribute('data-tenue-id');
     var tenue=null;
-    for(var i=0;i<D.tenues.length;i++){if(D.tenues[i].id===id){tenue=D.tenues[i];break;}}
+    tenue=getTenues().filter(function(e){return e.id===id;})[0]||null;
     if(!tenue)continue;
     var fields=card.querySelectorAll('[data-field]');
     for(var f=0;f<fields.length;f++){
@@ -4993,12 +4979,11 @@ function saveAllTenues(){
   toast('✓ '+count+' tenue(s) enregistrée(s).');
 }
 
-function editTenue(id){for(var i=0;i<D.tenues.length;i++)if(D.tenues[i].id===id){openTenue(D.tenues[i]);return;}}
+function editTenue(id){var _t=getTenues().filter(function(e){return e.id===id;})[0];if(_t)openTenue(_t);}
 
 function delTenue(id){
   if(!confirm('Supprimer cette tenue ?'))return;
-  var r=[];for(var i=0;i<D.tenues.length;i++)if(D.tenues[i].id!==id)r.push(D.tenues[i]);
-  D.tenues=r;save();renderPlanning();toast('Tenue supprimee.');
+  plTenueDelete(id);renderPlanning();toast('Tenue supprimee.');
 }
 
 
@@ -5202,10 +5187,11 @@ function doGenAuto(){
   nouvelles.sort(function(a,b){return a.date<b.date?-1:1;});
   for(var i=0;i<nouvelles.length;i++) if(!seen[nouvelles[i].date]){seen[nouvelles[i].date]=true;uniq.push(nouvelles[i]);}
   // Fusionner : préserver les tenues manuelles, mettre à jour les générées
+  var _tgen1=getTenues();
   var existGen={};
-  for(var i=0;i<D.tenues.length;i++) if(D.tenues[i].id&&D.tenues[i].id.indexOf('gen_')===0) existGen[D.tenues[i].id]=D.tenues[i];
+  for(var i=0;i<_tgen1.length;i++) if(_tgen1[i].id&&_tgen1[i].id.indexOf('gen_')===0) existGen[_tgen1[i].id]=_tgen1[i];
   var manuelles=[];
-  for(var i=0;i<D.tenues.length;i++) if(!D.tenues[i].id||D.tenues[i].id.indexOf('gen_')!==0) manuelles.push(D.tenues[i]);
+  for(var i=0;i<_tgen1.length;i++) if(!_tgen1[i].id||_tgen1[i].id.indexOf('gen_')!==0) manuelles.push(_tgen1[i]);
   var merged=[];
   for(var i=0;i<uniq.length;i++){
     var u=uniq[i], gid='gen_'+u.date.replace(/-/g,'');
@@ -5216,9 +5202,8 @@ function doGenAuto(){
       merged.push({id:gid,date:u.date,heure:u.heure||'19:30',type:'',titre:'',notes:'',ferie:u.ferie,parties:partiesG,modeleId:mdef?mdef.id:'',orateurs:[],officiers:[]});
     }
   }
-  var avant=D.tenues.length;
-  D.tenues=manuelles.concat(merged);
-  if(D.tenues.length!==avant) save();
+  var avant=getTenues().length;
+  var _gpd1=plLoad();_gpd1.events=manuelles.concat(merged);plSave(_gpd1);
 }
 
 function doGen(){
@@ -5275,10 +5260,11 @@ function doGen(){
   for(var i=0;i<nouvelles.length;i++)if(!seen[nouvelles[i].date]){seen[nouvelles[i].date]=true;uniq.push(nouvelles[i]);}
 
   // Fusionner avec existantes
+  var _tgen2=getTenues();
   var existGen={};
-  for(var i=0;i<D.tenues.length;i++)if(D.tenues[i].id.indexOf('gen_')===0)existGen[D.tenues[i].id]=D.tenues[i];
+  for(var i=0;i<_tgen2.length;i++)if(_tgen2[i].id.indexOf('gen_')===0)existGen[_tgen2[i].id]=_tgen2[i];
   var manuelles=[];
-  for(var i=0;i<D.tenues.length;i++)if(D.tenues[i].id.indexOf('gen_')!==0)manuelles.push(D.tenues[i]);
+  for(var i=0;i<_tgen2.length;i++)if(_tgen2[i].id.indexOf('gen_')!==0)manuelles.push(_tgen2[i]);
 
   var merged=[];
   for(var i=0;i<uniq.length;i++){
@@ -5291,8 +5277,8 @@ function doGen(){
       merged.push({id:gid,date:u.date,heure:u.heure,type:u.type,titre:'',notes:'',ferie:u.ferie,parties:partiesGen,modeleId:modeleIdGen,orateurs:[],officiers:[]});
     }
   }
-  D.tenues=manuelles.concat(merged);
-  save();document.getElementById('ov-gen').classList.remove('open');
+  var _gpd2=plLoad();_gpd2.events=manuelles.concat(merged);plSave(_gpd2);
+  document.getElementById('ov-gen').classList.remove('open');
   nav('planning');
   toast(merged.length+' tenues generees pour la saison '+annee+'/'+(annee+1));
 }
@@ -6095,9 +6081,7 @@ function renderAccueilProchaineTenue(){
   var today=new Date(); today.setHours(0,0,0,0);
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  // Planning Libre uniquement
-  var all=[];
-  if(typeof plLoad==='function')(plLoad().events||[]).forEach(function(e){if(e.date)all.push(e);});
+  var all=getTenues().filter(function(e){return!!e.date;});
   var prochaine=null;
   all.forEach(function(t){
     var d=new Date(t.date+'T12:00:00');
@@ -6392,7 +6376,7 @@ function renderAccueilExtras(){
     var el=document.getElementById('accueil-presences');if(!el)return;
     if(!visib.presences){el.style.display='none';return;}
     var fmtDSl=function(d){if(!d)return'';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
-    var ts=(window.D&&D.tenues||[]).slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
+    var ts=getTenues().slice().sort(function(a,b){return(b.date||'').localeCompare(a.date||'');});
     var last=null;
     for(var i=0;i<ts.length;i++){if(ts[i].presences&&Object.keys(ts[i].presences).length>0){last=ts[i];break;}}
     if(!last){el.style.display='none';return;}
@@ -7732,7 +7716,7 @@ function impPlanningInitThemes(){
 
   // Collecter tous les titres réels présents dans les tenues
   var titresSet={};
-  (D.tenues||[]).forEach(function(t){
+  getTenues().forEach(function(t){
     var titre=(t.titre||D.loge.titreDef||'').trim();
     if(titre) titresSet[titre]=true;
   });
@@ -7791,7 +7775,7 @@ function _impPlanningFiltrer(){
   var themesFiltres=[];
   themeChecks.forEach(function(cb){themesFiltres.push(cb.getAttribute('data-titre'));});
 
-  return (D.tenues||[]).filter(function(t){
+  return getTenues().filter(function(t){
     if(t.ferie) return false;
     // Filtre période
     if(per.debut && t.date<per.debut) return false;
@@ -7957,7 +7941,7 @@ function imprimerRapportPlanchesNav(){
   h+='<div class="subtitle">Période : '+labelPeriode+' &bull; Édité le '+new Date().toLocaleDateString('fr-FR')+'</div>';
 
   // Planches à venir
-  var av=(D.tenues||[]).filter(function(t){return t.date>=today&&_inPeriode(t.date);}).reduce(function(acc,t){
+  var av=getTenues().filter(function(t){return t.date>=today&&_inPeriode(t.date);}).reduce(function(acc,t){
     (t.parties||[]).forEach(function(p){
       if(isPlancheOuSym(p.nom)&&(p.conf||p.titre)){acc.push({date:t.date,tenue:t.titre||'Tenue',nom:p.nom,conf:p.conf||'',titre:p.titre||''});}
     });return acc;},[]);
@@ -7969,7 +7953,7 @@ function imprimerRapportPlanchesNav(){
   }
 
   // Planches passées
-  var pa=(D.tenues||[]).filter(function(t){return t.date<today&&_inPeriode(t.date);}).reduce(function(acc,t){
+  var pa=getTenues().filter(function(t){return t.date<today&&_inPeriode(t.date);}).reduce(function(acc,t){
     (t.parties||[]).forEach(function(p){
       if(isPlancheOuSym(p.nom)&&(p.conf||p.titre)){acc.push({date:t.date,tenue:t.titre||'Tenue',nom:p.nom,conf:p.conf||'',titre:p.titre||''});}
     });return acc;},[]).sort(function(a,b){return b.date.localeCompare(a.date);});
@@ -8128,7 +8112,7 @@ function imprimerRapportPlanches(){
   // ── 1. PLANCHES À VENIR ──────────────────────────────────────
   if(doAvenir){
     h+='<h2>&#9200; Planches &amp; Symbolismes à venir</h2>';
-    var avenir=_partiesPlanche(D.tenues)
+    var avenir=_partiesPlanche(getTenues())
       .filter(function(r){ return r.date>=today && _inPeriode(r.date); })
       .sort(function(a,b){ return a.date>b.date?1:-1; });
     if(!avenir.length){
@@ -8151,7 +8135,7 @@ function imprimerRapportPlanches(){
   // ── 2. PLANCHES PASSÉES ──────────────────────────────────────
   if(doPassees){
     h+='<h2>&#128336; Planches &amp; Symbolismes passés</h2>';
-    var passees=_partiesPlanche(D.tenues)
+    var passees=_partiesPlanche(getTenues())
       .filter(function(r){ return r.date<today && _inPeriode(r.date); })
       .sort(function(a,b){ return a.date>b.date?1:-1; });
     if(!passees.length){
@@ -8174,7 +8158,7 @@ function imprimerRapportPlanches(){
   // ── 3. PLANCHES PROGRAMMÉES ──────────────────────────────────
   if(doProgramm){
     h+='<h2>&#128197; Planches programmées — '+labelPeriode+'</h2>';
-    var prog=_partiesPlanche(D.tenues)
+    var prog=_partiesPlanche(getTenues())
       .filter(function(r){ return _inPeriode(r.date); })
       .sort(function(a,b){ return a.date>b.date?1:-1; });
     if(!prog.length){
@@ -8224,7 +8208,7 @@ function imprimerRapportPlanches(){
 
     // Frères ayant planché dans la période (conf correspondant à un frère)
     var freresAyantPlanché={};
-    _partiesPlanche(D.tenues).filter(function(r){ return _inPeriode(r.date)&&r.conf; }).forEach(function(r){
+    _partiesPlanche(getTenues()).filter(function(r){ return _inPeriode(r.date)&&r.conf; }).forEach(function(r){
       D.freres.forEach(function(f){
         var nomF=((f.prenom||'')+' '+(f.nom||'')).trim().toLowerCase();
         var nomC=(r.conf||'').trim().toLowerCase();
@@ -8297,7 +8281,7 @@ function imprimerRapportPlanches(){
     }
 
     var creneaux=[];
-    (D.tenues||[]).forEach(function(t){
+    getTenues().forEach(function(t){
       if(t.ferie||!t.parties||!t.date) return;
       if(t.date<today) return;
       if(!_inPeriode(t.date)) return;
@@ -8486,7 +8470,7 @@ function _statsCSS(){
 function imprimerStats(){
   var annee=parseInt(document.getElementById('imp-stats-annee').value)||new Date().getFullYear();
   var loge=D.loge.nom||'Loge';
-  var tenues=D.tenues.filter(function(t){return t.date.slice(0,4)===String(annee)&&!t.ferie;});
+  var tenues=getTenues().filter(function(t){return t.date.slice(0,4)===String(annee)&&!t.ferie;});
   var freres=D.freres;
   var grades={A:0,C:0,M:0};
   freres.forEach(function(f){if(grades[f.grade]!==undefined)grades[f.grade]++;});
@@ -9204,11 +9188,11 @@ function imprimerSynthese(){
   var statutLbl={actif:'Titulaire',affilie:'Affilié',honoraire:'Honoraire',visiteur:'Autre'};
 
   // Tenues passées avec présences saisies (référence présences)
-  var tenuesRef=(D.tenues||[]).filter(function(t){
+  var tenuesRef=getTenues().filter(function(t){
     return !t.ferie && t.date<=todayStr.split('/').reverse().join('-') && t.presences && Object.keys(t.presences).length>0;
   });
   var today_iso=new Date().toISOString().slice(0,10);
-  tenuesRef=(D.tenues||[]).filter(function(t){
+  tenuesRef=getTenues().filter(function(t){
     return !t.ferie && t.date<=today_iso && t.presences && Object.keys(t.presences).length>0;
   });
 
@@ -9842,7 +9826,7 @@ function renderAplancher(targetId){
 
   // Frères avec planche programmée future ou dans les dispos
   var fresAvecPlanche={};
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i];
     if(!t.parties||!t.date||t.date<today) continue;
@@ -10070,9 +10054,10 @@ function imprimerPresences(){
 }
 
 function renderStats(){
-  var tot=D.tenues.filter(function(t){return(t.titre||'').toLowerCase().indexOf('tenue au')>=0;}).length,fer=0,totalMin=0;
-  for(var i=0;i<D.tenues.length;i++){
-    var t=D.tenues[i];
+  var tot=getTenues().filter(function(t){return(t.titre||'').toLowerCase().indexOf('tenue au')>=0;}).length,fer=0,totalMin=0;
+  var _tpd=getTenues();
+  for(var i=0;i<_tpd.length;i++){
+    var t=_tpd[i];
     if(t.ferie)fer++;
     if(t.parties)for(var j=0;j<t.parties.length;j++)totalMin+=(t.parties[j].dur||t.parties[j].duree||0);
   }
@@ -10115,14 +10100,14 @@ function renderStats(){
     return null;
   }
   var dCounts={0:0,1:0,2:0,3:0,aut:0};
-  for(var i=0;i<D.tenues.length;i++){
-    var deg=detectDegre(D.tenues[i]);
+  getTenues().forEach(function(t_deg){
+    var deg=detectDegre(t_deg);
     if(deg===0)dCounts[0]++;
     else if(deg===1)dCounts[1]++;
     else if(deg===2)dCounts[2]++;
     else if(deg===3)dCounts[3]++;
     else dCounts.aut++;
-  }
+  });
   var dCfg=[
     {key:1,lbl:'Tenue au 1°',couleur:'#ED7D31'},
     {key:2,lbl:'Tenue au 2°',couleur:'#4472C4'},
@@ -10144,7 +10129,7 @@ function renderStats(){
   var totalPlanSym=0;
   // Planches : pour chaque degré, compter les tenues "tenue au X" qui ont au moins une partie "planche"
   function cntPlanchesAuDeg(deg){
-    return D.tenues.filter(function(t){
+    return getTenues().filter(function(t){
       if((t.titre||'').toLowerCase().indexOf('tenue au '+deg)<0) return false;
       var pr=t.parties||[];
       for(var pi=0;pi<pr.length;pi++){if((pr[pi].nom||'').toLowerCase().indexOf('planche')>=0) return true;}
@@ -10156,14 +10141,14 @@ function renderStats(){
     {lbl:'Planches au 2°', couleur:'#4472C4', fn:function(){return cntPlanchesAuDeg('2');}},
     {lbl:'Planches au 3°', couleur:'#B8922A', fn:function(){return cntPlanchesAuDeg('3');}},
     {lbl:"Planches d'impression", couleur:'#8E44AD', fn:function(){
-      return D.tenues.filter(function(t){
+      return getTenues().filter(function(t){
         var pr=t.parties||[];
         for(var pi=0;pi<pr.length;pi++){if((pr[pi].nom||'').toLowerCase().indexOf('impression')>=0) return true;}
         return false;
       }).length;
     }},
     {lbl:'Planche de passage au 2°', couleur:'#1ABC9C', fn:function(){
-      return D.tenues.filter(function(t){
+      return getTenues().filter(function(t){
         var pr=t.parties||[];
         for(var pi=0;pi<pr.length;pi++){
           var n=(pr[pi].nom||'').toLowerCase();
@@ -10174,7 +10159,7 @@ function renderStats(){
       }).length;
     }},
     {lbl:'Planche de passage au 3°', couleur:'#E74C3C', fn:function(){
-      return D.tenues.filter(function(t){
+      return getTenues().filter(function(t){
         var pr=t.parties||[];
         for(var pi=0;pi<pr.length;pi++){
           if(pr[pi].plancheSteps&&pr[pi].plancheSteps.indexOf('pass3-vote')>=0) return true;
@@ -10203,7 +10188,7 @@ function renderStats(){
   ];
   var initHtml='';
   for(var it=0;it<initCfg.length;it++){
-    var cntI=D.tenues.filter(function(t){
+    var cntI=getTenues().filter(function(t){
       var s=(t.titre||'').toLowerCase();
       if(s.indexOf('initiation')<0)return false;
       for(var k=1;k<initCfg[it].keys.length;k++)if(s.indexOf(initCfg[it].keys[k])>=0)return true;
@@ -10225,7 +10210,7 @@ function renderStats(){
   ];
   var chAppHtml='';
   for(var ca=0;ca<chAppCfg.length;ca++){
-    var cntA=D.tenues.filter(function(t){
+    var cntA=getTenues().filter(function(t){
       var s=(t.titre||'').toLowerCase();
       if(chAppCfg[ca].mode==='and'){
         for(var k=0;k<chAppCfg[ca].keys.length;k++)if(s.indexOf(chAppCfg[ca].keys[k])<0)return false;
@@ -10251,7 +10236,7 @@ function renderStats(){
   ];
   var symHtml='';
   for(var sy=0;sy<symCfg.length;sy++){
-    var cntSy=D.tenues.filter(function(t){
+    var cntSy=getTenues().filter(function(t){
       var s=(t.titre||'').toLowerCase();
       return s.indexOf('symb')>=0 && s.indexOf(symCfg[sy].num)>=0;
     }).length;
@@ -10276,7 +10261,7 @@ function renderStats(){
   ];
   var collegeHtml='';
   for(var cl=0;cl<collegeCfg.length;cl++){
-    var cntCl=D.tenues.filter(function(t){
+    var cntCl=getTenues().filter(function(t){
       var s=(t.titre||'').toLowerCase();
       var keys=collegeCfg[cl].keys;
       if(keys.length===1&&keys[0].indexOf('+')>=0){
@@ -10297,16 +10282,16 @@ function renderStats(){
 
   // Affiliation
   var affHtml='';
-  var cntEnqAff=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('enquête')>=0||s.indexOf('enquete')>=0)&&s.indexOf('affiliation')>=0;}).length;
+  var cntEnqAff=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('enquête')>=0||s.indexOf('enquete')>=0)&&s.indexOf('affiliation')>=0;}).length;
   affHtml+='<div class="scard" style="border-top-color:#E67E22"><span class="snum" style="color:#FFFFFF">'+cntEnqAff+'</span><span class="slbl">Enquête Affiliation</span>'+getStatsthVal('Enquête Affiliation')+'</div>';
-  var cntCerAff=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('cérémonie')>=0||s.indexOf('ceremonie')>=0)&&s.indexOf('affiliation')>=0;}).length;
+  var cntCerAff=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('cérémonie')>=0||s.indexOf('ceremonie')>=0)&&s.indexOf('affiliation')>=0;}).length;
   affHtml+='<div class="scard" style="border-top-color:#2980B9"><span class="snum" style="color:#FFFFFF">'+cntCerAff+'</span><span class="slbl">Cérémonie Affiliation</span>'+getStatsthVal('Cérémonie Affiliation')+'</div>';
   document.getElementById('affiliation-bars').innerHTML=affHtml;
   // Collège
   var collegeHtml='';
-  var cntElCol=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('élection')>=0||s.indexOf('election')>=0)&&(s.indexOf('collège')>=0||s.indexOf('college')>=0);}).length;
+  var cntElCol=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('élection')>=0||s.indexOf('election')>=0)&&(s.indexOf('collège')>=0||s.indexOf('college')>=0);}).length;
   collegeHtml+='<div class="scard" style="border-top-color:#B8922A"><span class="snum" style="color:#FFFFFF">'+cntElCol+'</span><span class="slbl">Election Collège</span>'+getStatsthVal('Election Collège')+'</div>';
-  var cntInstCol=D.tenues.filter(function(t){
+  var cntInstCol=getTenues().filter(function(t){
     var s=(t.titre||'').toLowerCase();
     if(s.indexOf('installation')>=0&&(s.indexOf('coll\u00e8ge')>=0||s.indexOf('college')>=0)) return true;
     var pr=t.parties||[];
@@ -10321,7 +10306,7 @@ function renderStats(){
   document.getElementById('college-bars').innerHTML=collegeHtml;
   // Député
   var deputeHtml='';
-  var cntElDep=D.tenues.filter(function(t){
+  var cntElDep=getTenues().filter(function(t){
     var s=(t.titre||'').toLowerCase();
     if((s.indexOf('\u00e9lection')>=0||s.indexOf('election')>=0)&&(s.indexOf('depute')>=0||s.indexOf('d\u00e9put\u00e9')>=0)) return true;
     var pr=t.parties||[];
@@ -10332,14 +10317,14 @@ function renderStats(){
     return false;
   }).length;
   deputeHtml+='<div class="scard" style="border-top-color:#B8922A"><span class="snum" style="color:#FFFFFF">'+cntElDep+'</span><span class="slbl">Election Député</span>'+getStatsthVal('Election Député')+'</div>';
-  var cntInstDep=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return s.indexOf('installation')>=0&&(s.indexOf('depute')>=0||s.indexOf('député')>=0);}).length;
+  var cntInstDep=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return s.indexOf('installation')>=0&&(s.indexOf('depute')>=0||s.indexOf('député')>=0);}).length;
   deputeHtml+='<div class="scard" style="border-top-color:#27AE60"><span class="snum" style="color:#FFFFFF">'+cntInstDep+'</span><span class="slbl">Installation Député</span>'+getStatsthVal('Installation Député')+'</div>';
-  var cntCrDep=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf(' cr ')>=0||s.indexOf('compte rendu')>=0)&&(s.indexOf('depute')>=0||s.indexOf('député')>=0);}).length;
+  var cntCrDep=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf(' cr ')>=0||s.indexOf('compte rendu')>=0)&&(s.indexOf('depute')>=0||s.indexOf('député')>=0);}).length;
   deputeHtml+='<div class="scard" style="border-top-color:#4472C4"><span class="snum" style="color:#FFFFFF">'+cntCrDep+'</span><span class="slbl">CR Député</span>'+getStatsthVal('CR Député')+'</div>';
   document.getElementById('depute-bars').innerHTML=deputeHtml;
   // Ténues particulières
   var cerHtml='';
-  var cntInsp=D.tenues.filter(function(t){
+  var cntInsp=getTenues().filter(function(t){
     var s=(t.titre||'').toLowerCase();
     if(s.indexOf('inspecteur')>=0||s.indexOf('sp\u00e9cifique')>=0||s.indexOf('specifique')>=0) return true;
     var pr=t.parties||[];
@@ -10351,9 +10336,9 @@ function renderStats(){
     return false;
   }).length;
   cerHtml+='<div class="scard" style="border-top-color:#C0392B"><span class="snum" style="color:#FFFFFF">'+cntInsp+'</span><span class="slbl">Visite Inspecteur</span>'+getStatsthVal('Visite Inspecteur')+'</div>';
-  var cntStJean=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return s.indexOf('st')>=0&&s.indexOf('jean')>=0;}).length;
+  var cntStJean=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return s.indexOf('st')>=0&&s.indexOf('jean')>=0;}).length;
   cerHtml+='<div class="scard" style="border-top-color:#1ABC9C"><span class="snum" style="color:#FFFFFF">'+cntStJean+'</span><span class="slbl">St Jean</span>'+getStatsthVal('St Jean')+'</div>';
-  var cntFun=D.tenues.filter(function(t){
+  var cntFun=getTenues().filter(function(t){
     var s=(t.titre||'').toLowerCase();
     if(s.indexOf('fun\u00e8bre')>=0||s.indexOf('funebre')>=0||s.indexOf('sp\u00e9cifique')>=0||s.indexOf('specifique')>=0) return true;
     var pr=t.parties||[];
@@ -10365,16 +10350,16 @@ function renderStats(){
     return false;
   }).length;
   cerHtml+='<div class="scard" style="border-top-color:#7F8C8D"><span class="snum" style="color:#FFFFFF">'+cntFun+'</span><span class="slbl">Tenue Funèbre</span>'+getStatsthVal('Tenue Funèbre')+'</div>';
-  var cntJub=D.tenues.filter(function(t){return(t.titre||'').toLowerCase().indexOf('jubil')>=0;}).length;
+  var cntJub=getTenues().filter(function(t){return(t.titre||'').toLowerCase().indexOf('jubil')>=0;}).length;
   cerHtml+='<div class="scard" style="border-top-color:#9B59B6"><span class="snum" style="color:#FFFFFF">'+cntJub+'</span><span class="slbl">Jubilé</span>'+getStatsthVal('Jubilé')+'</div>';
   document.getElementById('ceremonie-bars').innerHTML=cerHtml;
   // Réunions
   var reuHtml='';
-  var cntReuApp=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('réunion')>=0||s.indexOf('reunion')>=0)&&s.indexOf('apprent')>=0;}).length;
+  var cntReuApp=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('réunion')>=0||s.indexOf('reunion')>=0)&&s.indexOf('apprent')>=0;}).length;
   reuHtml+='<div class="scard" style="border-top-color:#ED7D31"><span class="snum" style="color:#FFFFFF">'+cntReuApp+'</span><span class="slbl">Réunion Apprenti</span>'+getStatsthVal('Réunion Apprenti')+'</div>';
-  var cntReuComp=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('réunion')>=0||s.indexOf('reunion')>=0)&&s.indexOf('comp')>=0;}).length;
+  var cntReuComp=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return(s.indexOf('réunion')>=0||s.indexOf('reunion')>=0)&&s.indexOf('comp')>=0;}).length;
   reuHtml+='<div class="scard" style="border-top-color:#4472C4"><span class="snum" style="color:#FFFFFF">'+cntReuComp+'</span><span class="slbl">Réunion Compagnon</span>'+getStatsthVal('Réunion Compagnon')+'</div>';
-  var cntCA=D.tenues.filter(function(t){var s=(t.titre||'').toLowerCase();return s.indexOf('conseil')>=0&&s.indexOf('admin')>=0;}).length;
+  var cntCA=getTenues().filter(function(t){var s=(t.titre||'').toLowerCase();return s.indexOf('conseil')>=0&&s.indexOf('admin')>=0;}).length;
   reuHtml+='<div class="scard" style="border-top-color:#44546A"><span class="snum" style="color:#FFFFFF">'+cntCA+'</span><span class="slbl">Conseil Administration</span>'+getStatsthVal('Conseil Administration')+'</div>';
   document.getElementById('reunions-bars').innerHTML=reuHtml;
 
@@ -10609,8 +10594,7 @@ function importData(input){
       if(planning){
         D=planning;
         if(!D.freres) D.freres=[];
-        if(!D.tenues) D.tenues=[];
-        if(!D.modeles) D.modeles=[];
+                if(!D.modeles) D.modeles=[];
         if(!D.regles) D.regles=[];
         if(!D.parDefaut||!D.parDefaut.length) D.parDefaut=[{nom:'Ouverture des Travaux',dur:15},{nom:'Lecture du PV',dur:10},{nom:'Planche et Symbolisme',dur:30},{nom:'Questions diverses',dur:10},{nom:'Cloture des Travaux',dur:10},{nom:'Agape',dur:60},{nom:'St Jean',dur:0},{nom:'Visite Inspecteur',dur:0}];
         if(!D.loge) D.loge={nom:'',num:'',titreDef:''};
@@ -10640,7 +10624,7 @@ function importData(input){
       try{if(typeof renderClefs==='function') renderClefs();}catch(ex){console.error('renderClefs:',ex);}
 
       var fbMsg=window.fbSet?' + syncé Firebase':'';
-      toast('\u2713 Restauration : '+(D.freres?D.freres.length:0)+' fr\u00e8res, '+(D.tenues?D.tenues.length:0)+' tenues'+fbMsg);
+      toast('\u2713 Restauration : '+(D.freres?D.freres.length:0)+' fr\u00e8res, '+getTenues().length+' tenues'+fbMsg);
     }catch(err){
       alert('Erreur restauration : '+err.message);
     }
@@ -12087,7 +12071,7 @@ function imprimerConvocation(){
   var tenue=null;
   if(tenueSel&&tenueSel.value){
     var tid=tenueSel.value;
-    tenue=(D.tenues||[]).filter(function(t){return t.id===tid;})[0]||null;
+    tenue=getTenues().filter(function(t){return t.id===tid;})[0]||null;
   }
   var moisLong=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
@@ -12234,7 +12218,7 @@ function troncSave(d){try{localStorage.setItem('hosp_tronc',JSON.stringify(d));}
 function troncSauvegarder(){
   var d=troncLoad();
   // Lire toutes les collectes
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   for(var i=0;i<tenues.length;i++){
     var el=document.getElementById('tronc-col-'+tenues[i].id);
     if(!el) continue;
@@ -12299,7 +12283,7 @@ function troncRender(){
   // Source 4 : fallback
   if(!perDeb) perDeb=annee+'-01-01';
   if(!perFin) perFin=annee+'-12-31';
-  var tenues=D.tenues.slice().filter(function(t){
+  var tenues=getTenues().slice().filter(function(t){
     if(!t.date) return false;
     if(t.date<perDeb) return false;
     if(t.date>perFin) return false;
@@ -12428,7 +12412,7 @@ function troncSubTab(name, btn){
 function troncImprimer(){
   // Lire les valeurs depuis le DOM en priorité, sinon localStorage
   var d=troncLoad();
-  var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
 
   // Collectes : lire DOM
   var collectes={};
@@ -12567,7 +12551,7 @@ function troncImprimer(){
 function troncRecalc(){
   // Lire les collectes depuis le DOM
   var totalC=0;
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   for(var i=0;i<tenues.length;i++){
     var el=document.getElementById('tronc-col-'+tenues[i].id);
     if(el) totalC+=parseFloat(el.value)||0;
@@ -13335,7 +13319,7 @@ function renderOffice(n){
     sc2+='<th style="'+thS2+'">Notes</th>';
     sc2+='<th style="padding:8px;width:36px;"></th>';
     sc2+='</tr></thead><tbody>';
-    var tenues2=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues2=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     for(var ti2=0;ti2<tenues2.length;ti2++){
       var t2=tenues2[ti2];
       var titre2=(t2.titre||'').toLowerCase();
@@ -13401,7 +13385,7 @@ function renderOffice(n){
     sc+='<th style="'+thS+'">Notes</th>';
     sc+='<th style="padding:8px;width:36px;"></th>';
     sc+='</tr></thead><tbody id="surv1-tbody">';
-    var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     for(var ti=0;ti<tenues.length;ti++){
       var t=tenues[ti];
@@ -13446,7 +13430,7 @@ function renderOffice(n){
   }
   if(n==='off-mb'){
     var mbData={}; try{var mbs=localStorage.getItem('mb_menus');if(mbs)mbData=JSON.parse(mbs);}catch(e){}
-    var tenues=D.tenues.filter(function(t){return !t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().filter(function(t){return !t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;resize:none;overflow:hidden;';
     var inpN='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:90px;text-align:right;';
@@ -13551,7 +13535,7 @@ function renderOffice(n){
   }
   if(n==='off-mh'){
     var mhData={}; try{var mhs=localStorage.getItem('mh_playlists');if(mhs)mhData=JSON.parse(mhs);}catch(e){}
-    var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;';
     var mc='<div class="cfg-box" style="margin-top:12px;overflow-x:auto;">';
@@ -13605,7 +13589,7 @@ function renderOffice(n){
   }
   if(n==='off-dep'){
     var depData={}; try{var ds=localStorage.getItem('dep_interventions');if(ds)depData=JSON.parse(ds);}catch(e){}
-    var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     var fmtDate=function(d){if(!d)return'\u2014';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;';
     var dc='<div id="off-dep-content">';
@@ -14142,7 +14126,7 @@ function surv2Supprimer(idx){
 function surv2Save(){
   var d={}; try{var s=localStorage.getItem('surv2_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   for(var i=0;i<tenues.length;i++){
     var tid=tenues[i].id;
     var eo=document.getElementById('surv2-odj-'+tid);
@@ -14214,7 +14198,7 @@ function surv1Supprimer(idx){
 function surv1Save(){
   var d={}; try{var s=localStorage.getItem('surv1_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   for(var i=0;i<tenues.length;i++){
     var tid=tenues[i].id;
     var eo=document.getElementById('surv1-odj-'+tid);
@@ -14427,7 +14411,7 @@ function depTab(name, btn){
 
 function depSave(){
   var data={};
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   for(var i=0;i<tenues.length;i++){
     var el=document.getElementById('dep-int-'+tenues[i].id);
     if(el&&el.value) data[tenues[i].id]=el.value;
@@ -14447,7 +14431,7 @@ function imprimerAgapes(){
   var moisC=['jan.','fév.','mars','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   var jours=['Dim.','Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.'];
 
-  var tenues=D.tenues.filter(function(t){return !t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().filter(function(t){return !t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
 
   // Totaux
   var totalTriangle=0,totalAchats=0,totalNb=0;
@@ -14538,7 +14522,7 @@ function imprimerAgapes(){
 }
 
 function mbUpdateTotals(){
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   var totTri=0,totAch=0;
   for(var i=0;i<tenues.length;i++){
     var tid=tenues[i].id;
@@ -14577,7 +14561,7 @@ function mbUpdateTotals(){
 
 function mbSave(){
   var data={};
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   var mbDataLocal={}; try{var mbs=localStorage.getItem('mb_menus');if(mbs)mbDataLocal=JSON.parse(mbs);}catch(e){}
   for(var i=0;i<tenues.length;i++){
     var tid=tenues[i].id;
@@ -14610,7 +14594,7 @@ function mhImprimer(){
   var sel=document.getElementById('mh-filtre-tenue');
   var filtId=sel?sel.value:'';
 
-  var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   if(filtId) tenues=tenues.filter(function(t){return t.id===filtId;});
   // Ne garder que les tenues qui ont une playlist saisie (sauf si filtre spécifique)
   var avecPlaylist=tenues.filter(function(t){
@@ -14702,7 +14686,7 @@ function mhImprimer(){
 
 function mhSave(){
   var data={};
-  var tenues=D.tenues||[];
+  var tenues=getTenues();
   for(var i=0;i<tenues.length;i++){
     var el=document.getElementById('mh-pl-'+tenues[i].id);
     if(el&&el.value) data[tenues[i].id]=el.value;
@@ -15386,7 +15370,7 @@ function imprimerTableauBord(){
   var fin    = saison+'-08-31';
   var today  = new Date().toISOString().slice(0,10);
 
-  var tenues = (D.tenues||[]).filter(function(t){
+  var tenues = getTenues().filter(function(t){
     return !t.ferie && t.date && t.date>=debut && t.date<=fin && t.date<=today
         && t.modeleId!=='1778227790766' && t.modeleId!=='1778413922118' && t.modeleId!=='1779455785689';
   }).sort(function(a,b){ return a.date>b.date?1:-1; });
@@ -15590,7 +15574,7 @@ function secTableauRender(){
   var debut=(saison-1)+'-09-01';
   var fin=saison+'-08-31';
   var today=new Date().toISOString().slice(0,10);
-  var tenues=(D.tenues||[]).filter(function(t){
+  var tenues=getTenues().filter(function(t){
     return !t.ferie && t.date && t.date>=debut && t.date<=fin && t.date<=today && t.modeleId!=='1778227790766' && t.modeleId!=='1778413922118' && t.modeleId!=='1779455785689';
   }).sort(function(a,b){return a.date>b.date?1:-1;});
   var nbTenues=tenues.length;
@@ -16253,8 +16237,8 @@ function imprimerSyntheseTresorerie(){
   else{labelPer='Toutes dates';}
   var freres=(D.freres||[]).slice().sort(fSortNom);
   if(synFid&&synFid!=='tous') freres=freres.filter(function(f){return f.id===synFid;});
-  var tenues=(D.tenues||[]).filter(function(t){return !t.ferie&&(!dateDebut||(t.date>=dateDebut&&t.date<=dateFin));});
-  var annees=synPer==='aout'?[String(synAnnee),String(synAnnee+1)]:synPer==='civil'?[String(synAnnee)]:(function(){var y={};(D.tenues||[]).forEach(function(t){if(t.date)y[t.date.slice(0,4)]=1;});return Object.keys(y);})();
+  var tenues=getTenues().filter(function(t){return !t.ferie&&(!dateDebut||(t.date>=dateDebut&&t.date<=dateFin));});
+  var annees=synPer==='aout'?[String(synAnnee),String(synAnnee+1)]:synPer==='civil'?[String(synAnnee)]:(function(){var y={};getTenues().forEach(function(t){if(t.date)y[t.date.slice(0,4)]=1;});return Object.keys(y);})();
   var css='body{font-family:Georgia,serif;color:#1E3660;margin:24px;font-size:10.5px;}h1{font-size:17px;border-bottom:2.5px solid #B8922A;padding-bottom:5px;margin-bottom:4px;}.subtitle{font-size:9.5px;color:#7F8C8D;margin-bottom:14px;}table{width:100%;border-collapse:collapse;font-size:9.5px;}th{background:#1E3660;color:#fff;padding:4px 8px;text-align:left;}td{padding:4px 8px;border-bottom:1px solid #EDE9E2;}.ok{color:#1D8A5A;font-weight:bold;}.nok{color:#C0392B;font-weight:bold;}.warn{color:#B8922A;font-weight:bold;}@media print{body{margin:12mm;}}';
   var h='<html><head><meta charset="utf-8"><title>Synthèse '+labelPer+'</title><style>'+css+'</style></head><body>';
   h+='<h1>'+loge+(num?' — N° '+num:'')+' — Fiche Synthèse</h1>';
@@ -16960,7 +16944,7 @@ function tiRender(containerId){
     // Date substitution
     (function(){
       var _seen={},dates=[];
-      (D.tenues||[]).forEach(function(t){if(t.date&&!_seen[t.date]){_seen[t.date]=true;dates.push(t.date);}});
+      getTenues().forEach(function(t){if(t.date&&!_seen[t.date]){_seen[t.date]=true;dates.push(t.date);}});
       dates.sort();
       var opts='<option value="">— Aucune —</option>';
       var JN=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -17089,7 +17073,7 @@ setTimeout(adjustMainHeight,100);
 function imprimerDepInterventions(){
   var loge=D.loge.nom||'Loge'; var num=D.loge.num||'';
   var depData={}; try{var ds=localStorage.getItem('dep_interventions');if(ds)depData=JSON.parse(ds);}catch(e){}
-  var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
   var h='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Interventions Député</title>';
   h+='<style>*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:20px;font-size:10.5px;}h1{font-size:17px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:4px;}.subtitle{font-size:9.5px;color:#7F8C8D;margin-bottom:14px;}table{width:100%;border-collapse:collapse;font-size:10px;}thead tr{background:#1E3660;color:#fff;}th{padding:5px 8px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;}td{padding:5px 8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}@media print{body{margin:10mm;}tr{page-break-inside:avoid;}}</style></head><body>';
@@ -17132,7 +17116,7 @@ function imprimerSurv1(){
   h+='<h1>'+loge+' — Réunions des Compagnons (1° Surveillant)</h1>';
   h+='<div class="subtitle">Édité le '+todayS1.getDate()+' '+mlS1[todayS1.getMonth()]+' '+todayS1.getFullYear()+'</div>';
   h+='<table><thead><tr><th>Date</th><th>Ordre du jour</th><th>Participants</th><th>Notes</th></tr></thead><tbody>';
-  var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i]; var rec=survData[t.id]||{}; if(typeof rec==='string')rec={odj:rec};
@@ -17153,7 +17137,7 @@ function imprimerSurv2(){
   h+='<h1>'+loge+' — Réunions des Apprentis (2° Surveillant)</h1>';
   h+='<div class="subtitle">Édité le '+todayS2.getDate()+' '+mlS2[todayS2.getMonth()]+' '+todayS2.getFullYear()+'</div>';
   h+='<table><thead><tr><th>Date</th><th>Ordre du jour</th><th>Participants</th><th>Notes</th></tr></thead><tbody>';
-  var tenues=D.tenues.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i]; var rec=surv2Data[t.id]||{}; if(typeof rec==='string')rec={odj:rec};
@@ -18111,6 +18095,12 @@ function plDureeGenereeMaj(valeur){
 
 function plLoad(){try{var s=localStorage.getItem(PL_KEY);return s?JSON.parse(s):{events:[]};}catch(e){return{events:[]};}}
 function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_KEY,d);}
+// ── Bridge D.tenues → Planning Libre ─────────────────────────────────────
+function getTenues(){return(plLoad().events||[]);}
+function plTenueUpdate(id,fields){var d=plLoad();for(var i=0;i<d.events.length;i++){if(d.events[i].id===id){Object.assign(d.events[i],fields);break;}}plSave(d);}
+function plTenueAdd(t){var d=plLoad();d.events.push(t);plSave(d);}
+function plTenueDelete(id){var d=plLoad();d.events=d.events.filter(function(e){return e.id!==id;});plSave(d);}
+function plTenueSetPresences(id,presences,presents){plTenueUpdate(id,{presences:presences,presents:presents});}
 
 // ── Barème global éditable — affiché en grille 3 colonnes ───────────────
 function plRenderBareme(){
