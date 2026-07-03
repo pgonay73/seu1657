@@ -685,7 +685,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-02.107</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-02.108</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -2307,7 +2307,6 @@ var _CURRENT_SAI_TAB = 'capitations'; // sous-onglet saisie individuelle
 
 // Map vue → fonction(s) d'impression disponibles
 var PRINT_MAP = {
-  'planning':     [['Imprimer condensé', 'imprimerPlanning'], ['Imprimer détaillé', 'imprimerPlanningDetail']],
   'freres':       [['Imprimer', 'secFreresImprimerDoc']],
   'planches':     [['Impression', 'imprimerRapportPlanches']],
   'stats':        [['Imprimer les stats', 'imprimerStats']],
@@ -2640,11 +2639,8 @@ function nav(n){
   if(fabRetour&&n.indexOf('off-')!==0) fabRetour.style.display='none';
   // Gérer freresEditable
   window.freresEditable = (n==='off-sec');
-  // Gérer planningEditable
-  if(n==='planning'){window.planningEditable=true;}
   if(n==='stats')renderStats();
   if(n==='config')renderConfig();
-  if(n==='planning'){renderPlanning();}
   if(n==='impression')renderImpression();
   if(n==='tresorerie')trRender();
   if(n==='clefs')renderClefs();
@@ -3919,224 +3915,8 @@ function renderLogeTag(){
   if(cit) cit.textContent=l.citation||'';
 }
 
-function renderPlanning(){
-  renderLogeTag();
-
-  var now=new Date(),y=now.getFullYear(),m=now.getMonth()+1,j=now.getDate();
-  var saisonEl=document.getElementById('planning-saison');
-  if(saisonEl){
-    var dates=D.tenues.map(function(t){return t.date||'';}).filter(function(d){return d!='';}).sort();
-    var saisonTxt='';
-    if(dates.length){
-      var anneeMin=dates[0].slice(0,4);
-      var anneeMax=dates[dates.length-1].slice(0,4);
-      saisonTxt=anneeMin+(anneeMin!==anneeMax?' / '+anneeMax:'');
-    }
-    saisonEl.textContent=saisonTxt;
-    ['saison-freres','saison-planches','saison-stats','saison-tresorerie'].forEach(function(id){
-      var el=document.getElementById(id);if(el)el.textContent=saisonTxt;
-    });
-  }
-  // Alimenter les selects modèles (planning public + VM)
-  ['planning-filtre-modele','vm-planning-filtre-modele'].forEach(function(id){
-    var selMod=document.getElementById(id);
-    if(!selMod)return;
-    var prevMod=selMod.value;
-    selMod.innerHTML='<option value="">Tous</option>';
-    for(var i=0;i<D.modeles.length;i++){
-      var opt=document.createElement('option');
-      opt.value=D.modeles[i].id;
-      opt.textContent=D.modeles[i].nom;
-      if(D.modeles[i].id===prevMod) opt.selected=true;
-      selMod.appendChild(opt);
-    }
-  });
-
-  var ts=[];for(var i=0;i<D.tenues.length;i++)ts.push(D.tenues[i]);
-  function _isTenueRituelle(t){
-    var titre=(t.titre||'').toUpperCase();
-    if(titre.indexOf('TENUE AU')>=0||titre.indexOf('ST JEAN')>=0||titre.indexOf('CEREMONIE')>=0) return 1;
-    var m=getModele(t.modeleId);
-    if(m){var n=(m.nom||'').toUpperCase();if(n.indexOf('TENUE AU')>=0||n.indexOf('CEREMONIE')>=0) return 1;}
-    return 0;
-  }
-  function _isPrioritaire(t){
-    // CA et réunions passent en premier à date égale
-    var titre=(t.titre||'').toUpperCase();
-    if(titre.indexOf('CONSEIL')>=0||titre.indexOf('ADMINISTRATION')>=0) return 1;
-    if(titre.indexOf('REUNION')>=0||titre.indexOf('RÉUNION')>=0) return 1;
-    var m=getModele(t.modeleId);
-    if(m){var n=(m.nom||'').toUpperCase();
-      if(n.indexOf('CONSEIL')>=0||n.indexOf('ADMINISTRATION')>=0) return 1;
-      if(n.indexOf('REUNION')>=0||n.indexOf('RÉUNION')>=0) return 1;
-    }
-    return 0;
-  }
-  ts.sort(function(a,b){
-    // Tri par date seule d'abord
-    if(a.date<b.date) return -1; if(a.date>b.date) return 1;
-    // Même jour : CA/réunion toujours en premier
-    var pa=_isPrioritaire(a), pb=_isPrioritaire(b);
-    if(pa!==pb) return pb-pa;
-    // Même priorité : tri par heure
-    var ha=a.heure||'00:00', hb=b.heure||'00:00';
-    if(ha<hb) return -1; if(ha>hb) return 1;
-    return _isTenueRituelle(a)-_isTenueRituelle(b);
-  });
-  if(curFiltre!=='all'){var f=[];for(var i=0;i<ts.length;i++)if(ts[i].type===curFiltre)f.push(ts[i]);ts=f;}
-
-  var vOffVm=document.getElementById('v-off-vm');
-  var inVM=vOffVm&&vOffVm.classList.contains('active');
-
-  var dateDebut=document.getElementById(inVM?'vm-planning-date-debut':'planning-date-debut');
-  var dateFin=document.getElementById(inVM?'vm-planning-date-fin':'planning-date-fin');
-  // Pré-remplir avec la période du logiciel si les champs sont vides et la période définie
-  var perDeb=(D.loge&&D.loge.periodeDebut)||'';
-  var perFin=(D.loge&&D.loge.periodeFin)||'';
-  if(dateDebut && !dateDebut.value && perDeb) dateDebut.value=perDeb;
-  if(dateFin  && !dateFin.value  && perFin)  dateFin.value=perFin;
-  var selMod2=document.getElementById(inVM?'vm-planning-filtre-modele':'planning-filtre-modele');
-  if(dateDebut&&dateDebut.value) ts=ts.filter(function(t){return t.date>=dateDebut.value;});
-  if(dateFin&&dateFin.value) ts=ts.filter(function(t){return t.date<=dateFin.value;});
-  if(selMod2&&selMod2.value) ts=ts.filter(function(t){return t.modeleId===selMod2.value;});
-
-  var el=document.getElementById(inVM?'vm-tenues-list':'tenues-list');
-  if(!el) return;
-  if(!ts.length){el.innerHTML='<div class="empty"><p>Aucune tenue.<br>Cliquez sur <strong>Générer la saison</strong> pour générer automatiquement,<br>ou <strong>+ Nouvelle Tenue</strong> pour en ajouter une.</p></div>';return;}
-  renderPlanningInto(el, ts, inVM);
-}
-
-function renderPlanningInto(el, ts, inVM){
-
-  var bm={},mo=[];
-  for(var i=0;i<ts.length;i++){var k=ts[i].date.substring(0,7);if(!bm[k]){bm[k]=[];mo.push(k);}bm[k].push(ts[i]);}
-
-  var TRIM_LABEL=['','1er trimestre','2ème trimestre','3ème trimestre'];
-  var TRIM_PERIOD=['','15 août – 31 déc.','1er jan. – 31 mars','1er avr. – 14 juil.'];
-  var TRIM_COLOR=['','#B8922A','#4472C4','#27AE60'];
-  function getTrimestre(ds){var m=parseInt(ds.substring(5,7));if(m>=8)return 1;if(m<=3)return 2;return 3;}
-  var curTrim=null;
-
-  // ── MODE VM : rendu en tableau unique ──
-  if(inVM){
-    var h='<table style="width:100%;border-collapse:collapse;font-size:12px;">';
-    h+='<thead><tr style="border-bottom:2px solid rgba(184,146,42,.6);">'
-      +'<th style="width:68px;padding:4px 6px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:600;">Date</th>'
-      +'<th style="width:68px;padding:4px 6px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:600;">Heure</th>'
-      +'<th style="width:50px;padding:4px 6px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:600;">Durée</th>'
-      +'<th style="min-width:160px;max-width:220px;padding:4px 6px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:600;">Titre</th>'
-      +'<th style="padding:4px 6px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:600;">Parties</th>'
-      +'<th style="min-width:100px;padding:4px 6px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:600;">Notes</th>'
-      +'<th style="width:80px;padding:4px 6px;text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.45);font-weight:600;position:sticky;right:0;background:#1E3660;">Actions</th>'
-      +'</tr></thead>';
-    h+='<tbody>';
-
-    // Compter les tenues par trimestre
-    var trimCount={1:0,2:0,3:0};
-    for(var i=0;i<ts.length;i++) trimCount[getTrimestre(ts[i].date)]++;
-
-    for(var mi=0;mi<mo.length;mi++){
-      var ym=mo[mi],sp=ym.split('-'),ml=MOIS[parseInt(sp[1])-1]+' '+sp[0],ms=bm[ym];
-      var trim=getTrimestre(ym+'-01');
-      if(trim!==curTrim){
-        curTrim=trim;
-        if(mi>0) h+='<tr><td colspan="7" style="padding:0;"><hr style="margin:0;border:none;border-top:3px solid rgba(255,255,255,.7);"/></td></tr>';
-        h+='<tr><td colspan="7" style="padding:6px 10px;background:'+TRIM_COLOR[trim]+';color:#fff;font-family:Cormorant Garamond,serif;font-size:14px;font-weight:700;">'
-          +TRIM_LABEL[trim]
-          +'<span style="margin-left:10px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;opacity:.95;">— '+trimCount[trim]+' tenue'+(trimCount[trim]>1?'s':'')+'</span>'
-          +'<span style="float:right;font-family:Raleway,sans-serif;font-size:11px;font-weight:400;opacity:.85;">'+TRIM_PERIOD[trim]+'</span>'
-          +'</td></tr>';
-      } else if(mi>0){
-        h+='<tr><td colspan="7" style="padding:0;"><hr style="margin:0;border:none;border-top:3px solid rgba(255,255,255,.7);"/></td></tr>';
-      }
-      // Regrouper par jour dans le tableau VM
-      var byDayVM={}, dayOrderVM=[];
-      for(var ti=0;ti<ms.length;ti++){
-        var dd=ms[ti].date;
-        if(!byDayVM[dd]){byDayVM[dd]=[];dayOrderVM.push(dd);}
-        byDayVM[dd].push(ms[ti]);
-      }
-      for(var di=0;di<dayOrderVM.length;di++){
-        // Trait de séparation entre dates différentes (pas avant la 1ère)
-        if(di>0){
-        h+='<tr><td colspan="7" style="padding:0;"><hr style="margin:0;border:none;border-top:3px solid rgba(255,255,255,.7);"/></td></tr>';
-        }
-        var dayTs=byDayVM[dayOrderVM[di]];
-        for(var ti=0;ti<dayTs.length;ti++){
-          // N'afficher la date que pour la 1ère tenue du jour
-          h+=tcHTML(dayTs[ti],ml,true,ti>0);
-        }
-      }
-    }
-    h+='</tbody></table>';
-    el.innerHTML=h;
-    return;
-  }
-
-  // ── MODE LECTURE : cartes expansibles classiques ──
-  var h='';
-  for(var mi=0;mi<mo.length;mi++){
-    var ym=mo[mi],sp=ym.split('-'),ml=MOIS[parseInt(sp[1])-1]+' '+sp[0],ms=bm[ym];
-    var trim=getTrimestre(ym+'-01');
-    if(trim!==curTrim){
-      curTrim=trim;
-      h+='<div style="margin:1mm 0 4px;padding:2px 14px;background:'+TRIM_COLOR[trim]+';color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:space-between;">';
-      h+='<span style="font-family:Cormorant Garamond,serif;font-size:14px;font-weight:700;">'+TRIM_LABEL[trim]+'</span>';
-      h+='<span style="font-size:12px;opacity:.85;">'+TRIM_PERIOD[trim]+'</span>';
-      h+='</div>';
-    }
-    // Regrouper par jour
-    var byDay={}, dayOrder=[];
-    for(var ti=0;ti<ms.length;ti++){
-      var dd=ms[ti].date;
-      if(!byDay[dd]){byDay[dd]=[];dayOrder.push(dd);}
-      byDay[dd].push(ms[ti]);
-    }
-    // Compter uniquement les tenues rituelles (exclure CA, réunion apprenti/compagnon)
-    function _isHorsTenue(t){
-      var titre=(t.titre||'').toLowerCase();
-      if(titre.indexOf('conseil')>=0&&titre.indexOf('admin')>=0) return true;
-      if((titre.indexOf('réunion')>=0||titre.indexOf('reunion')>=0)&&titre.indexOf('apprent')>=0) return true;
-      if((titre.indexOf('réunion')>=0||titre.indexOf('reunion')>=0)&&(titre.indexOf('comp')>=0)) return true;
-      var mm=getModele(t.modeleId);
-      if(mm){var n=(mm.nom||'').toLowerCase();
-        if(n.indexOf('conseil')>=0&&n.indexOf('admin')>=0) return true;
-        if((n.indexOf('réunion')>=0||n.indexOf('reunion')>=0)&&n.indexOf('apprent')>=0) return true;
-        if((n.indexOf('réunion')>=0||n.indexOf('reunion')>=0)&&n.indexOf('comp')>=0) return true;
-      }
-      return false;
-    }
-    var msTenues=ms.filter(function(t){return !_isHorsTenue(t);});
-    var msReunions=ms.filter(function(t){return _isHorsTenue(t);});
-    var mcLabel=msTenues.length+' tenue'+(msTenues.length>1?'s':'');
-    if(msReunions.length) mcLabel+=' + '+msReunions.length+' réunion'+(msReunions.length>1?'s':'');
-    h+='<div class="month-block"><div class="month-title">'+ml+'<span class="mc">'+mcLabel+'</span></div>';
-    for(var di=0;di<dayOrder.length;di++){
-      var dayTenues=byDay[dayOrder[di]];
-      if(dayTenues.length>1){
-        // Plusieurs tenues le même jour : accolées sans espace
-        h+='<div style="margin-bottom:8px;">';
-        for(var ti=0;ti<dayTenues.length;ti++){
-          var card=tcHTML(dayTenues[ti],null,false,ti>0);
-          // Modifier le style inline de la carte : pas de margin, bordures ajustées
-          var extraStyle='margin-bottom:0;';
-          if(ti===0) extraStyle+='border-radius:6px 6px 0 0;';
-          else if(ti===dayTenues.length-1) extraStyle+='border-radius:0 0 6px 6px;border-top:none;';
-          else extraStyle+='border-radius:0;border-top:none;';
-          card=card.replace(/style="border-left-color:([^"]+)"/,'style="border-left-color:$1;'+extraStyle+'"');
-          h+=card;
-        }
-        h+='</div>';
-      } else {
-        h+=tcHTML(dayTenues[0],null,false);
-      }
-    }
-    h+='</div>';
-  }
-  el.innerHTML=h;
-  applyDetailsState();
-}
-
+function renderPlanning(){}
+function renderPlanningInto(){}
 function getModeleDefaut(){
   // Chercher un modele dont le nom evoque le 1er degre
   for(var i=0;i<D.modeles.length;i++){
@@ -4368,7 +4148,7 @@ function toggleTC(id){var e=document.getElementById('tcb-'+id);if(e)e.classList.
 var allDetailsExpanded=false;
 
 
-function filtre(f,b){curFiltre=f;var bs=document.querySelectorAll('.fbtn');for(var i=0;i<bs.length;i++)bs[i].classList.remove('active');b.classList.add('active');renderPlanning();}
+function filtre(){}
 
 // ============================================================
 // MODAL TENUE
@@ -6681,17 +6461,6 @@ function saveConfig(){
   renderLogePeriode();
   // Mettre à jour les champs de date dans les plannings avec la nouvelle période
   var perDeb=D.loge.periodeDebut||'', perFin=D.loge.periodeFin||'';
-  ['planning-date-debut','vm-planning-date-debut'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.value=perDeb;
-  });
-  ['planning-date-fin','vm-planning-date-fin'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.value=perFin;
-  });
-  var elDeb=document.getElementById('pl-crit-date-debut'); if(elDeb) elDeb.value=perDeb;
-  var elFin=document.getElementById('pl-crit-date-fin');   if(elFin) elFin.value=perFin;
-  // Re-rendre les vues qui utilisent la période
-  doGenAuto(); // Régénère le planning général selon les nouvelles bornes
-  renderPlanning();
   if(typeof plRenderPlanning==='function') try{ plRenderPlanning(); }catch(e){}
   if(typeof troncRender==='function')      try{ troncRender(); }catch(e){}
   toast('Configuration enregistree - '+(D.regles?D.regles.length:0)+' regle(s).');
@@ -8040,145 +7809,8 @@ function _impPlanningFiltrer(){
   }).sort(function(a,b){return (a.date+(a.heure||''))>(b.date+(b.heure||''))?1:-1;});
 }
 
-function imprimerPlanning(){
-  var per=_impPlanningPeriode();
-  var deplieEl=document.getElementById('imp-pl-deplie');
-  var deplie=deplieEl?deplieEl.value:'deplie';
-  var loge=D.loge.nom||'Loge';
-  var ts=_impPlanningFiltrer();
-  var today=new Date().toISOString().slice(0,10);
-  var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-
-  var css='*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:22px;font-size:11px;}';
-  css+='h1{font-size:18px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:4px;}';
-  css+='.subtitle{font-size:10px;color:#7F8C8D;margin-bottom:16px;}';
-  css+='.tenue{margin-bottom:12px;border-left:4px solid #B8922A;padding:6px 10px;page-break-inside:avoid;break-inside:avoid;}';
-  css+='.tenue.futur{border-left-color:#1E3660;}';
-  css+='.tdate{font-size:10px;color:#7F8C8D;text-transform:uppercase;letter-spacing:1px;}';
-  css+='.ttitre{font-size:13px;font-weight:bold;color:#1E3660;margin:2px 0;}';
-  css+='.tdur{font-size:10px;color:#B8922A;font-weight:bold;}';
-  css+='table.parties{width:100%;border-collapse:collapse;margin-top:5px;font-size:10px;}';
-  css+='table.parties th{background:#EEE;padding:3px 7px;text-align:left;color:#44546A;font-weight:600;font-size:9px;text-transform:uppercase;}';
-  css+='table.parties td{padding:3px 7px;border-bottom:1px solid #F0EDE8;color:#1E3660;}';
-  css+='@media print{body{margin:10mm;}.tenue{page-break-inside:avoid;break-inside:avoid;}}';
-
-  var h='<html><head><meta charset="utf-8"><title>Planning — '+per.label+'</title>';
-  h+='<style>'+css+'</style></head><body>';
-  h+='<h1>'+loge+' &mdash; Planning des Tenues</h1>';
-  h+='<div class="subtitle">Édité le '+new Date().toLocaleDateString('fr-FR')+' &bull; Période : <strong>'+per.label+'</strong> &bull; '+ts.length+' tenue'+(ts.length!==1?'s':'')+'</div>';
-
-  if(!ts.length){ h+='<p style="color:#7F8C8D;font-style:italic;">Aucune tenue pour cette sélection.</p>'; }
-  else {
-    ts.forEach(function(t){
-      var d=new Date(t.date+'T12:00:00');
-      var dstr=jours[d.getDay()]+' '+d.getDate()+' '+mois[d.getMonth()]+' '+d.getFullYear();
-      var dur=0; (t.parties||[]).forEach(function(p){dur+=p.dur||0;});
-      var durStr=dur?(Math.floor(dur/60)+'h'+(dur%60<10?'0':'')+(dur%60)):'';
-      var futur=t.date>=today;
-      h+='<div class="tenue'+(futur?' futur':'')+'">';
-      h+='<div class="tdate">'+dstr+(t.heure?' &bull; '+t.heure:'')+(futur?' &bull; <em>à venir</em>':'')+'</div>';
-      h+='<div class="ttitre">'+(t.titre||D.loge.titreDef||'Tenue')+'</div>';
-      if(t.notes) h+='<div style="font-size:10px;color:#7F8C8D;font-style:italic;">'+t.notes+'</div>';
-      if(durStr) h+='<div class="tdur">Durée : '+durStr+'</div>';
-
-      if(deplie==='deplie'&&t.parties&&t.parties.length){
-        var _rRx=/^rituel|ouverture|cloture|cl[oô]ture|fermeture|sacral|d[eé]sacral|appel|chaîne|chaine|union|questions diverses/i;
-        h+='<table class="parties" style="margin-left:2cm;width:calc(100% - 2cm)"><tr><th>Partie</th><th>Durée</th><th>Conférencier</th><th>Titre</th></tr>';
-        t.parties.forEach(function(p){
-          var isR=_rRx.test(p.nom||'');
-          var rs=isR?' style="color:#999;font-style:italic;"':'';
-          h+='<tr'+rs+'><td>'+p.nom+'</td><td>'+(p.dur?p.dur+' min':'—')+'</td>';
-          h+='<td>'+(isR?'—':(p.conf||'—'))+'</td><td><em>'+(isR?'—':(p.titre||'—'))+'</em></td></tr>';
-        });
-        h+='</table>';
-      } else if(deplie==='planches'&&t.parties&&t.parties.length){
-        var planches=t.parties.filter(function(p){
-          var nomLow=(p.nom||'').toLowerCase();
-          var excl=['ouverture','cloture','clôture','fermeture','questions','inspecteur','depute','college','conseil','affiliation','initiation','profane','agape','st jean','saint jean','reunion','réunion','installation','election','ceremonie'];
-          for(var x=0;x<excl.length;x++) if(nomLow.indexOf(excl[x])>=0) return false;
-          return nomLow.indexOf('planche')>=0||nomLow.indexOf('symbolisme')>=0||nomLow.indexOf('morceau')>=0||nomLow.indexOf('architecture')>=0||(p.plancheSteps&&p.plancheSteps.length)||(p.symDegres&&p.symDegres.length);
-        });
-        if(planches.length){
-          h+='<table class="parties" style="margin-left:2cm;width:calc(100% - 2cm)"><tr><th>Planche / Symbolisme</th><th>Durée</th><th>Conférencier</th><th>Titre</th></tr>';
-          planches.forEach(function(p){
-            h+='<tr><td>'+p.nom+'</td><td>'+(p.dur?p.dur+' min':'—')+'</td>';
-            h+='<td>'+(p.conf||'—')+'</td><td><em>'+(p.titre||'—')+'</em></td></tr>';
-          });
-          h+='</table>';
-        }
-      }
-      h+='</div>';
-    });
-  }
-  h+='</body></html>';
-  _printHtml(h,'Planning — '+per.label);
-}
-
-function imprimerPlanningDetail(){
-  var per=_impPlanningPeriode();
-  var loge=D.loge.nom||'Loge';
-  var ts=_impPlanningFiltrer();
-  var today=new Date().toISOString().slice(0,10);
-  var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  var moisNoms=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  var moisCourts=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-
-  var css='*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:22px;font-size:10.5px;}';
-  css+='h1{font-size:18px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:4px;}';
-  css+='.subtitle{font-size:10px;color:#7F8C8D;margin-bottom:18px;}';
-  css+='.mois{font-size:15px;font-weight:bold;color:#B8922A;margin:22px 0 8px;padding-bottom:4px;border-bottom:1px solid #E5DDD0;text-transform:uppercase;letter-spacing:1px;page-break-after:avoid;}';
-  css+='.tenue{margin-bottom:14px;border-left:4px solid #1E3660;padding-left:12px;page-break-inside:avoid;break-inside:avoid;}';
-  css+='.tenue.futur{border-left-color:#B8922A;}';
-  css+='.tdate{font-size:10px;color:#7F8C8D;text-transform:uppercase;letter-spacing:1px;}';
-  css+='.ttitre{font-size:13px;font-weight:bold;color:#1E3660;margin:3px 0;}';
-  css+='table{width:100%;border-collapse:collapse;margin-top:5px;font-size:10px;}';
-  css+='th{background:#EEE;padding:3px 7px;text-align:left;color:#44546A;font-weight:600;font-size:9px;text-transform:uppercase;}';
-  css+='td{padding:3px 7px;border-bottom:1px solid #F0EDE8;}';
-  css+='.tot{font-size:10px;color:#B8922A;font-weight:bold;margin-top:3px;}';
-  css+='@media print{body{margin:10mm;}.tenue{page-break-inside:avoid;break-inside:avoid;}.mois{page-break-after:avoid;}}';
-
-  var h='<html><head><meta charset="utf-8"><title>Planning détaillé — '+per.label+'</title>';
-  h+='<style>'+css+'</style></head><body>';
-  h+='<h1>'+loge+' &mdash; Planning Détaillé</h1>';
-  h+='<div class="subtitle">Édité le '+new Date().toLocaleDateString('fr-FR')+' &bull; Période : <strong>'+per.label+'</strong> &bull; '+ts.length+' tenue'+(ts.length!==1?'s':'')+'</div>';
-
-  if(!ts.length){ h+='<p style="color:#7F8C8D;font-style:italic;">Aucune tenue pour cette sélection.</p>'; }
-  else {
-    var curMois=-1;
-    ts.forEach(function(t){
-      var d=new Date(t.date+'T12:00:00');
-      var m=d.getMonth(); var y=d.getFullYear();
-      if(m!==curMois){ h+='<div class="mois">'+moisNoms[m]+' '+y+'</div>'; curMois=m; }
-      var dstr=jours[d.getDay()]+' '+d.getDate()+' '+moisCourts[m]+' '+y;
-      var dur=0; (t.parties||[]).forEach(function(p){dur+=p.dur||0;});
-      var durStr=dur?(Math.floor(dur/60)+'h'+(dur%60<10?'0':'')+(dur%60)):'';
-      var futur=t.date>=today;
-      h+='<div class="tenue'+(futur?' futur':'')+'">';
-      h+='<div class="tdate">'+dstr+(t.heure?' &bull; '+t.heure:'')+(durStr?' &bull; '+durStr:'')+(futur?' &bull; <em>à venir</em>':'')+'</div>';
-      h+='<div class="ttitre">'+(t.titre||D.loge.titreDef||'Tenue')+'</div>';
-      if(t.notes) h+='<div style="font-size:10px;color:#7F8C8D;font-style:italic;margin-top:2px;">'+t.notes+'</div>';
-      if(t.parties&&t.parties.length){
-        var _ritRx=/^rituel|ouverture|cloture|cl[oô]ture|fermeture|sacral|d[eé]sacral|appel|chaîne|chaine|union|questions diverses/i;
-        h+='<table style="margin-left:2cm;width:calc(100% - 2cm)"><tr><th>Partie</th><th>Durée</th><th>Conférencier</th><th>Titre / Sujet</th></tr>';
-        t.parties.forEach(function(p){
-          var isRit=_ritRx.test(p.nom||'');
-          var trSt=isRit?' style="color:#999;font-style:italic;"':'';
-          h+='<tr'+trSt+'><td>'+p.nom+'</td><td>'+(p.dur?p.dur+' min':'—')+'</td>';
-          h+='<td>'+(isRit?'—':(p.conf||'—'))+'</td>';
-          h+='<td><em>'+(isRit?'—':(p.titre||'—'))+'</em></td></tr>';
-        });
-        h+='</table>';
-        if(durStr) h+='<div class="tot" style="margin-left:2cm;">Durée totale : '+durStr+'</div>';
-      }
-      h+='</div>';
-    });
-  }
-  h+='</body></html>';
-  _printHtml(h,'Planning détaillé — '+per.label);
-}
-
-
+function imprimerPlanning(){}
+function imprimerPlanningDetail(){}
 function imprimerFreres(){
   var detail=document.getElementById('imp-freres-detail').value;
   var statutFil=document.getElementById('imp-freres-statut').value;
@@ -10767,7 +10399,7 @@ function renderStats(){
 // ============================================================
 // exportData défini plus bas (version complète)
 
-function renderAll(){renderPlanning();renderFreres();if(document.getElementById('v-config').classList.contains('active'))renderConfig();renderLogePeriode();}
+function renderAll(){renderFreres();if(document.getElementById('v-config').classList.contains('active'))renderConfig();renderLogePeriode();}
 
 // ============================================================
 // INIT
@@ -13484,7 +13116,6 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="adminTab(\'navigation\',this)">Visibilité navigation</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'responsables\',this)">Responsables</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'config\',this)">Configuration</button>';
-    c+='<button class="cfg-tab" onclick="adminTab(\'planning\',this)">Planning</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'planches-tracees\',this)">Planches tracées</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'correspondance\',this)">Correspondance</button>';
     c+='<button onclick="adminImprimerOnglet()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
@@ -14368,10 +13999,7 @@ function getRubriqueHTML(rid, officeId){
   if(rid==='stats'){
     return '<div style="padding:12px 0;"><p style="font-size:13px;color:var(--grey);">Consultez les statistiques depuis le menu principal.</p></div>';
   }
-  if(rid==='planning'){
-    if(officeId==='off-vm') return '<div id="off-planning-'+officeId+'"></div>';
-    return '<div><h3 style="margin-bottom:12px;">Planning des tenues</h3><div id="off-planning-'+officeId+'"></div></div>';
-  }
+
   if(rid==='sujets'){
     var h='<div>';
     h+='<h3 style="margin-bottom:12px;">Sujets de planche</h3>';
@@ -14437,12 +14065,6 @@ function renderRubriquesOffice(officeId){
     }
     if(rid==='infos'){
       infosRender();
-    }
-    if(rid==='planning'){
-      var pEl=document.getElementById('off-planning-'+officeId);
-      if(pEl){
-        if(officeId!=='off-vm') plRenderInto(pEl);
-      }
     }
     if(rid==='sujets'){
       var sEl=document.getElementById('off-sujets-'+officeId);
@@ -14546,7 +14168,6 @@ function surv2Save(){
   try{localStorage.setItem('surv2_reunions',JSON.stringify(d));}catch(e){}
   if(window.fbSet) window.fbSet('surv2_reunions', d);
   var vOffVm=document.getElementById('v-off-vm');
-  if(vOffVm&&vOffVm.classList.contains('active')) renderPlanning();
   toast('✓ Réunions enregistrées.');
 }
 
@@ -15747,7 +15368,6 @@ function secTab(name, btn){
     freres:       null,
     presences:    null,
     tableau:      null,
-    planning:     [['Planning condensé','imprimerPlanning'],['Planning détaillé','imprimerPlanningDetail']],
     invitation:   null,
     'imp-planches': [['Imprimer','imprimerRapportPlanches']]
   };
@@ -17681,7 +17301,6 @@ var PA_SUGGESTIONS_MOIS={
 
     <div style="display:flex;gap:0;border-bottom:2px solid var(--cream);margin-bottom:0;flex-wrap:wrap;">
       <button class="cfg-tab active" id="pl-subtab-criteres-parent" onclick="plSubTabParent('criteres')">Critères de sélection</button>
-      <button class="cfg-tab" id="pl-subtab-planning" onclick="plSubTab('planning',this)">Détail des tenues</button>
       <button class="cfg-tab" id="pl-subtab-sujets" onclick="plSubTab('sujets',this)">Sujets de planches</button>
       <button class="cfg-tab" id="pl-subtab-symbolisme" onclick="plSubTab('symbolisme',this)">Sujets de symbolisme</button>
       <button class="cfg-tab" id="pl-subtab-suivi" onclick="plSubTab('suivi',this)">Suivi — Par frère</button>
@@ -19466,7 +19085,7 @@ function plGenererSelonCriteres(){
 var PL_CRITERES_ENFANTS=['critmens','obligatoires','candidature','deuxieme','troisieme'];
 function plSubTab(name, btn){
   _currentPlSubTab = name;
-  document.querySelectorAll('#pl-subtab-bareme,#pl-subtab-criteres-parent,#pl-subtab-critmens,#pl-subtab-obligatoires,#pl-subtab-candidature,#pl-subtab-deuxieme,#pl-subtab-troisieme,#pl-subtab-planning,#pl-subtab-sujets,#pl-subtab-symbolisme,#pl-subtab-suivi,#pl-subtab-suivi-tenue,#pl-subtab-planches,#pl-subtab-procedure').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('#pl-subtab-bareme,#pl-subtab-criteres-parent,#pl-subtab-critmens,#pl-subtab-obligatoires,#pl-subtab-candidature,#pl-subtab-deuxieme,#pl-subtab-troisieme,#pl-subtab-sujets,#pl-subtab-symbolisme,#pl-subtab-suivi,#pl-subtab-suivi-tenue,#pl-subtab-planches,#pl-subtab-procedure').forEach(function(b){b.classList.remove('active');});
   var estEnfantCriteres=(PL_CRITERES_ENFANTS.indexOf(name)>=0);
   var subbar=document.getElementById('pl-criteres-subbar');
   var plBtnWrap=document.getElementById('pl-btn-imprimer-wrap');
@@ -21600,8 +21219,6 @@ function plInitPage(){
   plProcedureLoad();
   plFonctLoadAll();
   // Afficher l'onglet Détail des tenues par défaut
-  var btnPlanning=document.getElementById('pl-subtab-planning');
-  if(btnPlanning) plSubTab('planning', btnPlanning);
 }
 
 // Génère automatiquement les tenues manquantes selon les règles de Config et la période.
