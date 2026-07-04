@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.161</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.162</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17190,6 +17190,14 @@ function tiFieldChange(id,field,val){
 function tiPlanifierToutes(){
   if(!D.tenuesImp||!D.tenuesImp.length){toast('Aucune tenue impérative définie.');return;}
   var plData=plLoad();if(!plData.events)plData.events=[];
+  var _cTi=plCriteresLoad()||{};
+  var _tiDeb=_cTi.dateDebut||'';
+  var _tiFin=_cTi.dateFin||'';
+  function _dansLesBornes(d){
+    if(_tiDeb&&d<_tiDeb) return false;
+    if(_tiFin&&d>_tiFin) return false;
+    return true;
+  }
   var ok=0,skip=0;
   D.tenuesImp.forEach(function(ti){
     var dateFin='';
@@ -17199,9 +17207,14 @@ function tiPlanifierToutes(){
     }
     if(!dateFin&&ti.dateAlt) dateFin=ti.dateAlt;
     if(!dateFin){skip++;return;}
-    // Si date occupée et dateAlt disponible, utiliser dateAlt
+    // Si hors bornes, essayer dateAlt
+    if(!_dansLesBornes(dateFin)){
+      if(ti.dateAlt&&ti.dateAlt!==dateFin&&_dansLesBornes(ti.dateAlt)) dateFin=ti.dateAlt;
+      else{skip++;return;}
+    }
+    // Si date occupée et dateAlt disponible et dans les bornes, utiliser dateAlt
     var conflit=plData.events.some(function(e){return e.date===dateFin&&!e.imperative;});
-    if(conflit&&ti.dateAlt&&ti.dateAlt!==dateFin) dateFin=ti.dateAlt;
+    if(conflit&&ti.dateAlt&&ti.dateAlt!==dateFin&&_dansLesBornes(ti.dateAlt)) dateFin=ti.dateAlt;
     plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
     plData.events.push({id:'pl'+Date.now()+'_'+dateFin,date:dateFin,titre:ti.theme||'Tenue impérative',heure:'',categorie:'tenue',degre:'1°',duree:0,notes:ti.note||'',imperative:true});
     ti.planifiedDate=dateFin;
@@ -17242,16 +17255,6 @@ function tiPlanifier(id){
   plSave(plData);
   ti.planifiedDate=dateFin;
   save();tiRender();
-  // Étendre la plage UNIQUEMENT si des dates étaient déjà définies (ne pas initialiser une plage vide)
-  var _iDeb=document.getElementById('pl-crit-date-debut');
-  var _iFin=document.getElementById('pl-crit-date-fin');
-  if(_iDeb&&_iFin){
-    if(_iDeb.value&&dateFin<_iDeb.value) _iDeb.value=dateFin;
-    if(_iFin.value&&dateFin>_iFin.value) _iFin.value=dateFin;
-  }
-  _plCritSemaines=[];
-  document.querySelectorAll('#pl-crit-semaines .pl-sbtn').forEach(function(b){b.classList.remove('on');});
-  plCriteresSave();
   var dp=dateFin.split('-');
   var dAff=dp[2]+'/'+dp[1]+'/'+dp[0];
   toast('✓ Tenue « '+(ti.theme||'Tenue impérative')+' » ajoutée le '+dAff+' dans le planning.');
