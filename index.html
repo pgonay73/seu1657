@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.158</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.159</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -21404,12 +21404,16 @@ function adminPlRenderCriteres(){
   }
   h+='</select></div>';
   h+='<div><label style="'+lblS+'">Semaine(s) du mois</label>';
-  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">';
   var semLabels=['1ère','2ème','3ème','4ème','5ème'];
   for(var s=1;s<=5;s++){
     var on=(sems.indexOf(s)>=0);
     h+='<button type="button" class="pl-sbtn'+(on?' on':'')+'" data-s="'+s+'" onclick="admToggleCritSem('+s+',this)">'+semLabels[s-1]+'</button>';
   }
+  h+='<span style="margin-left:6px;font-size:11px;">';
+  h+='<a href="#" onclick="admSelectAllSems();return false;" style="color:var(--gold2);text-decoration:none;">Tout</a>';
+  h+=' / <a href="#" onclick="admSelectNoSems();return false;" style="color:rgba(255,255,255,.4);text-decoration:none;">Aucune</a>';
+  h+='</span>';
   h+='</div></div>';
   h+='</div>';
   // Modèle par défaut
@@ -21472,6 +21476,16 @@ function admResetCriteres(){
   var dM=document.getElementById('adm-crit-modele'); if(dM) dM.value='';
   _plCritSemaines=[];
   document.querySelectorAll('.pl-sbtn').forEach(function(b){b.classList.remove('on');});
+  admCritSave();
+}
+function admSelectAllSems(){
+  _plCritSemaines=[1,2,3,4,5];
+  document.querySelectorAll('.pl-sbtn[data-s]').forEach(function(b){b.classList.add('on');});
+  admCritSave();
+}
+function admSelectNoSems(){
+  _plCritSemaines=[];
+  document.querySelectorAll('.pl-sbtn[data-s]').forEach(function(b){b.classList.remove('on');});
   admCritSave();
 }
 
