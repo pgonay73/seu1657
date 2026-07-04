@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.154</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.155</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19524,8 +19524,10 @@ function plRenderPlanning(targetId){
     var ferie=plJourFerie(e.date);
     var bgFerie=ferie?'background:rgba(255,80,80,.07);':'';
     var modeleAff='';
-    if(e.modeleId){var _m=(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0];if(_m)modeleAff='<span style="font-size:10px;color:rgba(184,146,42,.75);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.25);border-radius:3px;padding:1px 5px;">'+_m.nom+'</span>';}
-    var _detDur=e.detail&&e.detail.length?e.detail:(D.parDefaut||[]);
+    var _modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
+    if(_modRef)modeleAff='<span style="font-size:10px;color:rgba(184,146,42,.75);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.25);border-radius:3px;padding:1px 5px;">'+_modRef.nom+'</span>';
+    var _modRefParties=_modRef&&(_modRef.parties||[]).length?_modRef.parties:null;
+    var _detDur=e.detail&&e.detail.length?e.detail:(_modRefParties||(D.parDefaut||[]));
     var _dureeEff=_detDur.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0);
     var dureeEffAff='';
     if(_dureeEff>0){var _hE=Math.floor(_dureeEff/60),_mE=_dureeEff%60;dureeEffAff='<span style="font-size:10px;color:rgba(255,255,255,.45);white-space:nowrap;">⏱ '+(_hE>0?_hE+'h'+(_mE>0?String(_mE).padStart(2,'0'):''):_dureeEff+' min')+'</span>';}
@@ -19558,7 +19560,7 @@ function plRenderPlanning(targetId){
       +'</tr>';
     // Ligne dépliable : détail du découpage par module de cette tenue,
     // Ligne dépliable : détail de la tenue (parties avec nom et durée)
-    var detailParties=e.detail&&e.detail.length?e.detail:(D.parDefaut||[]);
+    var detailParties=e.detail&&e.detail.length?e.detail:(_modRefParties||(D.parDefaut||[]));
     h+='<tr id="pl-detail-row-'+eid+'" style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
     h+='<td></td>';
     h+='<td colspan="5" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
