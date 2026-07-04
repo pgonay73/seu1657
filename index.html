@@ -695,7 +695,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.126</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.127</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -16988,6 +16988,11 @@ function tiRender(containerId){
     if(ti.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;">&#10003; '+ti.planifiedDate+'</span>';}
     h+='<div style="'+cardS+'">';
     h+='<div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:center;">';
+    // Flèches ordre
+    h+='<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:2px;">';
+    h+='<button onclick="tiMonter(\''+id+'\')" title="Monter" '+(i===0?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:3px;color:#FFFFFF;cursor:pointer;padding:1px 6px;font-size:10px;line-height:1.4;'+(i===0?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9650;</button>';
+    h+='<button onclick="tiDescendre(\''+id+'\')" title="Descendre" '+(i===D.tenuesImp.length-1?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:3px;color:#FFFFFF;cursor:pointer;padding:1px 6px;font-size:10px;line-height:1.4;'+(i===D.tenuesImp.length-1?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9660;</button>';
+    h+='</div>';
     // Titre
     h+='<div style="flex:0 1 170px;min-width:110px;">';
     h+='<input type="text" value="'+th+'" placeholder="Ex : Installation" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tiFieldChange(\''+id+'\',\'theme\',this.value)"/>';
@@ -17039,8 +17044,6 @@ function tiRender(containerId){
     // Badge + boutons
     h+='<div style="flex:0 0 auto;display:flex;align-items:center;gap:4px;">';
     if(badge) h+=badge;
-    h+='<button onclick="tiMonter(\''+id+'\')" title="Monter" '+(i===0?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 7px;font-size:11px;'+(i===0?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9650;</button>';
-    h+='<button onclick="tiDescendre(\''+id+'\')" title="Descendre" '+(i===D.tenuesImp.length-1?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 7px;font-size:11px;'+(i===D.tenuesImp.length-1?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9660;</button>';
     h+='<button onclick="tiPlanifier(\''+id+'\')" title="Créer dans le planning" style="background:#B8922A;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 10px;font-size:11px;font-weight:600;white-space:nowrap;">&#8594; Planning</button>';
     h+='<button onclick="tiSupprimer(\''+id+'\')" title="Supprimer" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 7px;font-size:12px;">&#128465;</button>';
     h+='</div>';
