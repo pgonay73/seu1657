@@ -695,7 +695,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.128</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.129</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13332,7 +13332,7 @@ function renderOffice(n){
     c+='<div id="admin-pl-l1-prog">';
     c+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;flex-wrap:wrap;">';
     c+='<button class="cfg-tab active" id="admin-pl-tab-procedure" onclick="adminPlTab(\'procedure\',this)">Procédure</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)">Critères / Tenues impératives</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)">Critères de sélection</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)">Modèles de tenues</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-detail" onclick="adminPlTab(\'detail\',this)">Détail tenue</button>';
     c+='</div>';
@@ -13341,7 +13341,7 @@ function renderOffice(n){
     c+='<p style="font-size:13px;color:var(--grey);margin-bottom:14px;">Définissez ici la procédure de planification des tenues.</p>';
     c+='</div></div>';
     c+='<div id="admin-pl-panel-tenuesImp" style="display:none;">';
-    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Critères de sélection — Tenues impératives</h3>';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Critères de sélection</h3>';
     c+='<p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Définissez les tenues à organiser impérativement dans l\'année. Pour chaque tenue, indiquez la date conseillée et une date de substitution. Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning (la date de substitution est utilisée automatiquement si la date conseillée est déjà occupée).</p>';
     c+='<div id="admin-ti-list"></div>';
     c+='</div></div>';
@@ -13356,10 +13356,7 @@ function renderOffice(n){
     c+='<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="peAdd(\'admin-pl-pe-defaut\')">+ Ajouter une ligne</button>';
     c+='</div></div>';
     c+='</div>';
-    // ─ L1.B : Planning des tenues sans planches ─
-    c+='<div id="admin-pl-l1-sans" style="display:none;">';
-    c+='<div id="admin-pl-panel-planning" style="display:none;"></div>';
-    c+='</div>';
+    // ─ L1.B : Planning des tenues sans planches — navigation directe, pas de panel ─
     // ─ L1.C : Programmation des planches ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
     c+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;flex-wrap:wrap;">';
@@ -15180,7 +15177,7 @@ function adminPlL1Tab(name,btn){
     var b=document.getElementById('admin-pl-l1-btn-'+n);
     if(b) b.style.cssText=(n===name?_aS:_iS);
     var p=document.getElementById('admin-pl-l1-'+n);
-    if(p) p.style.display=n===name?'':'none';
+    if(p) p.style.display=(n===name&&name!=='sans')?'':'none';
   });
   if(name==='prog'){
     var mb=document.getElementById('admin-pl-tab-procedure');
