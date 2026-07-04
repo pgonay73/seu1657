@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.163</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.164</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17005,8 +17005,15 @@ function tiMoisOptions(sel){
 }
 
 function tiComputeDate(mois, rang){
+  var _cTic=plCriteresLoad()||{};
+  var _perRef=_cTic.dateDebut||(D.loge&&D.loge.periodeDebut)||'';
   var annee=new Date().getFullYear();
-  if(D.loge&&D.loge.periodeDebut) annee=parseInt(D.loge.periodeDebut.substr(0,4))||annee;
+  if(_perRef) annee=parseInt(_perRef.substr(0,4))||annee;
+  // Saison maçonnique : si le mois cible est antérieur au mois de début
+  // de la période (ex. période=sept→juin, mois cible=janvier), la tenue
+  // se situe dans la deuxième année de la saison.
+  var moisDebut=_perRef?parseInt(_perRef.substr(5,2))||9:9;
+  if(mois<moisDebut) annee+=1;
   var mo=mois-1;
   var dates=[];
   var seen={};
@@ -17039,6 +17046,15 @@ function tiRender(containerId){
   if(!D.tenuesImp)D.tenuesImp=[];
   var el=document.getElementById(containerId||'admin-ti-list');
   if(!el)return;
+  var _cTiR=plCriteresLoad()||{};
+  var _tiRDeb=_cTiR.dateDebut||'';
+  var _tiRFin=_cTiR.dateFin||'';
+  function _tiInBornes(d){
+    if(!d) return false;
+    if(_tiRDeb&&d<_tiRDeb) return false;
+    if(_tiRFin&&d>_tiRFin) return false;
+    return true;
+  }
   var btnAjout='<button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="tiAjouter()">+ Ajouter une tenue impérative</button>';
   if(!D.tenuesImp.length){
     el.innerHTML='<p style="font-size:13px;color:var(--grey);font-style:italic;margin:12px 0;">Aucune tenue impérative définie.</p>'+btnAjout;
@@ -17091,25 +17107,39 @@ function tiRender(containerId){
     (function(){
       var dateCible='';
       if(ti.moisTheorique) dateCible=tiComputeDate(parseInt(ti.moisTheorique),parseInt(ti.rangTheorique)||1);
-      var dTxt='',dCol='var(--grey)';
-      if(dateCible){var p=dateCible.split('-');dTxt=p[2]+'/'+p[1]+'/'+p[0];dCol='var(--gold)';}
-      else if(ti.moisTheorique){dTxt='—';}
+      var dTxt='',dCol='var(--grey)',dBorder='rgba(255,255,255,.12)',dBg='rgba(255,255,255,.04)',dTitle='';
+      if(dateCible){
+        var p=dateCible.split('-');
+        dTxt=p[2]+'/'+p[1]+'/'+p[0];
+        if(_tiInBornes(dateCible)){
+          dCol='var(--gold)'; dBorder='rgba(184,146,42,.4)';
+        } else {
+          dCol='#E74C3C'; dBorder='rgba(231,76,60,.5)'; dBg='rgba(231,76,60,.08)';
+          dTxt='⚠ '+dTxt;
+          dTitle=' title="Hors des bornes du planning"';
+        }
+      } else if(ti.moisTheorique){dTxt='—';}
       h+='<div style="flex:0 0 auto;">';
-      h+='<span id="ti-dh-'+id+'" style="font-size:12px;color:'+dCol+';font-style:italic;padding:4px 6px;border:1px solid rgba(255,255,255,.12);border-radius:4px;background:rgba(255,255,255,.04);white-space:nowrap;display:inline-block;">'+dTxt+'</span>';
+      h+='<span id="ti-dh-'+id+'"'+dTitle+' style="font-size:12px;color:'+dCol+';font-style:italic;padding:4px 6px;border:1px solid '+dBorder+';border-radius:4px;background:'+dBg+';white-space:nowrap;display:inline-block;">'+dTxt+'</span>';
       h+='</div>';
     })();
-    // Date substitution
+    // Date substitution — filtrée aux bornes du planning si définies
     (function(){
       var _seen={},dates=[];
       getTenues().forEach(function(t){if(t.date&&!_seen[t.date]){_seen[t.date]=true;dates.push(t.date);}});
+      // Aussi ajouter les dates du planning libre dans les bornes
+      var _plDts=plLoad();
+      (_plDts.events||[]).forEach(function(t){if(t.date&&!_seen[t.date]&&_tiInBornes(t.date)){_seen[t.date]=true;dates.push(t.date);}});
       dates.sort();
       var opts='<option value="">— Aucune —</option>';
       var JN=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
       for(var di=0;di<dates.length;di++){
         var ds=dates[di];
+        if(!_tiInBornes(ds)&&ds!==ti.dateAlt) continue; // masquer hors bornes sauf si déjà sélectionné
         var dp=ds.split('-');
         var dObj=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]));
         var lbl=JN[dObj.getDay()]+' '+dp[2]+'/'+dp[1]+'/'+dp[0];
+        if(!_tiInBornes(ds)) lbl='⚠ '+lbl; // hors bornes mais sélectionné : avertissement
         opts+='<option value="'+ds+'"'+(ti.dateAlt===ds?' selected':'')+'>'+lbl+'</option>';
       }
       h+='<div style="flex:0 0 auto;">';
@@ -17143,10 +17173,14 @@ function tiDateHint(id){
   }
   if(dateCible){
     var parts=dateCible.split('-');
-    el.style.color='var(--gold)';
-    el.innerHTML=parts[2]+'/'+parts[1]+'/'+parts[0];
+    var _c2=plCriteresLoad()||{};
+    var inB=(!_c2.dateDebut||dateCible>=_c2.dateDebut)&&(!_c2.dateFin||dateCible<=_c2.dateFin);
+    el.style.color=inB?'var(--gold)':'#E74C3C';
+    el.title=inB?'':'Hors des bornes du planning';
+    el.innerHTML=(inB?'':'⚠ ')+parts[2]+'/'+parts[1]+'/'+parts[0];
   } else if(ti.moisTheorique){
     el.style.color='var(--grey)';
+    el.title='';
     el.innerHTML='—';
   } else {
     el.innerHTML='';
