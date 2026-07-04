@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.160</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.161</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -21439,6 +21439,10 @@ function adminPlRenderCriteres(){
   h+='</select>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé lors de la génération automatique des tenues.</div>';
   h+='</div>';
+  h+='<div style="margin-bottom:22px;">';
+  h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Transférer au planning</button>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères ci-dessus et les ajoute au planning. Les dates déjà présentes ne sont pas écrasées.</div>';
+  h+='</div>';
   h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">';
   h+='<button class="pl-btn pl-btn-outline pl-btn-sm" onclick="admResetCriteres()">Réinitialiser les critères</button>';
   h+='<button class="pl-btn pl-btn-sm" onclick="plViderPlanning()" style="background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#E74C3C;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:4px;cursor:pointer;">🗑 Nouveau planning (vider tout)</button>';
@@ -21496,6 +21500,79 @@ function admSelectNoSems(){
   _plCritSemaines=[];
   document.querySelectorAll('.pl-sbtn[data-s]').forEach(function(b){b.classList.remove('on');});
   admCritSave();
+}
+function admTransfererAuPlanning(){
+  var c=plCriteresLoad()||{};
+  var perDeb=c.dateDebut||'';
+  var perFin=c.dateFin||'';
+  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
+  var semaines=c.semaines||[];
+  var heure=c.heure||'19:30';
+  var modeleId=c.modeleDefaut||'';
+
+  if(!perDeb||!perFin){toast('⚠ Définissez les dates début et fin dans les critères.');return;}
+  if(jourCrit<0){toast('⚠ Sélectionnez un jour de la semaine dans les critères.');return;}
+
+  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+  var mdef=modeleId?getModele(modeleId):getModeleDefaut();
+
+  var nouvelles=[];
+  var cur=new Date(debut.getTime());
+  while(cur<=fin){
+    var y=cur.getFullYear(), mo=cur.getMonth();
+    var occs=[];
+    for(var day=1;day<=31;day++){
+      var dd=new Date(y,mo,day);
+      if(dd.getMonth()!==mo) break;
+      var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+      if(js===jourCrit) occs.push(new Date(dd.getTime()));
+    }
+    for(var oi=0;oi<occs.length;oi++){
+      var occ=occs[oi], numSem=oi+1, include=(semaines.length===0);
+      if(!include){
+        for(var si=0;si<semaines.length;si++){
+          if(semaines[si]===5){if(numSem===5&&occs.length===5)include=true;}
+          else{if(semaines[si]===numSem)include=true;}
+        }
+      }
+      if(include&&occ>=debut&&occ<=fin){
+        var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
+        nouvelles.push(ds);
+      }
+    }
+    if(mo===11) cur=new Date(y+1,0,1);
+    else cur=new Date(y,mo+1,1);
+  }
+
+  if(!nouvelles.length){toast('⚠ Aucune date générée avec ces critères.');return;}
+
+  var data=plLoad(); if(!data.events) data.events=[];
+  var existByDate={};
+  data.events.forEach(function(e){existByDate[e.date]=true;});
+
+  var added=0, skipped=0;
+  nouvelles.forEach(function(ds){
+    if(existByDate[ds]){skipped++;return;}
+    var gid='gen_'+ds.replace(/-/g,'');
+    var partiesG=mdef?cpP(mdef.parties||[]):cpP(D.parDefaut||[]);
+    data.events.push({
+      id:gid, date:ds, heure:heure, type:'', titre:'', notes:'',
+      ferie:isFerie(new Date(ds+'T12:00:00')),
+      parties:partiesG, modeleId:mdef?mdef.id:'', orateurs:[], officiers:[]
+    });
+    added++;
+  });
+
+  if(added>0){
+    data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    plSave(data);
+    var msg='✓ '+added+' tenue'+(added>1?'s':'')+' transférée'+(added>1?'s':'')+' dans le planning.';
+    if(skipped) msg+=' ('+skipped+' date'+(skipped>1?'s déjà présentes':' déjà présente')+')';
+    toast(msg);
+    plLibreAutoriserEtOuvrir();
+  } else {
+    toast('Toutes les dates ('+skipped+') sont déjà présentes dans le planning.');
+  }
 }
 
 function plInitPage(){
