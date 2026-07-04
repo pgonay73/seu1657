@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.171</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.172</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1451,8 +1451,28 @@ try {
     'tenuesSpec','inv-infos-loge','accueil_cartes'
   ];
   window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
-  // Effacer les timestamps locaux pour toujours lire depuis Firebase au démarrage
-  _FB_ALL_KEYS.forEach(function(k){ try{localStorage.removeItem(k+'_localTs');}catch(e){} });
+  // Effacer les timestamps locaux pour toujours lire depuis Firebase au démarrage.
+  // EXCEPTION : planning_libre_data conserve son timestamp local — son contenu
+  // (tenues gen_*) a été corrompu par Firebase avant v163 ; sans cette protection
+  // Firebase écraserait les données locales correctes avec ses données obsolètes.
+  _FB_ALL_KEYS.forEach(function(k){
+    if(k==='planning_libre_data') return; // protégé : timestamp local conservé
+    try{localStorage.removeItem(k+'_localTs');}catch(e){}
+  });
+  // Réparer Firebase si le planning local est plus complet que ce que Firebase a stocké :
+  // au premier chargement post-v172, ré-uploader les données locales vers Firebase.
+  (function(){
+    try{
+      var _plLoc=localStorage.getItem('planning_libre_data');
+      var _plLocTs=parseInt(localStorage.getItem('planning_libre_data_localTs'),10)||0;
+      if(_plLoc&&_plLocTs===0){
+        // Pas encore de timestamp → première visite ou données sans timestamp.
+        // Forcer un fbSet pour que Firebase soit aligné sur le local.
+        var _plLocParsed=JSON.parse(_plLoc);
+        setTimeout(function(){if(window.fbSet)window.fbSet('planning_libre_data',_plLocParsed);},3000);
+      }
+    }catch(e){}
+  })();
   // Afficher le bandeau de chargement
   (function(){ var b=document.getElementById('fb-loading-banner'); if(b) b.style.display='block'; })();
   var _fbLoaded = 0, _fbErrors = 0;
