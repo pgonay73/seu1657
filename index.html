@@ -695,7 +695,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-03.131</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.132</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17427,24 +17427,7 @@ var PA_SUGGESTIONS_MOIS={
       </div>
     </div>
 
-    <div style="display:flex;gap:0;border-bottom:2px solid var(--cream);margin-bottom:0;flex-wrap:wrap;">
-      <button class="cfg-tab active" id="pl-subtab-planning" onclick="plSubTab('planning',this)">📅 Tenues</button>
-      <button class="cfg-tab" id="pl-subtab-sujets" onclick="plSubTab('sujets',this)">Sujets de planches</button>
-      <button class="cfg-tab" id="pl-subtab-symbolisme" onclick="plSubTab('symbolisme',this)">Sujets de symbolisme</button>
-      <button class="cfg-tab" id="pl-subtab-suivi" onclick="plSubTab('suivi',this)">Suivi — Par frère</button>
-      <button class="cfg-tab" id="pl-subtab-suivi-tenue" onclick="plSubTab('suivi-tenue',this)">Suivi — Par tenue</button>
-      <button class="cfg-tab" id="pl-subtab-planches" onclick="plSubTab('planches',this)">📋 Dispo P/S</button>
-      <button class="cfg-tab" id="pl-subtab-procedure" onclick="plSubTab('procedure',this)">📝 Procédure</button>
-      <span id="pl-btn-imprimer-wrap" style="margin-left:auto;align-self:center;"><button onclick="dispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button></span>
-    </div>
-    <div id="pl-criteres-subbar" style="display:none !important;gap:0;border-bottom:2px solid var(--cream);margin-bottom:16px;flex-wrap:wrap;padding-left:18px;background:rgba(255,255,255,.03);"hidden>>
-      <button class="cfg-tab cfg-subtab active" id="pl-subtab-critmens" onclick="plSubTab('critmens',this)">Critères de sélection mensuels</button>
-      <button class="cfg-tab cfg-subtab" id="pl-subtab-obligatoires" onclick="plSubTab('obligatoires',this)">Tenues obligatoires</button>
-      <button class="cfg-tab cfg-subtab" id="pl-subtab-candidature" onclick="plSubTab('candidature',this)">Tenues/candidature</button>
-      <button class="cfg-tab cfg-subtab" id="pl-subtab-deuxieme" onclick="plSubTab('deuxieme',this)">Tenues au 2°</button>
-      <button class="cfg-tab cfg-subtab" id="pl-subtab-troisieme" onclick="plSubTab('troisieme',this)">Tenues au 3°</button>
-      <button onclick="dispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>
-    </div>
+    <div id="pl-criteres-subbar" style="display:none !important;" hidden></div>
     <div style="margin-bottom:16px;"></div>
 
     <!-- ── Sous-onglet : Critères de sélection mensuels ── -->
@@ -17486,84 +17469,6 @@ var PA_SUGGESTIONS_MOIS={
           <button class="pl-btn pl-btn-red pl-btn-sm" onclick="plViderPlanning()">🗑 Vider tout le planning</button>
           <span style="font-size:11px;color:rgba(255,255,255,.4);">Pour générer, 3 critères sont obligatoires : Date début, Date fin, Jour de la semaine et au moins une Semaine du mois.</span>
         </div>
-      </div>
-      <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-          <h4 style="margin:0;font-size:12px;">Observations</h4>
-                  </div>
-        <textarea id="pl-fonct-critmens" rows="2" oninput="obsAutoResize(this)" oninput="plFonctSave('critmens')" onblur="plFonctSave('critmens')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;width:100%;box-sizing:border-box;" placeholder="Observations…"></textarea>
-        </div>
-    </div>
-
-    <!-- ── Sous-onglet : Tenues obligatoires ── -->
-    <div id="pl-sub-obligatoires" style="display:none;">
-      <div class="pl-cfg-box" id="pl-obligatoires-imprimable" style="margin-bottom:14px;background:rgba(255,255,255,.05);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-          <h4 style="margin:0;">Tenues obligatoires</h4>
-          <div style="display:flex;gap:8px;">
-          </div>
-        </div>
-        <div id="pl-obl-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
-      </div>
-      <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-          <h4 style="margin:0;font-size:12px;">Observations</h4>
-                  </div>
-        <textarea id="pl-fonct-obligatoires" rows="2" oninput="obsAutoResize(this)" oninput="plFonctSave('obligatoires')" onblur="plFonctSave('obligatoires')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;width:100%;box-sizing:border-box;" placeholder="Observations…"></textarea>
-      </div>
-    </div>
-
-    <!-- ── Sous-onglet : Tenues/candidature ── -->
-    <div id="pl-sub-candidature" style="display:none;">
-      <div class="pl-cfg-box" id="pl-candidature-imprimable" style="margin-bottom:14px;background:rgba(255,255,255,.05);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-          <h4 style="margin:0;">Tenues/candidature</h4>
-          <div style="display:flex;gap:8px;">
-          </div>
-        </div>
-        <div id="pl-cons-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
-      </div>
-      <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-          <h4 style="margin:0;font-size:12px;">Observations</h4>
-                  </div>
-        <textarea id="pl-fonct-candidature" rows="2" oninput="obsAutoResize(this)" oninput="plFonctSave('candidature')" onblur="plFonctSave('candidature')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;width:100%;box-sizing:border-box;" placeholder="Observations…"></textarea>
-      </div>
-    </div>
-
-    <!-- ── Sous-onglet : Tenues au 2° ── -->
-    <div id="pl-sub-deuxieme" style="display:none;">
-      <div class="pl-cfg-box" id="pl-deuxieme-imprimable" style="margin-bottom:14px;background:rgba(255,255,255,.05);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-          <h4 style="margin:0;color:var(--gold2);">Tenues au 2° (trimestre)</h4>
-          <div style="display:flex;gap:8px;">
-          </div>
-        </div>
-        <div id="pl-cons2-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
-      </div>
-      <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-          <h4 style="margin:0;font-size:12px;">Observations</h4>
-                  </div>
-        <textarea id="pl-fonct-deuxieme" rows="2" oninput="obsAutoResize(this)" oninput="plFonctSave('deuxieme')" onblur="plFonctSave('deuxieme')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;width:100%;box-sizing:border-box;" placeholder="Observations…"></textarea>
-      </div>
-    </div>
-
-    <!-- ── Sous-onglet : Tenues au 3° ── -->
-    <div id="pl-sub-troisieme" style="display:none;">
-      <div class="pl-cfg-box" id="pl-troisieme-imprimable" style="margin-bottom:14px;background:rgba(255,255,255,.05);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
-          <h4 style="margin:0;color:var(--gold2);">Tenue au 3° (trimestre)</h4>
-          <div style="display:flex;gap:8px;">
-          </div>
-        </div>
-        <div id="pl-cons3-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
-      </div>
-      <div class="pl-cfg-box" style="margin-top:10px;background:rgba(255,255,255,.04);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
-          <h4 style="margin:0;font-size:12px;">Observations</h4>
-                  </div>
-        <textarea id="pl-fonct-troisieme" rows="2" oninput="obsAutoResize(this)" oninput="plFonctSave('troisieme')" onblur="plFonctSave('troisieme')" style="width:100%;box-sizing:border-box;background:var(--white);border:1px solid var(--cream);color:var(--text);font-size:12px;font-family:inherit;padding:9px 12px;border-radius:4px;resize:none;overflow:hidden;line-height:1.6;min-height:48px;width:100%;box-sizing:border-box;" placeholder="Observations…"></textarea>
       </div>
     </div>
 
