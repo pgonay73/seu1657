@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.170</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.171</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19660,7 +19660,7 @@ function plRenderPlanning(targetId){
       +'<td style="text-align:center;color:'+cd+';font-weight:700;">'+deg+'</td>'
       +'<td style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>'
       +'<td style="text-align:center;font-weight:700;color:#C080D0;">'+(nbS>0?nbS:'')+'</td>'
-      +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+modeleAff+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div>'+_inlineInfo+'</div><div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0;"><button onclick="plOpenForm(&quot;'+eid+'&quot;)" title="Modifier la tenue (titre, date, heure, degré, rubriques…)" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:13px;padding:2px 7px;">✏️</button><button onclick="plDeleteDirect(&quot;'+eid+'&quot;)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:13px;padding:2px 7px;">🗑</button></div></div></td>'
+      +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+modeleAff+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div>'+_inlineInfo+'</div><div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0;"><button onclick="plDetailOuvrir(&quot;'+eid+'&quot;)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:13px;padding:2px 7px;">✏️</button><button onclick="plDeleteDirect(&quot;'+eid+'&quot;)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:13px;padding:2px 7px;">🗑</button></div></div></td>'
       +'</tr>';
     // Ligne dépliable : détail du découpage par module de cette tenue,
     // Ligne dépliable : détail de la tenue (parties avec nom et durée)
@@ -19735,6 +19735,13 @@ function plRenderPlanning(targetId){
       h+='<tr style="border-top:2px solid rgba(184,146,42,.4);"><td style="padding:4px 8px;color:var(--gold2);font-weight:700;">'+totDurDet+' min</td><td style="padding:4px 8px;color:rgba(255,255,255,.5);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Total</td><td></td></tr>';
       h+='</table>';
     }
+    // Dropdown "Ajouter un élément de tenue"
+    var _addOpts='<option value="">— Ajouter un élément —</option>';
+    (D.parDefaut||[]).forEach(function(pd,pdi){_addOpts+='<option value="'+pdi+'">'+pd.nom+(parseInt(pd.dur)?' ('+pd.dur+' min)':'')+'</option>';});
+    h+='<div style="margin-top:8px;display:flex;gap:6px;align-items:center;">'
+      +'<select id="pl-add-partie-sel-'+eid+'" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:4px 8px;font-size:12px;font-family:Raleway,sans-serif;flex:1;max-width:280px;">'+_addOpts+'</select>'
+      +'<button onclick="plDetailPartieAdd(\''+eid+'\')" style="background:rgba(184,146,42,.15);border:1px solid rgba(184,146,42,.45);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:12px;padding:4px 12px;font-weight:600;font-family:Raleway,sans-serif;white-space:nowrap;">+ Ajouter</button>'
+      +'</div>';
     h+='</td></tr>';
   });
   h+='</tbody></table>';
@@ -19838,6 +19845,28 @@ function plDetailPartieDown(eid,idx){
   var tmp=ev.detail[idx+1]; ev.detail[idx+1]=ev.detail[idx]; ev.detail[idx]=tmp;
   plSave(data);
   plRenderPlanning();
+}
+function plDetailPartieAdd(eid){
+  var sel=document.getElementById('pl-add-partie-sel-'+eid);
+  if(!sel||sel.value==='') return;
+  var idx=parseInt(sel.value);
+  var pdef=(D.parDefaut||[])[idx];
+  if(!pdef) return;
+  var data=plLoad();
+  var ev=null; for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev) return;
+  _plDetailEnsure(ev);
+  ev.detail.push({nom:pdef.nom, dur:parseInt(pdef.dur)||0});
+  plSave(data);
+  plRenderPlanning();
+}
+function plDetailOuvrir(eid){
+  var row=document.getElementById('pl-detail-row-'+eid);
+  var btn=document.getElementById('pl-detail-btn-'+eid);
+  if(!row) return;
+  row.style.display='table-row';
+  if(btn) btn.innerHTML='&#9660;';
+  setTimeout(function(){row.scrollIntoView({behavior:'smooth', block:'nearest'});}, 60);
 }
 
 // Onglet "Planches possibles par tenue" — récapitulatif indépendant du tableau
