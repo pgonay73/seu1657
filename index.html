@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.152</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.153</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -3975,7 +3975,10 @@ function renderLogeTag(){
 function renderPlanning(){}
 function renderPlanningInto(){}
 function getModeleDefaut(){
-  // Chercher un modele dont le nom evoque le 1er degre
+  // Priorité : modèle choisi dans les critères de sélection
+  var critMid=(plCriteresLoad()||{}).modeleDefaut||'';
+  if(critMid){var cm=getModele(critMid);if(cm)return cm;}
+  // Fallback heuristique : chercher un modele dont le nom evoque le 1er degre
   for(var i=0;i<D.modeles.length;i++){
     var n=D.modeles[i].nom.toLowerCase();
     if(n.indexOf('1')>=0||n.indexOf('premier')>=0||n.indexOf('apprent')>=0)return D.modeles[i];
@@ -21343,6 +21346,20 @@ function adminPlRenderCriteres(){
   }
   h+='</div></div>';
   h+='</div>';
+  // Modèle par défaut
+  h+='<div style="margin-bottom:22px;">';
+  h+='<label style="'+lblS+'">Modèle de tenue par défaut</label>';
+  h+='<select id="adm-crit-modele" onchange="admCritSave();" style="'+inS+';min-width:220px;">';
+  h+='<option value="">-- Aucun (heuristique) --</option>';
+  if(D.modeles&&D.modeles.length){
+    for(var mi=0;mi<D.modeles.length;mi++){
+      var mm=D.modeles[mi];
+      h+='<option value="'+mm.id+'"'+(c.modeleDefaut===mm.id?' selected':'')+'>'+mm.nom+'</option>';
+    }
+  }
+  h+='</select>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé lors de la génération automatique des tenues.</div>';
+  h+='</div>';
   h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">';
   h+='<button class="pl-btn pl-btn-outline pl-btn-sm" onclick="admResetCriteres()">Réinitialiser les critères</button>';
   h+='<button class="pl-btn pl-btn-sm" onclick="plViderPlanning()" style="background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#E74C3C;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:4px;cursor:pointer;">🗑 Nouveau planning (vider tout)</button>';
@@ -21365,7 +21382,8 @@ function admCritSave(){
     dateFin:(document.getElementById('adm-crit-date-fin')||{}).value||'',
     jour:(document.getElementById('adm-crit-jour')||{}).value||'',
     heure:(document.getElementById('pl-crit-heure')||{}).value||'',
-    semaines:_plCritSemaines.slice()
+    semaines:_plCritSemaines.slice(),
+    modeleDefaut:(document.getElementById('adm-crit-modele')||{}).value||''
   };
   try{localStorage.setItem(PL_CRITERES_KEY,JSON.stringify(data));}catch(e){}
   if(window.fbSet) window.fbSet(PL_CRITERES_KEY,data);
@@ -21385,6 +21403,7 @@ function admResetCriteres(){
   var dD=document.getElementById('adm-crit-date-debut'); if(dD) dD.value='';
   var dF=document.getElementById('adm-crit-date-fin'); if(dF) dF.value='';
   var dJ=document.getElementById('adm-crit-jour'); if(dJ) dJ.value='';
+  var dM=document.getElementById('adm-crit-modele'); if(dM) dM.value='';
   _plCritSemaines=[];
   document.querySelectorAll('.pl-sbtn').forEach(function(b){b.classList.remove('on');});
   admCritSave();
