@@ -483,8 +483,9 @@ input, select, textarea { color: #1E3660; }
     window._seedTenues=_seedReal;
     try{
       var _plNow=null;try{_plNow=JSON.parse(localStorage.getItem('planning_libre_data'));}catch(e){}
-      var _plNowReal=(_plNow&&_plNow.events?_plNow.events:[]).filter(function(e){return e.id&&e.id.indexOf('gen_')!==0;});
-      if(_seedReal.length>0&&_plNowReal.length===0){
+      // v167 : inclure les gen_* dans le test — un planning avec uniquement des gen_* est valide
+      var _plNowAny=(_plNow&&_plNow.events?_plNow.events:[]);
+      if(_seedReal.length>0&&_plNowAny.length===0){
         localStorage.setItem('planning_libre_data',JSON.stringify({events:_seedReal}));
       }
     }catch(e){}
@@ -703,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.167</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.168</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1535,8 +1536,9 @@ try {
         // v120 — si planning_libre_data toujours vide après Firebase, re-seeder depuis tenues embarquées
         try{
           var _plPost=plLoad();
-          var _plPostReal=(_plPost.events||[]).filter(function(e){return e.id&&e.id.indexOf('gen_')!==0;});
-          if(_plPostReal.length===0&&window._seedTenues&&window._seedTenues.length){
+          // v167 : inclure les gen_* dans le test — un planning avec uniquement des gen_* est valide
+          var _plPostAny=(_plPost.events||[]);
+          if(_plPostAny.length===0&&window._seedTenues&&window._seedTenues.length){
             var _seedIds4={}; (_plPost.events||[]).forEach(function(e){if(e.id)_seedIds4[e.id]=true;});
             var _seedAdd4=0;
             if(!_plPost.events)_plPost.events=[];
