@@ -695,7 +695,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.141</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.142</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -15207,12 +15207,12 @@ function adminPlTab(name, btn){
     var p=document.getElementById('admin-pl-panel-'+subTabs[j]);
     if(p) p.style.display=subTabs[j]===name?'':'none';
   }
-  if(name==='planning'||name==='criteres'){
+  if(name==='planning'){
     window._plFromAdmin=true;
     plLibreAutoriserEtOuvrir();
-    if(name==='criteres') setTimeout(function(){plSubTabParent();},200);
     return;
   }
+  if(name==='criteres'){ setTimeout(adminPlRenderCriteres,0); return; }
   if(name==='procedure') return;
   if(name==='modeles') setTimeout(function(){ renderModeles(); },0);
   if(name==='detail') setTimeout(function(){
@@ -21285,6 +21285,89 @@ function plRenderAdminNav(containerId){
   h+='</div>';
   el.innerHTML=h;
   el.style.display='';
+}
+
+// ── Admin : Critères de sélection ─────────────────────────────────────────
+function adminPlRenderCriteres(){
+  var el=document.getElementById('admin-pl-panel-criteres');
+  if(!el) return;
+  var c=plCriteresLoad();
+  var sems=c.semaines||[];
+  var joursOpts=[
+    {v:'',l:'Tous'},
+    {v:'0',l:'Lundi'},{v:'1',l:'Mardi'},{v:'2',l:'Mercredi'},{v:'3',l:'Jeudi'},
+    {v:'4',l:'Vendredi'},{v:'5',l:'Samedi'},{v:'6',l:'Dimanche'}
+  ];
+  var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
+  var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
+  var h='<div class="cfg-box">';
+  h+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Critères de sélection</h3>';
+  // Dates bornes
+  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px;align-items:flex-end;">';
+  h+='<div><label style="'+lblS+'">Date début</label>';
+  h+='<input type="date" id="adm-crit-date-debut" value="'+(c.dateDebut||'')+'" onchange="admProposerDateFin();admCritSave();" style="'+inS+'"></div>';
+  h+='<div><label style="'+lblS+'">Date fin</label>';
+  h+='<input type="date" id="adm-crit-date-fin" value="'+(c.dateFin||'')+'" onchange="admCritSave();" style="'+inS+'"></div>';
+  h+='</div>';
+  // Jour + semaines
+  h+='<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;margin-bottom:22px;">';
+  h+='<div><label style="'+lblS+'">Jour de la semaine</label>';
+  h+='<select id="adm-crit-jour" onchange="admCritSave();" style="'+inS+'">';
+  for(var i=0;i<joursOpts.length;i++){
+    h+='<option value="'+joursOpts[i].v+'"'+(c.jour===joursOpts[i].v?' selected':'')+'>'+joursOpts[i].l+'</option>';
+  }
+  h+='</select></div>';
+  h+='<div><label style="'+lblS+'">Semaine(s) du mois</label>';
+  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+  var semLabels=['1ère','2ème','3ème','4ème','5ème'];
+  for(var s=1;s<=5;s++){
+    var on=(sems.indexOf(s)>=0);
+    h+='<button type="button" class="pl-sbtn'+(on?' on':'')+'" data-s="'+s+'" onclick="admToggleCritSem('+s+',this)">'+semLabels[s-1]+'</button>';
+  }
+  h+='</div></div>';
+  h+='</div>';
+  h+='<button class="pl-btn pl-btn-outline pl-btn-sm" onclick="admResetCriteres()">Réinitialiser</button>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+function admProposerDateFin(){
+  var dD=document.getElementById('adm-crit-date-debut');
+  var dF=document.getElementById('adm-crit-date-fin');
+  if(!dD||!dF||!dD.value) return;
+  var debut=new Date(dD.value+'T12:00:00');
+  var y=debut.getFullYear();
+  var fin30Juin=new Date(y,5,30,12);
+  dF.value=((debut<=fin30Juin)?y:y+1)+'-06-30';
+}
+function admCritSave(){
+  var data={
+    dateDebut:(document.getElementById('adm-crit-date-debut')||{}).value||'',
+    dateFin:(document.getElementById('adm-crit-date-fin')||{}).value||'',
+    jour:(document.getElementById('adm-crit-jour')||{}).value||'',
+    heure:(document.getElementById('pl-crit-heure')||{}).value||'',
+    semaines:_plCritSemaines.slice()
+  };
+  try{localStorage.setItem(PL_CRITERES_KEY,JSON.stringify(data));}catch(e){}
+  if(window.fbSet) window.fbSet(PL_CRITERES_KEY,data);
+  var elDeb=document.getElementById('pl-crit-date-debut'); if(elDeb) elDeb.value=data.dateDebut;
+  var elFin=document.getElementById('pl-crit-date-fin'); if(elFin) elFin.value=data.dateFin;
+  var elJour=document.getElementById('pl-crit-jour'); if(elJour) elJour.value=data.jour;
+}
+function admToggleCritSem(s,btn){
+  var i=_plCritSemaines.indexOf(s);
+  if(i>=0)_plCritSemaines.splice(i,1); else _plCritSemaines.push(s);
+  document.querySelectorAll('.pl-sbtn[data-s="'+s+'"]').forEach(function(b){
+    b.classList.toggle('on',_plCritSemaines.indexOf(s)>=0);
+  });
+  admCritSave();
+}
+function admResetCriteres(){
+  var dD=document.getElementById('adm-crit-date-debut'); if(dD) dD.value='';
+  var dF=document.getElementById('adm-crit-date-fin'); if(dF) dF.value='';
+  var dJ=document.getElementById('adm-crit-jour'); if(dJ) dJ.value='';
+  _plCritSemaines=[];
+  document.querySelectorAll('.pl-sbtn').forEach(function(b){b.classList.remove('on');});
+  admCritSave();
 }
 
 function plInitPage(){
