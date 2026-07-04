@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.159</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.160</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -5216,8 +5216,9 @@ function isFerie(d){
 // Ne touche que les tenues générées (id 'gen_*'), préserve les tenues manuelles.
 function doGenAuto(){
   if(!D.regles||!D.regles.length) return;
-  var perDeb=(D.loge&&D.loge.periodeDebut)||'';
-  var perFin=(D.loge&&D.loge.periodeFin)||'';
+  var _cForGen=plCriteresLoad()||{};
+  var perDeb=(D.loge&&D.loge.periodeDebut)||_cForGen.dateDebut||'';
+  var perFin=(D.loge&&D.loge.periodeFin)||_cForGen.dateFin||'';
   if(!perDeb||!perFin) return;
   var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
   var nouvelles=[];
@@ -19075,9 +19076,10 @@ function plToggleConseillee(key){ plToggleFamille('conseillee',key); }
 function plToggleTroisieme(key){ plToggleFamille('troisieme',key); }
 
 function plAppliquerCriteres(evts){
-  var dDebut=(document.getElementById('pl-crit-date-debut')||{}).value||'';
-  var dFin=(document.getElementById('pl-crit-date-fin')||{}).value||'';
-  var jourSel=(document.getElementById('pl-crit-jour')||{}).value||'';
+  var _cSaved=plCriteresLoad()||{};
+  var dDebut=(document.getElementById('pl-crit-date-debut')||{}).value||_cSaved.dateDebut||'';
+  var dFin=(document.getElementById('pl-crit-date-fin')||{}).value||_cSaved.dateFin||'';
+  var jourSel=(document.getElementById('pl-crit-jour')||{}).value||_cSaved.jour||'';
   var heureSel=(document.getElementById('pl-crit-heure')||{}).value||'';
 
   return evts.filter(function(e){
@@ -19449,9 +19451,12 @@ function plRenderPlanning(targetId){
     suiviParTenue[val.tenueId].push({nom:nm,ligne:lig,type:val.type||'Planche',degre:val.degre||'',sujet:val.sujet||''});
   });
 
-  // Filtrer par période du logiciel si définie
-  var plPerDeb=(D.loge&&D.loge.periodeDebut)||'';
-  var plPerFin=(D.loge&&D.loge.periodeFin)||'';
+  // Filtrer par période : critères du planning en priorité, sinon période Config.
+  // Les deux filtres (config + critères) utilisent désormais la même source de
+  // dates pour ne pas se contredire.
+  var _crit4filt=plCriteresLoad()||{};
+  var plPerDeb=_crit4filt.dateDebut||(D.loge&&D.loge.periodeDebut)||'';
+  var plPerFin=_crit4filt.dateFin||(D.loge&&D.loge.periodeFin)||'';
   if(plPerDeb||plPerFin) evts=evts.filter(function(e){
     if(plParseClesPO(e.notes).length>0) return true; // tenues obligatoires/conseillées : toujours visibles
     if(e.imperative) return true; // tenues impératives : toujours visibles
@@ -19463,7 +19468,11 @@ function plRenderPlanning(targetId){
   evts=plAppliquerCriteres(evts);
 
   if(!evts.length){
-    var critActifs=(document.getElementById('pl-crit-date-debut').value||document.getElementById('pl-crit-date-fin').value||document.getElementById('pl-crit-jour').value!==''||_plCritSemaines.length||document.getElementById('pl-crit-heure').value);
+    var _dDomDebut=(document.getElementById('pl-crit-date-debut')||{}).value||_crit4filt.dateDebut||'';
+    var _dDomFin=(document.getElementById('pl-crit-date-fin')||{}).value||_crit4filt.dateFin||'';
+    var _dDomJour=(document.getElementById('pl-crit-jour')||{}).value||'';
+    var _dDomHeure=(document.getElementById('pl-crit-heure')||{}).value||'';
+    var critActifs=(_dDomDebut||_dDomFin||_dDomJour!==''||_plCritSemaines.length||_dDomHeure);
     var msg=critActifs
       ? 'Aucune tenue ne correspond à ces critères pour la période configurée.'
       : 'Aucune tenue enregistrée pour le moment.';
@@ -21541,8 +21550,9 @@ function plDeduplicaterParDate(){
 // Silencieux : n'affiche pas de toast si tout est déjà en place.
 function plGenererAutomatique(){
   if(!D.regles||!D.regles.length) return; // pas de règles configurées
-  var perDeb=(D.loge&&D.loge.periodeDebut)||'';
-  var perFin=(D.loge&&D.loge.periodeFin)||'';
+  var _cForGenP=plCriteresLoad()||{};
+  var perDeb=(D.loge&&D.loge.periodeDebut)||_cForGenP.dateDebut||'';
+  var perFin=(D.loge&&D.loge.periodeFin)||_cForGenP.dateFin||'';
   if(!perDeb||!perFin) return; // période non configurée
   var heureDef='19:30';
   try{ var h=(D.regles[0].heure||''); if(h) heureDef=h; }catch(e){}
