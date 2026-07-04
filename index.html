@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.169</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.170</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -17068,7 +17068,7 @@ function tiRender(containerId){
     +'<div style="min-width:120px;flex:0 0 auto;"><span style="'+hdrS+'">Rang</span></div>'
     +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Date calculée</span></div>'
     +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Substitution</span></div>'
-    +'<div style="flex:1;min-width:60px;max-width:130px;"><span style="'+hdrS+'">Note</span></div>'
+    +'<div style="flex:0 0 auto;min-width:110px;"><span style="'+hdrS+'">Modèle</span></div>'
     +'</div>';
   for(var i=0;i<D.tenuesImp.length;i++){
     var ti=D.tenuesImp[i];
@@ -17142,9 +17142,12 @@ function tiRender(containerId){
       h+='<select style="'+selS+'" onchange="tiFieldChange(\''+id+'\',\'dateAlt\',this.value)">'+opts+'</select>';
       h+='</div>';
     })();
-    // Note
-    h+='<div style="flex:1;min-width:60px;max-width:130px;">';
-    h+='<input type="text" value="'+note+'" placeholder="Remarques…" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tiFieldChange(\''+id+'\',\'note\',this.value)"/>';
+    // Modèle
+    h+='<div style="flex:0 0 auto;min-width:110px;">';
+    h+='<select style="'+selS+'width:100%;" onchange="tiFieldChange(\''+id+'\',\'modeleId\',this.value)">';
+    h+='<option value="">-- Défaut --</option>';
+    if(D.modeles&&D.modeles.length){for(var mi=0;mi<D.modeles.length;mi++){var mm=D.modeles[mi];h+='<option value="'+mm.id+'"'+(ti.modeleId===mm.id?' selected':'')+'>'+mm.nom+'</option>';}}
+    h+='</select>';
     h+='</div>';
     // Badge + boutons
     h+='<div style="flex:0 0 auto;display:flex;align-items:center;gap:4px;">';
@@ -17244,7 +17247,9 @@ function tiPlanifierToutes(){
     var conflit=plData.events.some(function(e){return e.date===dateFin&&!e.imperative;});
     if(conflit&&ti.dateAlt&&ti.dateAlt!==dateFin&&_dansLesBornes(ti.dateAlt)) dateFin=ti.dateAlt;
     plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
-    plData.events.push({id:'pl'+Date.now()+'_'+dateFin,date:dateFin,titre:ti.theme||'Tenue impérative',heure:'',categorie:'tenue',degre:'1°',duree:0,notes:ti.note||'',imperative:true});
+    var _tiMdef=ti.modeleId?getModele(ti.modeleId):getModeleDefaut();
+    var _tiP=_tiMdef?cpP(_tiMdef.parties||[]):cpP(D.parDefaut||[]);
+    plData.events.push({id:'pl'+Date.now()+'_'+dateFin,date:dateFin,titre:ti.theme||'Tenue impérative',heure:'',categorie:'tenue',degre:'1°',duree:0,notes:'',imperative:true,parties:_tiP,modeleId:_tiMdef?_tiMdef.id:''});
     ti.planifiedDate=dateFin;
     ok++;
   });
@@ -17279,7 +17284,9 @@ function tiPlanifier(id){
   if(conflit&&ti.dateAlt&&ti.dateAlt!==dateFin){ dateFin=ti.dateAlt; toast('⚠ Date théorique occupée — date de substitution utilisée.'); }
   // Upsert : remplacer toute tenue existante à cette date (auto-générée ou manuelle)
   plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
-  plData.events.push({id:'pl'+Date.now(),date:dateFin,titre:ti.theme||'Tenue impérative',heure:'',categorie:'tenue',degre:'1°',duree:0,notes:ti.note||'',imperative:true});
+  var _tiMd=ti.modeleId?getModele(ti.modeleId):getModeleDefaut();
+  var _tiPart=_tiMd?cpP(_tiMd.parties||[]):cpP(D.parDefaut||[]);
+  plData.events.push({id:'pl'+Date.now(),date:dateFin,titre:ti.theme||'Tenue impérative',heure:'',categorie:'tenue',degre:'1°',duree:0,notes:'',imperative:true,parties:_tiPart,modeleId:_tiMd?_tiMd.id:''});
   plSave(plData);
   ti.planifiedDate=dateFin;
   save();tiRender();
@@ -19712,12 +19719,20 @@ function plRenderPlanning(targetId){
         if(p.caSujets&&p.caSujets.length) det.push(p.caSujets.join(' · '));
         if(p.reunSteps&&p.reunSteps.length) det.push(p.reunSteps.join(' · '));
         var detHtml=det.length?'<span style="font-size:10.5px;color:rgba(255,255,255,.45);font-style:italic;margin-left:8px;">'+det.join(' — ')+'</span>':'';
+        var _btnUp=pi>0
+          ?'<button onclick="plDetailPartieUp(\''+eid+'\','+pi+')" title="Monter" style="background:none;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.5);cursor:pointer;font-size:10px;padding:1px 4px;margin-right:2px;">▲</button>'
+          :'<span style="display:inline-block;width:22px;margin-right:2px;"></span>';
+        var _btnDn=pi<detailParties.length-1
+          ?'<button onclick="plDetailPartieDown(\''+eid+'\','+pi+')" title="Descendre" style="background:none;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.5);cursor:pointer;font-size:10px;padding:1px 4px;margin-right:2px;">▼</button>'
+          :'<span style="display:inline-block;width:22px;margin-right:2px;"></span>';
+        var _btnDel='<button onclick="plDetailPartieDel(\''+eid+'\','+pi+')" title="Supprimer ce détail" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:10px;padding:1px 4px;">✕</button>';
         h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">'
           +'<td style="padding:3px 8px;color:var(--gold2);font-weight:700;white-space:nowrap;width:65px;">'+((p.dur||0)+' min')+'</td>'
           +'<td style="padding:3px 8px;color:#FFFFFF;">'+((p.nom)||'—')+detHtml+'</td>'
+          +'<td style="padding:3px 4px;white-space:nowrap;text-align:right;width:76px;">'+_btnUp+_btnDn+_btnDel+'</td>'
           +'</tr>';
       });
-      h+='<tr style="border-top:2px solid rgba(184,146,42,.4);"><td style="padding:4px 8px;color:var(--gold2);font-weight:700;">'+totDurDet+' min</td><td style="padding:4px 8px;color:rgba(255,255,255,.5);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Total</td></tr>';
+      h+='<tr style="border-top:2px solid rgba(184,146,42,.4);"><td style="padding:4px 8px;color:var(--gold2);font-weight:700;">'+totDurDet+' min</td><td style="padding:4px 8px;color:rgba(255,255,255,.5);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Total</td><td></td></tr>';
       h+='</table>';
     }
     h+='</td></tr>';
@@ -19790,6 +19805,39 @@ function plToggleDetailModules(eventId,btn){
   var ouvert=row.style.display!=='none';
   row.style.display=ouvert?'none':'table-row';
   if(btn) btn.innerHTML=ouvert?'&#9654;':'&#9660;';
+}
+function _plDetailEnsure(ev){
+  if(ev.detail&&ev.detail.length) return;
+  var mdef=ev.modeleId?(D.modeles||[]).filter(function(m){return m.id===ev.modeleId;})[0]:null;
+  var src=(mdef&&(mdef.parties||[]).length)?mdef.parties:(D.parDefaut||[]);
+  ev.detail=cpP(src);
+}
+function plDetailPartieDel(eid,idx){
+  var data=plLoad();
+  var ev=null; for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev) return;
+  _plDetailEnsure(ev);
+  ev.detail.splice(idx,1);
+  plSave(data);
+  plRenderPlanning();
+}
+function plDetailPartieUp(eid,idx){
+  var data=plLoad();
+  var ev=null; for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev||idx<1) return;
+  _plDetailEnsure(ev);
+  var tmp=ev.detail[idx-1]; ev.detail[idx-1]=ev.detail[idx]; ev.detail[idx]=tmp;
+  plSave(data);
+  plRenderPlanning();
+}
+function plDetailPartieDown(eid,idx){
+  var data=plLoad();
+  var ev=null; for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev||idx>=ev.detail.length-1) return;
+  _plDetailEnsure(ev);
+  var tmp=ev.detail[idx+1]; ev.detail[idx+1]=ev.detail[idx]; ev.detail[idx]=tmp;
+  plSave(data);
+  plRenderPlanning();
 }
 
 // Onglet "Planches possibles par tenue" — récapitulatif indépendant du tableau
