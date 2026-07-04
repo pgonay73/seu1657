@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.172</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.173</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19649,7 +19649,7 @@ function plRenderPlanning(targetId){
     var bgFerie=ferie?'background:rgba(255,80,80,.07);':'';
     var modeleAff='';
     var _modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
-    if(_modRef)modeleAff='<span style="font-size:10px;color:rgba(184,146,42,.75);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.25);border-radius:3px;padding:1px 5px;">'+_modRef.nom+'</span>';
+    if(_modRef)modeleAff='<span onclick="plDetailOuvrir(&quot;'+eid+'&quot;)" title="Cliquer pour modifier le modèle" style="cursor:pointer;font-size:10px;color:rgba(184,146,42,.85);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.35);border-radius:3px;padding:1px 5px;">'+_modRef.nom+' ✎</span>';
     var _modRefParties=_modRef&&(_modRef.parties||[]).length?_modRef.parties:null;
     var _detDur=e.detail&&e.detail.length?e.detail:(_modRefParties||(D.parDefaut||[]));
     var _dureeEff=_detDur.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0);
@@ -19688,6 +19688,13 @@ function plRenderPlanning(targetId){
     h+='<tr id="pl-detail-row-'+eid+'" style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
     h+='<td></td>';
     h+='<td colspan="5" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
+    // Sélecteur de modèle
+    var _mSelOpts='<option value=""'+(!e.modeleId?' selected':'')+'>— Défaut (parDefaut) —</option>';
+    (D.modeles||[]).forEach(function(m){_mSelOpts+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
+    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:4px 8px;background:rgba(184,146,42,.07);border-radius:4px;">'
+      +'<span style="font-size:10px;color:rgba(184,146,42,.8);font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;">Modèle :</span>'
+      +'<select id="pl-modele-sel-'+eid+'" onchange="plModeleChanger(&quot;'+eid+'&quot;,this.value)" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:3px 8px;font-size:12px;font-family:Raleway,sans-serif;flex:1;max-width:300px;">'+_mSelOpts+'</select>'
+      +'</div>';
     // Sujets planche / symbolisme / conférencier
     if(e.sujetPlanche||e.sujetSymbolisme||e.sujetConferencier){
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;padding:5px 8px;background:rgba(184,146,42,.07);border-radius:4px;border-left:3px solid rgba(184,146,42,.5);">';
@@ -19880,13 +19887,35 @@ function plDetailPartieAdd(eid){
   plSave(data);
   plRenderPlanning();
 }
-function plDetailOuvrir(eid){
+function plDetailOuvrir(eid,_retry){
   var row=document.getElementById('pl-detail-row-'+eid);
   var btn=document.getElementById('pl-detail-btn-'+eid);
-  if(!row) return;
+  if(!row){
+    if(!_retry){plRenderPlanning();setTimeout(function(){plDetailOuvrir(eid,true);},120);}
+    return;
+  }
   row.style.display='table-row';
   if(btn) btn.innerHTML='&#9660;';
-  setTimeout(function(){row.scrollIntoView({behavior:'smooth', block:'nearest'});}, 60);
+  setTimeout(function(){
+    var main=document.querySelector('.main');
+    if(main){
+      var rr=row.getBoundingClientRect(),mr=main.getBoundingClientRect();
+      if(rr.top<mr.top+10||rr.bottom>mr.bottom-10) main.scrollTop+=rr.top-mr.top-80;
+    } else { row.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+    row.style.transition='background-color .4s';
+    row.style.backgroundColor='rgba(184,146,42,.15)';
+    setTimeout(function(){row.style.backgroundColor='';},900);
+  },60);
+}
+function plModeleChanger(eid,newModeleId){
+  var data=plLoad();
+  var ev=null;for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev) return;
+  ev.modeleId=newModeleId||'';
+  ev.detail=[];
+  plSave(data);
+  plRenderPlanning();
+  setTimeout(function(){plDetailOuvrir(eid);},80);
 }
 
 // Onglet "Planches possibles par tenue" — récapitulatif indépendant du tableau
