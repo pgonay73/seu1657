@@ -695,7 +695,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.142</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.143</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13360,7 +13360,11 @@ function renderOffice(n){
     c+='<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="peAdd(\'admin-pl-pe-defaut\')">+ Ajouter une ligne</button>';
     c+='</div></div>';
     c+='</div>';
-    // ─ L1.B : Planning des tenues sans planches — navigation directe, pas de panel ─
+    // ─ L1.B : Planning des tenues sans planches ─
+    c+='<div id="admin-pl-l1-sans" style="display:none;">';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Planning des tenues sans planches</h3>';
+    c+='<div id="admin-pl-sans-list"></div>';
+    c+='</div></div>';
     // ─ L1.C : Programmation des planches ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
     c+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;flex-wrap:wrap;">';
@@ -15190,7 +15194,7 @@ function adminPlL1Tab(name,btn){
     var mb=document.getElementById('admin-pl-tab-procedure');
     if(mb) adminPlTab('procedure',mb);
   }
-  if(name==='sans'){window._plFromAdmin=true;plLibreAutoriserEtOuvrir();}
+  if(name==='sans'){ setTimeout(function(){ adminPlRenderSans('admin-pl-sans-list'); },0); }
   if(name==='planches'){
     var db=document.getElementById('admin-pl-tab-sujets');
     if(db) adminPlTab('sujets',db);
@@ -21285,6 +21289,52 @@ function plRenderAdminNav(containerId){
   h+='</div>';
   el.innerHTML=h;
   el.style.display='';
+}
+
+// ── Admin : Planning des tenues sans planches ─────────────────────────────
+function adminPlRenderSans(cid){
+  var el=document.getElementById(cid||'admin-pl-sans-list');
+  if(!el) return;
+  var evts=(plLoad().events||[]).filter(function(e){
+    if(!e.detail||!e.detail.length) return true;
+    return !e.detail.some(function(d){ return d.plancheSteps&&d.plancheSteps.length>0; });
+  }).sort(function(a,b){ return (a.date||'').localeCompare(b.date||''); });
+  if(!evts.length){
+    el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucune tenue sans planche dans le planning.</p>';
+    return;
+  }
+  var ML=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  var h='<table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  h+='<thead><tr>';
+  h+='<th style="text-align:left;padding:8px 12px;color:var(--gold);font-weight:700;border-bottom:2px solid rgba(184,146,42,.4);font-family:Raleway,sans-serif;font-size:11px;letter-spacing:.8px;text-transform:uppercase;">Date</th>';
+  h+='<th style="text-align:left;padding:8px 12px;color:var(--gold);font-weight:700;border-bottom:2px solid rgba(184,146,42,.4);font-family:Raleway,sans-serif;font-size:11px;letter-spacing:.8px;text-transform:uppercase;">Tenue</th>';
+  h+='<th style="text-align:left;padding:8px 12px;color:var(--gold);font-weight:700;border-bottom:2px solid rgba(184,146,42,.4);font-family:Raleway,sans-serif;font-size:11px;letter-spacing:.8px;text-transform:uppercase;">Heure</th>';
+  h+='<th style="text-align:left;padding:8px 12px;color:var(--gold);font-weight:700;border-bottom:2px solid rgba(184,146,42,.4);font-family:Raleway,sans-serif;font-size:11px;letter-spacing:.8px;text-transform:uppercase;">Degré</th>';
+  h+='</tr></thead><tbody>';
+  var moisPrecedent='';
+  evts.forEach(function(e){
+    var mois=e.date?e.date.substring(0,7):'';
+    if(mois!==moisPrecedent){
+      if(moisPrecedent) h+='<tr><td colspan="4" style="padding:0;border-top:2px solid rgba(184,146,42,.45);"></td></tr>';
+      var d=new Date((e.date||'2000-01-01')+'T12:00:00');
+      var moisLabel=ML[d.getMonth()]+' '+d.getFullYear();
+      h+='<tr><td colspan="4" style="padding:8px 12px 4px;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold2);font-weight:700;font-family:Raleway,sans-serif;">'+moisLabel+'</td></tr>';
+      moisPrecedent=mois;
+    }
+    var d2=new Date((e.date||'2000-01-01')+'T12:00:00');
+    var dow=JC[(d2.getDay()===0)?6:(d2.getDay()-1)];
+    var dateLabel=dow+' '+d2.getDate();
+    var titre=e.titre||(window.D&&D.loge&&D.loge.titreDef)||'Tenue';
+    h+='<tr style="border-bottom:1px solid rgba(255,255,255,.07);">';
+    h+='<td style="padding:7px 12px;color:#FFFFFF;white-space:nowrap;">'+dateLabel+'</td>';
+    h+='<td style="padding:7px 12px;color:#FFFFFF;">'+titre+'</td>';
+    h+='<td style="padding:7px 12px;color:rgba(255,255,255,.6);white-space:nowrap;">'+(e.heure||'—')+'</td>';
+    h+='<td style="padding:7px 12px;color:rgba(255,255,255,.5);">'+(e.degre||'—')+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  el.innerHTML=h;
 }
 
 // ── Admin : Critères de sélection ─────────────────────────────────────────
