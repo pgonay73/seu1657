@@ -695,7 +695,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.134</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.135</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -21213,10 +21213,15 @@ function plRenderAdminNav(){
     {id:'planning',label:'📅 Planning / Tenues'}
   ];
   var plTabs=[
-    {id:'prog',label:'📅 Programmation du planning'},
-    {id:'sans',label:'📋 Planning des tenues sans planches'},
-    {id:'planches',label:'📐 Programmation des planches'},
-    {id:'avec',label:'📊 Planning des tenues avec planches'}
+    {id:'prog',    label:'📅 Programmation du planning',         fn:'plNavToAdminL1'},
+    {id:'sans',    label:'📋 Planning des tenues sans planches', fn:'plNavToAdminL1'},
+    {id:'planches',label:'📐 Programmation des planches',        fn:'plNavToAdminL1'},
+    {id:'avec',    label:'📊 Planning des tenues avec planches', fn:'plNavToAdminL1'},
+    {id:'procedure',  label:'Procédure',            fn:'plNavToAdminPl'},
+    {id:'criteres',   label:'Critères de sélection',fn:'plNavToAdminPl'},
+    {id:'tenuesImp',  label:'Tenues impératives',   fn:'plNavToAdminPl'},
+    {id:'modeles',    label:'Modèles de tenues',    fn:'plNavToAdminPl'},
+    {id:'detail',     label:'Détail tenue',          fn:'plNavToAdminPl'}
   ];
   var h='<div class="section-header" style="flex-wrap:wrap;gap:8px;margin-bottom:0;">';
   h+='<div style="display:flex;flex-direction:column;align-items:center;">';
@@ -21235,7 +21240,7 @@ function plRenderAdminNav(){
   h+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;flex-wrap:wrap;">';
   for(var j=0;j<plTabs.length;j++){
     var pt=plTabs[j];
-    h+='<button class="cfg-tab" style="color:#FFFFFF;" onclick="plNavToAdminL1(\''+pt.id+'\')">'+pt.label+'</button>';
+    h+='<button class="cfg-tab" style="color:#FFFFFF;" onclick="'+pt.fn+'(\''+pt.id+'\')">'+pt.label+'</button>';
   }
   h+='</div>';
   el.innerHTML=h;
