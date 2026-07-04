@@ -703,7 +703,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.156</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.157</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -5255,11 +5255,11 @@ function doGenAuto(){
   var _tgen1=getTenues();
   var existGen={};
   for(var i=0;i<_tgen1.length;i++) if(_tgen1[i].id&&_tgen1[i].id.indexOf('gen_')===0) existGen[_tgen1[i].id]=_tgen1[i];
-  var manuelles=[];
-  for(var i=0;i<_tgen1.length;i++) if(!_tgen1[i].id||_tgen1[i].id.indexOf('gen_')!==0) manuelles.push(_tgen1[i]);
   var merged=[];
+  var mergedDatesA={};
   for(var i=0;i<uniq.length;i++){
     var u=uniq[i], gid='gen_'+u.date.replace(/-/g,'');
+    mergedDatesA[u.date]=true;
     if(existGen[gid]){ var old=existGen[gid]; old.ferie=u.ferie; merged.push(old); }
     else {
       var mdef=getModeleDefaut();
@@ -5267,6 +5267,8 @@ function doGenAuto(){
       merged.push({id:gid,date:u.date,heure:u.heure||'19:30',type:'',titre:'',notes:'',ferie:u.ferie,parties:partiesG,modeleId:mdef?mdef.id:'',orateurs:[],officiers:[]});
     }
   }
+  var manuelles=[];
+  for(var i=0;i<_tgen1.length;i++) if(!_tgen1[i].id||(_tgen1[i].id.indexOf('gen_')!==0&&!mergedDatesA[_tgen1[i].date])) manuelles.push(_tgen1[i]);
   var avant=getTenues().length;
   var _gpd1=plLoad();_gpd1.events=manuelles.concat(merged);plSave(_gpd1);
 }
@@ -5328,12 +5330,11 @@ function doGen(){
   var _tgen2=getTenues();
   var existGen={};
   for(var i=0;i<_tgen2.length;i++)if(_tgen2[i].id.indexOf('gen_')===0)existGen[_tgen2[i].id]=_tgen2[i];
-  var manuelles=[];
-  for(var i=0;i<_tgen2.length;i++)if(_tgen2[i].id.indexOf('gen_')!==0)manuelles.push(_tgen2[i]);
-
   var merged=[];
+  var mergedDates={};
   for(var i=0;i<uniq.length;i++){
     var u=uniq[i],gid='gen_'+u.date.replace(/-/g,'');
+    mergedDates[u.date]=true;
     if(existGen[gid]){var old=existGen[gid];old.ferie=u.ferie;merged.push(old);}
     else {
       var mdef2=getModeleDefaut();
@@ -5342,6 +5343,9 @@ function doGen(){
       merged.push({id:gid,date:u.date,heure:u.heure,type:u.type,titre:'',notes:'',ferie:u.ferie,parties:partiesGen,modeleId:modeleIdGen,orateurs:[],officiers:[]});
     }
   }
+  // Exclure les entrées manuelles dont la date est couverte par une gen_
+  var manuelles=[];
+  for(var i=0;i<_tgen2.length;i++)if(_tgen2[i].id.indexOf('gen_')!==0&&!mergedDates[_tgen2[i].date])manuelles.push(_tgen2[i]);
   var _gpd2=plLoad();_gpd2.events=manuelles.concat(merged);plSave(_gpd2);
   document.getElementById('ov-gen').classList.remove('open');
   nav('planning');
@@ -19377,6 +19381,27 @@ function plRenderPlanning(targetId){
 
   var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
 
+  // Dédoublonnage par date : pour chaque date en double, garder l'entrée
+  // la plus "propre" (modeleId sans detail > gen_ > autres).
+  (function(){
+    var byDate={};
+    evts.forEach(function(e){if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+    var clean=[];
+    Object.keys(byDate).forEach(function(d){
+      var arr=byDate[d];
+      if(arr.length===1){clean.push(arr[0]);return;}
+      function score(e){
+        if(e.modeleId&&!(e.detail&&e.detail.length))return 3;
+        if(e.modeleId)return 2;
+        if(e.id&&e.id.indexOf('gen_')===0)return 1;
+        return 0;
+      }
+      arr.sort(function(a,b){return score(b)-score(a);});
+      clean.push(arr[0]);
+    });
+    evts=clean.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  })();
+
   // Index suivi : pour chaque tenueId, liste des frères assignés (planche ou symbolisme)
   var suivi=plSuiviLoad();
   var suiviParTenue={};
@@ -21438,20 +21463,25 @@ function plInitPage(){
   // Afficher l'onglet Détail des tenues par défaut
 }
 
-// Supprime les doublons de date dans le planning : pour chaque date, garde
-// en priorité l'entrée gen_ (auto-générée depuis le modèle), sinon la plus récente.
+// Supprime les doublons de date dans le planning.
+// Priorité : modeleId sans detail (propre) > modeleId avec detail > gen_ > autres.
 function plDeduplicaterParDate(){
   var data=plLoad();
   if(!data.events||data.events.length<2) return;
+  function _plScore(e){
+    if(e.modeleId&&!(e.detail&&e.detail.length))return 3;
+    if(e.modeleId)return 2;
+    if(e.id&&e.id.indexOf('gen_')===0)return 1;
+    return 0;
+  }
   var byDate={};
   data.events.forEach(function(e){if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
   var clean=[],removed=0;
   Object.keys(byDate).forEach(function(d){
     var arr=byDate[d];
     if(arr.length===1){clean.push(arr[0]);return;}
-    var gen=arr.filter(function(e){return e.id&&e.id.indexOf('gen_')===0;});
-    var best=gen.length?gen[gen.length-1]:arr[arr.length-1];
-    clean.push(best);
+    arr.sort(function(a,b){return _plScore(b)-_plScore(a);});
+    clean.push(arr[0]);
     removed+=arr.length-1;
   });
   if(removed>0){
