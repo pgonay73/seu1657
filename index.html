@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.195</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.196</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13368,6 +13368,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab active" id="admin-pl-tab-procedure" onclick="adminPlTab(\'procedure\',this)" style="'+_l2S+'">Procédure</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-criteres" onclick="adminPlTab(\'criteres\',this)" style="'+_l2S+'">Critères de sélection</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)" style="'+_l2S+'">Tenues impératives</button>';
+    c+='<button class="cfg-tab" id="admin-pl-tab-tenuesCons" onclick="adminPlTab(\'tenuesCons\',this)" style="'+_l2S+'">Fortement conseillé</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)" style="'+_l2S+'">Modèles de tenues</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-detail" onclick="adminPlTab(\'detail\',this)" style="'+_l2S+'">Détail tenue</button>';
     c+='</div>';
@@ -13380,6 +13381,11 @@ function renderOffice(n){
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues impératives</h3>';
     c+='<p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Définissez les tenues à organiser impérativement dans l\'année. Pour chaque tenue, indiquez la date conseillée et une date de substitution. Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning (la date de substitution est utilisée automatiquement si la date conseillée est déjà occupée).</p>';
     c+='<div id="admin-ti-list"></div>';
+    c+='</div></div>';
+    c+='<div id="admin-pl-panel-tenuesCons" style="display:none;">';
+    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues fortement conseillées</h3>';
+    c+='<p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Tenues vivement recommandées mais non impératives. Même fonctionnement que les tenues impératives : mois, rang, date de substitution et modèle.</p>';
+    c+='<div id="admin-tc-list"></div>';
     c+='</div></div>';
     c+='<div id="admin-pl-panel-modeles" style="display:none;">';
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Modèles de tenues</h3>';
@@ -15235,7 +15241,7 @@ function adminPlL1Tab(name,btn){
 }
 // ── Planning L2 sub-tabs ───────────────────────────────────────────────
 function adminPlTab(name, btn){
-  var subTabs=['modeles','detail','tenuesImp','suivi','suivi-tenue','planning','dispos','sujets','symbolisme','procedure','criteres'];
+  var subTabs=['modeles','detail','tenuesImp','tenuesCons','suivi','suivi-tenue','planning','dispos','sujets','symbolisme','procedure','criteres'];
   var subBtns=document.querySelectorAll('#admin-pl-l1-prog .cfg-tab, #admin-pl-l1-planches .cfg-tab');
   for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
   if(btn) btn.classList.add('active');
@@ -15256,6 +15262,7 @@ function adminPlTab(name, btn){
     if(el&&typeof peRender==='function') peRender('admin-pl-pe-defaut', D.parDefaut||[]);
   },0);
   if(name==='tenuesImp') setTimeout(tiRender,0);
+  if(name==='tenuesCons') setTimeout(tcRender,0);
   if(name==='suivi') setTimeout(function(){ plSuiviRender('admin-pl-suivi-list'); },0);
   if(name==='suivi-tenue') setTimeout(function(){ plSuiviParTenueRender('admin-pl-suivi-tenue-list'); },0);
   if(name==='dispos') setTimeout(function(){ plRenderPlanchesRecap('admin-pl-planches-recap'); },0);
@@ -18901,6 +18908,135 @@ function plRenderFamille(famille, options){
       +'</div>';
   });
   el.innerHTML=h;
+}
+
+// ── Tenues fortement conseillées (tc*) ─────────────────────────────────
+function tcRender(containerId){
+  if(!D.tenuesCons)D.tenuesCons=[];
+  var el=document.getElementById(containerId||'admin-tc-list');
+  if(!el)return;
+  var _cTcR=plCriteresLoad()||{};
+  var _tcDeb=_cTcR.dateDebut||'';
+  var _tcFin=_cTcR.dateFin||'';
+  function _tcInBornes(d){if(!d)return false;if(_tcDeb&&d<_tcDeb)return false;if(_tcFin&&d>_tcFin)return false;return true;}
+  var btnAjout='<button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="tcAjouter()">+ Ajouter une tenue conseillée</button>';
+  if(!D.tenuesCons.length){el.innerHTML='<p style="font-size:13px;color:var(--grey);font-style:italic;margin:12px 0;">Aucune tenue fortement conseillée définie.</p>'+btnAjout;return;}
+  var btnTout='<button onclick="tcPlanifierToutes()" style="background:#B8922A;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:6px 14px;font-size:12px;font-weight:700;font-family:Raleway,sans-serif;white-space:nowrap;margin-bottom:10px;">&#8594; Tout basculer dans le planning</button>';
+  var cardS='margin-bottom:4px;border:1px solid rgba(120,180,255,.3);border-radius:5px;padding:6px 10px;background:rgba(120,180,255,.04);';
+  var selS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:4px 6px;font-family:Raleway,sans-serif;font-size:12px;';
+  var inpS='padding:4px 6px;font-size:12px;';
+  var hdrS='font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:.6px;font-weight:600;';
+  var h=btnTout+'<div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:flex-end;padding:0 10px 4px;border-bottom:1px solid rgba(120,180,255,.3);margin-bottom:6px;">'
+    +'<div style="flex:0 1 170px;min-width:110px;"><span style="'+hdrS+'">Titre</span></div>'
+    +'<div style="min-width:120px;flex:0 0 auto;"><span style="'+hdrS+'">Mois</span></div>'
+    +'<div style="min-width:120px;flex:0 0 auto;"><span style="'+hdrS+'">Rang</span></div>'
+    +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Date calculée</span></div>'
+    +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Substitution</span></div>'
+    +'<div style="flex:0 0 auto;min-width:110px;"><span style="'+hdrS+'">Modèle</span></div>'
+    +'</div>';
+  for(var i=0;i<D.tenuesCons.length;i++){
+    var tc=D.tenuesCons[i];
+    var id=tc.id;
+    var th=(tc.theme||'').replace(/"/g,'&quot;');
+    var badge='';
+    if(tc.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;">&#10003; '+tc.planifiedDate+'</span>';}
+    h+='<div style="'+cardS+'">';
+    h+='<div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:center;">';
+    h+='<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:2px;">';
+    h+='<button onclick="tcMonter(''+id+'')" '+(i===0?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:3px;color:#FFFFFF;cursor:pointer;padding:1px 6px;font-size:10px;line-height:1.4;'+(i===0?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9650;</button>';
+    h+='<button onclick="tcDescendre(''+id+'')" '+(i===D.tenuesCons.length-1?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:3px;color:#FFFFFF;cursor:pointer;padding:1px 6px;font-size:10px;line-height:1.4;'+(i===D.tenuesCons.length-1?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9660;</button>';
+    h+='</div>';
+    h+='<div style="flex:0 1 170px;min-width:110px;"><input type="text" value="'+th+'" placeholder="Ex : Tenue de mars" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tcFieldChange(''+id+'','theme',this.value)"/></div>';
+    h+='<div style="min-width:120px;flex:0 0 auto;"><select style="'+selS+'width:100%;" onchange="tcFieldChange(''+id+'','moisTheorique',this.value);tcDateHint(''+id+'')">'+tiMoisOptions(tc.moisTheorique)+'</select></div>';
+    h+='<div style="min-width:120px;flex:0 0 auto;"><select style="'+selS+'width:100%;" onchange="tcFieldChange(''+id+'','rangTheorique',this.value);tcDateHint(''+id+'')">'
+      +'<option value="1"'+(tc.rangTheorique!='2'?' selected':'')+'>1ère tenue</option>'
+      +'<option value="2"'+(tc.rangTheorique=='2'?' selected':'')+'>2ème tenue</option>'
+      +'</select></div>';
+    (function(){
+      var dateCible='';
+      if(tc.moisTheorique) dateCible=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);
+      var dTxt='',dCol='var(--grey)',dBorder='rgba(255,255,255,.12)',dBg='rgba(255,255,255,.04)';
+      if(dateCible){var p=dateCible.split('-');dTxt=p[2]+'/'+p[1]+'/'+p[0];if(_tcInBornes(dateCible)){dCol='#7FBAFF';dBorder='rgba(120,180,255,.4)';}else{dCol='#E74C3C';dBorder='rgba(231,76,60,.5)';dBg='rgba(231,76,60,.08)';dTxt='⚠ '+dTxt;}}
+      else if(tc.moisTheorique){dTxt='—';}
+      h+='<div style="flex:0 0 auto;"><span id="tc-dh-'+id+'" style="font-size:12px;color:'+dCol+';font-style:italic;padding:4px 6px;border:1px solid '+dBorder+';border-radius:4px;background:'+dBg+';white-space:nowrap;display:inline-block;">'+dTxt+'</span></div>';
+    })();
+    (function(){
+      var _seen={},dates=[];
+      getTenues().forEach(function(t){if(t.date&&!_seen[t.date]){_seen[t.date]=true;dates.push(t.date);}});
+      var _plDts=plLoad();
+      (_plDts.events||[]).forEach(function(t){if(t.date&&!_seen[t.date]&&_tcInBornes(t.date)){_seen[t.date]=true;dates.push(t.date);}});
+      dates.sort();
+      var opts='<option value="">— Aucune —</option>';
+      var JN=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+      for(var di=0;di<dates.length;di++){var ds=dates[di];if(!_tcInBornes(ds)&&ds!==tc.dateAlt)continue;var dp=ds.split('-');var dObj=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]));var lbl=JN[dObj.getDay()]+' '+dp[2]+'/'+dp[1]+'/'+dp[0];if(!_tcInBornes(ds))lbl='⚠ '+lbl;opts+='<option value="'+ds+'"'+(tc.dateAlt===ds?' selected':'')+'>'+lbl+'</option>';}
+      h+='<div style="flex:0 0 auto;"><select style="'+selS+'" onchange="tcFieldChange(''+id+'','dateAlt',this.value)">'+opts+'</select></div>';
+    })();
+    h+='<div style="flex:0 0 auto;min-width:110px;"><select style="'+selS+'width:100%;" onchange="tcFieldChange(''+id+'','modeleId',this.value)"><option value="">-- Défaut --</option>';
+    if(D.modeles&&D.modeles.length){for(var mi=0;mi<D.modeles.length;mi++){var mm=D.modeles[mi];h+='<option value="'+mm.id+'"'+(tc.modeleId===mm.id?' selected':'')+'>'+mm.nom+'</option>';}}
+    h+='</select></div>';
+    h+='<div style="flex:0 0 auto;display:flex;align-items:center;gap:4px;">';
+    if(badge) h+=badge;
+    h+='<button onclick="tcPlanifier(''+id+'')" style="background:#4472C4;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 10px;font-size:11px;font-weight:600;white-space:nowrap;">&#8594; Planning</button>';
+    h+='<button onclick="tcSupprimer(''+id+'')" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 7px;font-size:12px;">&#128465;</button>';
+    h+='</div>';
+    h+='</div></div>';
+  }
+  el.innerHTML=h+btnAjout;
+}
+function tcDateHint(id){
+  var tc=null;for(var i=0;i<(D.tenuesCons||[]).length;i++){if(D.tenuesCons[i].id===id){tc=D.tenuesCons[i];break;}}
+  var el=document.getElementById('tc-dh-'+id);if(!el||!tc)return;
+  var dateCible='';if(tc.moisTheorique)dateCible=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);
+  var _c2=plCriteresLoad()||{};
+  if(dateCible){var parts=dateCible.split('-');var inB=(!_c2.dateDebut||dateCible>=_c2.dateDebut)&&(!_c2.dateFin||dateCible<=_c2.dateFin);el.style.color=inB?'#7FBAFF':'#E74C3C';el.innerHTML=(inB?'':'⚠ ')+parts[2]+'/'+parts[1]+'/'+parts[0];}
+  else if(tc.moisTheorique){el.style.color='var(--grey)';el.innerHTML='—';}
+  else{el.innerHTML='';}
+}
+function tcAjouter(){if(!D.tenuesCons)D.tenuesCons=[];D.tenuesCons.push({id:'tc'+Date.now(),theme:'',moisTheorique:'',rangTheorique:'1',dateAlt:'',planifiedDate:''});save();tcRender();}
+function tcSupprimer(id){if(!D.tenuesCons)return;D.tenuesCons=D.tenuesCons.filter(function(x){return x.id!==id;});save();tcRender();}
+function tcMonter(id){if(!D.tenuesCons)return;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id&&i>0){var t=D.tenuesCons[i-1];D.tenuesCons[i-1]=D.tenuesCons[i];D.tenuesCons[i]=t;break;}}save();tcRender();}
+function tcDescendre(id){if(!D.tenuesCons)return;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id&&i<D.tenuesCons.length-1){var t=D.tenuesCons[i+1];D.tenuesCons[i+1]=D.tenuesCons[i];D.tenuesCons[i]=t;break;}}save();tcRender();}
+function tcFieldChange(id,field,val){if(!D.tenuesCons)return;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id){D.tenuesCons[i][field]=val;break;}}save();}
+function tcPlanifierToutes(){
+  if(!D.tenuesCons||!D.tenuesCons.length){toast('Aucune tenue fortement conseillée définie.');return;}
+  var plData=plLoad();if(!plData.events)plData.events=[];
+  var _cTc=plCriteresLoad()||{};var _tcDeb=_cTc.dateDebut||'';var _tcFin=_cTc.dateFin||'';
+  function _dB(d){if(_tcDeb&&d<_tcDeb)return false;if(_tcFin&&d>_tcFin)return false;return true;}
+  var ok=0,skip=0;
+  D.tenuesCons.forEach(function(tc){
+    var dateFin='';if(tc.moisTheorique)dateFin=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);
+    if(!dateFin&&tc.dateAlt)dateFin=tc.dateAlt;if(!dateFin){skip++;return;}
+    if(!_dB(dateFin)){if(tc.dateAlt&&tc.dateAlt!==dateFin&&_dB(tc.dateAlt))dateFin=tc.dateAlt;else{skip++;return;}}
+    var conflit=plData.events.some(function(e){return e.date===dateFin;});
+    if(conflit&&tc.dateAlt&&tc.dateAlt!==dateFin&&_dB(tc.dateAlt))dateFin=tc.dateAlt;
+    plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
+    var _tcMd=tc.modeleId?getModele(tc.modeleId):getModeleDefaut();
+    var _tcP=_tcMd?cpP(_tcMd.parties||[]):cpP(D.parDefaut||[]);
+    plData.events.push({id:'pl'+Date.now()+'_'+dateFin,date:dateFin,titre:tc.theme||'Tenue fortement conseillée',categorie:'tenue',degre:'1°',notes:'conseillee:standard',parties:_tcP,modeleId:_tcMd?_tcMd.id:''});
+    tc.planifiedDate=dateFin;ok++;
+  });
+  plSave(plData);save();tcRender();
+  if(ok>0){toast('✓ '+ok+' tenue'+(ok>1?'s':'')+' fortement conseillée'+(ok>1?'s':'')+' ajoutée'+(ok>1?'s':'')+' dans le planning.');plLibreAutoriserEtOuvrir();}
+  else{toast('⚠ Aucune tenue n'a pu être planifiée.');}
+}
+function tcPlanifier(id){
+  if(!D.tenuesCons)return;
+  var tc=null;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id){tc=D.tenuesCons[i];break;}}
+  if(!tc)return;
+  var dateFin='';if(tc.moisTheorique){dateFin=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);if(!dateFin)toast('⚠ Aucune tenue calculée pour ce mois.');}
+  if(!dateFin&&tc.dateAlt){dateFin=tc.dateAlt;toast('⚠ Date de substitution utilisée.');}
+  if(!dateFin){toast('Configurez un mois et des règles, ou choisissez une date de substitution.');return;}
+  var plData=plLoad();if(!plData.events)plData.events=[];
+  var conflit=plData.events.some(function(e){return e.date===dateFin;});
+  if(conflit&&tc.dateAlt&&tc.dateAlt!==dateFin)dateFin=tc.dateAlt;
+  plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
+  var _tcMd=tc.modeleId?getModele(tc.modeleId):getModeleDefaut();
+  var _tcPart=_tcMd?cpP(_tcMd.parties||[]):cpP(D.parDefaut||[]);
+  plData.events.push({id:'pl'+Date.now(),date:dateFin,titre:tc.theme||'Tenue fortement conseillée',categorie:'tenue',degre:'1°',notes:'conseillee:standard',parties:_tcPart,modeleId:_tcMd?_tcMd.id:''});
+  plSave(plData);
+  tc.planifiedDate=dateFin;save();tcRender();
+  var dp=dateFin.split('-');toast('✓ Tenue «'+(tc.theme||'Fortement conseillée')+'» ajoutée le '+dp[2]+'/'+dp[1]+'/'+dp[0]+'.');
+  plLibreAutoriserEtOuvrir();
 }
 
 // ── Gestion des notes "composées" pour les tenues obligatoires/conseillées ──
