@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.208</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.209</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -13409,7 +13409,10 @@ function renderOffice(n){
     c+='</div>';
     // ─ L1.B : Planning des tenues sans planches ─
     c+='<div id="admin-pl-l1-sans" style="display:none;">';
-    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Planning des tenues sans planches</h3>';
+    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0;">Planning des tenues sans planches</h3>';
+    c+='<button onclick="plImprimerSans()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
+    c+='</div>';
     c+='<div id="admin-pl-sans-list"></div>';
     c+='</div></div>';
     // ─ L1.C : Programmation des planches ─
@@ -21927,6 +21930,49 @@ function plRenderAdminNav(containerId){
 // ── Admin : Planning des tenues sans planches ─────────────────────────────
 function adminPlRenderSans(cid){
   plRenderPlanning(cid||'admin-pl-sans-list');
+}
+function plImprimerSans(){
+  var el=document.getElementById('admin-pl-sans-list');
+  if(!el||!el.querySelector('table')){toast('⚠ Le planning n\'est pas encore chargé.');return;}
+  var loge=(D&&D.config&&D.config.nom)?D.config.nom:'Loge';
+  var today=new Date();
+  var dateStr=today.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  var rows=[];
+  el.querySelectorAll('table tbody tr:not([id^="pl-detail-row"])').forEach(function(tr){
+    var tds=tr.querySelectorAll('td');
+    if(tds.length<3) return;
+    var date=tds[1]?tds[1].innerText.trim():'';
+    var deg=tds[2]?tds[2].innerText.trim():'';
+    var titre='';
+    var inp=tds[tds.length-1]?tds[tds.length-1].querySelector('input[type="text"]'):null;
+    if(inp) titre=inp.value||inp.placeholder||'';
+    else if(tds[tds.length-1]) titre=tds[tds.length-1].innerText.trim().split('\n')[0];
+    var modEl=tr.querySelector('div[style*="width:120px"] span');
+    var mod=modEl?modEl.innerText.replace('✎','').trim():'';
+    rows.push({date:date,deg:deg,titre:titre,mod:mod});
+  });
+  if(!rows.length){toast('⚠ Aucune ligne à imprimer.');return;}
+  var tBody=rows.map(function(r,i){
+    return '<tr style="background:'+(i%2===0?'#fff':'#f8f5ed')+';">'
+      +'<td style="padding:6px 10px;border:1px solid #ddd;color:#555;font-size:12px;white-space:nowrap;">'+r.date+'</td>'
+      +'<td style="padding:6px 10px;border:1px solid #ddd;text-align:center;font-size:12px;font-weight:700;color:#8B6914;">'+r.deg+'</td>'
+      +'<td style="padding:6px 10px;border:1px solid #ddd;font-size:13px;font-weight:600;color:#222;">'+r.titre+'</td>'
+      +'<td style="padding:6px 10px;border:1px solid #ddd;font-size:11px;color:#8B6914;font-style:italic;">'+r.mod+'</td>'
+      +'</tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Planning des tenues sans planches — '+loge+'</title>'
+    +'<style>body{font-family:Georgia,serif;margin:30px;color:#222;}h1{font-size:20px;color:#8B6914;border-bottom:2px solid #8B6914;padding-bottom:8px;margin-bottom:4px;}p{font-size:11px;color:#777;margin:0 0 16px;}table{width:100%;border-collapse:collapse;}th{background:#8B6914;color:#fff;padding:7px 10px;font-size:12px;text-align:left;border:1px solid #8B6914;}@media print{body{margin:15px;}}</style>'
+    +'</head><body>'
+    +'<h1>Planning des tenues sans planches</h1>'
+    +'<p>'+loge+' — Imprimé le '+dateStr+'</p>'
+    +'<table><thead><tr><th>Date</th><th>Degré</th><th>Titre</th><th>Modèle</th></tr></thead><tbody>'+tBody+'</tbody></table>'
+    +'</body></html>';
+  var win=window.open('','_blank','width=900,height=700');
+  if(!win){toast('⚠ Popup bloquée. Autorisez les popups pour ce site.');return;}
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function(){win.print();},400);
 }
 
 // ── Admin : Critères de sélection ─────────────────────────────────────────
