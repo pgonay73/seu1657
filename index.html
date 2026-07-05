@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.182</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.183</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19595,7 +19595,7 @@ function plRenderPlanning(targetId){
         +'<th style="text-align:center;width:24px;" title="Planches">P</th>'
         +'<th style="text-align:center;width:24px;" title="Symbolismes">S</th>'
         +'<th style="width:auto;">Titre</th>'
-        +'<th style="width:120px;">Modèle</th>'
+        +'<th style="min-width:190px;width:190px;">Modèle</th>'
         +'<th style="text-align:center;width:62px;">Durée</th>'
         +'</tr></thead><tbody>')
       :(+'<thead><tr style="border-bottom:2px solid rgba(184,146,42,.5);">'
@@ -19705,8 +19705,8 @@ function plRenderPlanning(targetId){
     if(isAdmin){
       h+='<tr style="'+traitJournee+bgFerie+'">'
         +_tdToggle+_tdDate+_tdDeg+_tdP+_tdS
-        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;"><span style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
-        +'<td style="vertical-align:top;padding:4px 6px;">'+_mAdmSel+'</td>'
+        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;">'+(marqueur?'<span style="color:'+cd+';margin-right:2px;">'+marqueur+'</span>':'')+'<input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="(sans titre)" onblur="plTitreChanger(&quot;'+eid+'&quot;,this.value)" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.2);color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;width:calc(100% - 4px);padding:0 2px;outline:none;min-width:60px;">'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
+        +'<td style="vertical-align:top;padding:4px 6px;min-width:190px;">'+_mAdmSel+'</td>'
         +'<td style="text-align:center;vertical-align:top;color:var(--gold2);font-size:12px;font-weight:600;white-space:nowrap;padding:4px 4px;">'+_dureeAdm+'</td>'
         +'</tr>';
     } else {
@@ -20012,6 +20012,11 @@ function _degreDepuisModele(m){
   if(/2\s*°|au\s*2|deuxième|2ème|2eme|compagnon/.test(n)) return '2°';
   if(/1\s*°|au\s*1|premier|1er|apprenti/.test(n)) return '1°';
   return null;
+}
+function plTitreChanger(eid,val){
+  var data=plLoad();
+  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();break;}}
+  plSave(data);
 }
 function plModeleChanger(eid,newModeleId,triggerEl){
   var data=plLoad();
