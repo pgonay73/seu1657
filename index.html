@@ -705,7 +705,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.212</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.213</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -21937,8 +21937,10 @@ function plImprimerSans(){
   var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   if(!evts.length){toast('⚠ Aucune tenue dans le planning.');return;}
   var loge=(D&&D.config&&D.config.nom)?D.config.nom:'Loge';
+  var num=(D&&D.config&&D.config.num)?D.config.num:'';
   var today=new Date();
-  var dateStr=today.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  var moisLong=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  var todayStr=today.getDate()+' '+moisLong[today.getMonth()]+' '+today.getFullYear();
   var jFr=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
   var mFr=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function fmtDate(ds){
@@ -21946,35 +21948,56 @@ function plImprimerSans(){
     var d=new Date(ds+'T12:00:00');
     return jFr[d.getDay()]+' '+d.getDate()+' '+mFr[d.getMonth()]+' '+d.getFullYear();
   }
-  var tBody=evts.map(function(e,i){
+  var n1=0,n2=0,n3=0;
+  evts.forEach(function(e){var d=e.degre||'1°';if(d==='3°')n3++;else if(d==='2°')n2++;else n1++;});
+
+  var css='*{box-sizing:border-box;}';
+  css+='body{font-family:Georgia,serif;color:#1E3660;margin:20px;font-size:10.5px;}';
+  css+='h1{font-size:17px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:4px;color:#1E3660;}';
+  css+='.subtitle{font-size:9.5px;color:#7F8C8D;margin-bottom:14px;}';
+  css+='.kpis{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}';
+  css+='.kpi{flex:1;min-width:70px;border:1px solid #B8922A;border-radius:4px;padding:6px 10px;text-align:center;}';
+  css+='.knum{font-size:17px;font-weight:bold;display:block;color:#1E3660;}';
+  css+='.klbl{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:#7F8C8D;}';
+  css+='table{width:100%;border-collapse:collapse;font-size:10px;}';
+  css+='thead tr{background:#1E3660;color:#fff;}';
+  css+='th{padding:5px 8px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;}';
+  css+='td{padding:5px 8px;border-bottom:1px solid #EDE9E2;}';
+  css+='.deg1{color:#2c5f2e;font-weight:700;}.deg2{color:#1a3d7c;font-weight:700;}.deg3{color:#7B0000;font-weight:700;}';
+  css+='tr.alt{background:#f7f5f0;}';
+  css+='.footer{margin-top:14px;text-align:center;font-size:8.5px;color:#B0B8C1;border-top:1px solid #EDE9E2;padding-top:6px;text-transform:uppercase;letter-spacing:.8px;}';
+  css+='@media print{body{margin:10mm;}tr{page-break-inside:avoid;}}';
+
+  var rows=evts.map(function(e,i){
     var deg=e.degre||'1°';
     var modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
     var modEff=modRef||(typeof getModeleParDegre==='function'?getModeleParDegre(deg):getModeleDefaut());
     var titreFallback=modEff?modEff.nom:(deg==='3°'?'Tenue au 3°':deg==='2°'?'Tenue au 2°':'—');
     var titre=e.titre||titreFallback;
-    var modNom=modRef?modRef.nom:(modEff?modEff.nom:'');
-    var degColor=deg==='3°'?'#8B0000':deg==='2°'?'#1a3d7c':'#5a3e00';
-    return '<tr style="background:'+(i%2===0?'#fff':'#f9f5ec')+';">'
-      +'<td style="padding:6px 10px;border:1px solid #ddd;color:#444;font-size:12px;white-space:nowrap;">'+fmtDate(e.date)+'</td>'
-      +'<td style="padding:6px 10px;border:1px solid #ddd;text-align:center;font-size:12px;font-weight:700;color:'+degColor+';">'+deg+'</td>'
-      +'<td style="padding:6px 10px;border:1px solid #ddd;font-size:13px;font-weight:600;color:#1a1206;">'+titre+'</td>'
-      +'<td style="padding:6px 10px;border:1px solid #ddd;font-size:11px;color:#8B6914;font-style:italic;">'+modNom+'</td>'
-      +'</tr>';
+    var modNom=modRef?modRef.nom:(modEff?modEff.nom:'—');
+    var heure=e.heure||'';
+    var degCls=deg==='3°'?'deg3':deg==='2°'?'deg2':'deg1';
+    return '<tr'+(i%2?' class="alt"':'')+'>'+
+      '<td>'+fmtDate(e.date)+(heure?' <span style="color:#aaa;font-size:8.5px;">'+heure+'</span>':'')+'</td>'+
+      '<td class="'+degCls+'">'+deg+'</td>'+
+      '<td><strong>'+titre+'</strong></td>'+
+      '<td style="color:#7F8C8D;font-style:italic;">'+modNom+'</td>'+
+      '</tr>';
   }).join('');
-  var inner='<h1 style="font-size:20px;color:#8B6914;border-bottom:2px solid #8B6914;padding-bottom:8px;margin-bottom:4px;">Planning des tenues sans planches</h1>'
-    +'<p style="font-size:11px;color:#777;margin:0 0 16px;">'+loge+' &mdash; Imprimé le '+dateStr+'</p>'
-    +'<table style="width:100%;border-collapse:collapse;">'
-    +'<thead><tr>'
-    +'<th style="background:#8B6914;color:#fff;padding:7px 10px;font-size:12px;text-align:left;border:1px solid #8B6914;">Date</th>'
-    +'<th style="background:#8B6914;color:#fff;padding:7px 10px;font-size:12px;text-align:left;border:1px solid #8B6914;">Degré</th>'
-    +'<th style="background:#8B6914;color:#fff;padding:7px 10px;font-size:12px;text-align:left;border:1px solid #8B6914;">Titre</th>'
-    +'<th style="background:#8B6914;color:#fff;padding:7px 10px;font-size:12px;text-align:left;border:1px solid #8B6914;">Modèle</th>'
-    +'</tr></thead><tbody>'+tBody+'</tbody></table>';
-  var area=document.getElementById('pl-print-area-sans');
-  if(!area){area=document.createElement('div');area.id='pl-print-area-sans';document.body.appendChild(area);}
-  area.innerHTML=inner;
-  window.print();
-  setTimeout(function(){area.innerHTML='';},1000);
+
+  var h='<html><head><meta charset="utf-8"><title>Planning des tenues — '+loge+'</title><style>'+css+'</style></head><body>';
+  h+='<h1>'+loge+(num?' — N° '+num:'')+' — Planning des tenues sans planches</h1>';
+  h+='<div class="subtitle">Édité le '+todayStr+' &bull; '+evts.length+' tenue'+(evts.length>1?'s':'')+' au planning</div>';
+  h+='<div class="kpis">';
+  h+='<div class="kpi"><span class="knum">'+evts.length+'</span><span class="klbl">Tenues</span></div>';
+  h+='<div class="kpi"><span class="knum deg1">'+n1+'</span><span class="klbl">1° degré</span></div>';
+  if(n2) h+='<div class="kpi"><span class="knum deg2">'+n2+'</span><span class="klbl">2° degré</span></div>';
+  if(n3) h+='<div class="kpi"><span class="knum deg3">'+n3+'</span><span class="klbl">3° degré</span></div>';
+  h+='</div>';
+  h+='<table><thead><tr><th>Date</th><th>Degré</th><th>Titre</th><th>Modèle</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  h+='<div class="footer">'+loge+(num?' &mdash; N° '+num:'')+' &mdash; Séau Étoilé d\'Ulysse 1657</div>';
+  h+='</body></html>';
+  _printHtml(h,'Planning des tenues — '+loge);
 }
 
 // ── Admin : Critères de sélection ─────────────────────────────────────────
