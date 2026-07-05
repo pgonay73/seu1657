@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.205</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.206</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -22071,6 +22071,7 @@ function admTransfererAuPlanning(){
 
   var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
   var mdef=modeleId?getModele(modeleId):getModeleDefaut();
+  var mdef3=getModeleParDegre('3°');
 
   var nouvelles=[];
   var cur=new Date(debut.getTime());
@@ -22112,16 +22113,21 @@ function admTransfererAuPlanning(){
     if(existByDate[ds]){
       if(item.degre3){
         var ev=data.events.filter(function(e){return e.date===ds;})[0];
-        if(ev&&ev.degre!=='3°'){ev.degre='3°';updated++;}
+        if(ev&&ev.degre!=='3°'){
+          ev.degre='3°';
+          if(mdef3) ev.modeleId=mdef3.id;
+          updated++;
+        }
       }
       skipped++;return;
     }
     var gid='gen_'+ds.replace(/-/g,'');
-    var partiesG=mdef?cpP(mdef.parties||[]):cpP(D.parDefaut||[]);
+    var _mEvt=item.degre3?(mdef3||mdef):mdef;
+    var partiesG=_mEvt?cpP(_mEvt.parties||[]):cpP(D.parDefaut||[]);
     data.events.push({
       id:gid, date:ds, heure:heure, type:'', titre:'', notes:'',
       ferie:isFerie(new Date(ds+'T12:00:00')),
-      parties:partiesG, modeleId:mdef?mdef.id:'', orateurs:[], officiers:[],
+      parties:partiesG, modeleId:_mEvt?_mEvt.id:'', orateurs:[], officiers:[],
       degre:item.degre3?'3°':'1°'
     });
     added++;
