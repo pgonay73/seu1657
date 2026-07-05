@@ -706,7 +706,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.222</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.223</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
@@ -15219,22 +15219,22 @@ function adminTab(name, btn){
   if(pn) pn.style.display=name==='navigation'?'':'none';
   if(pr) pr.style.display=name==='responsables'?'':'none';
   if(pc) pc.style.display=name==='config'?'':'none';
-  if(ppl) ppl.style.display=name==='planning'?'':'none';
+  if(ppl) ppl.style.display=name==='planning'?'block':'none';
   var ppt=document.getElementById('admin-panel-planches-tracees');
   var pco=document.getElementById('admin-panel-correspondance');
-  if(ppt) ppt.style.display=name==='planches-tracees'?'':'none';
-  if(pco) pco.style.display=name==='correspondance'?'':'none';
+  if(ppt) ppt.style.display=name==='planches-tracees'?'block':'none';
+  if(pco) pco.style.display=name==='correspondance'?'block':'none';
   if(name==='config'){ setTimeout(function(){renderConfig();setTimeout(renderStatsth,50);},0); }
   if(name==='planches-tracees'||name==='correspondance') { setTimeout(function(){ adminLoadTextPanel(name); },50); }
   if(name==='responsables') setTimeout(adminRenderResponsables,0);
   if(name==='titulaires') setTimeout(adminRenderTitulaires,0);
   if(name==='navigation') setTimeout(adminRenderNavVisib,0);
-  if(name==='planning') setTimeout(function(){
-    plRenderAdminNav('pl-admin-nav-container-admin');
+  if(name==='planning'){
     ['prog','planches','avec'].forEach(function(x){var xe=document.getElementById('admin-pl-l1-'+x);if(xe)xe.style.display='none';});
     var _sEl=document.getElementById('admin-pl-l1-sans');if(_sEl)_sEl.style.display='block';
+    plRenderAdminNav('pl-admin-nav-container-admin');
     adminPlRenderSans('admin-pl-sans-list');
-  },0);
+  }
   // Zone Observations
   var adminPanels={offices:'admin-panel-offices',titulaires:'admin-panel-titulaires',navigation:'admin-panel-navigation',responsables:'admin-panel-responsables',config:'admin-panel-config',planning:'admin-panel-planning','planches-tracees':'admin-panel-planches-tracees','correspondance':'admin-panel-correspondance'};
   var apid=adminPanels[name];
