@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.185</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.186</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -1544,8 +1544,9 @@ try {
           if(window.D && window.D.tenues && window.D.tenues.length){
             var _plM2=plLoad(); if(!_plM2.events)_plM2.events=[];
             var _plIds2={}; _plM2.events.forEach(function(e){if(e.id)_plIds2[e.id]=true;});
+            var _delIds2={}; (_plM2.deletedIds||[]).forEach(function(id){_delIds2[id]=true;});
             var _added2=0;
-            window.D.tenues.forEach(function(t){if(!t.id||!_plIds2[t.id]){_plM2.events.push(t);_added2++;}});
+            window.D.tenues.forEach(function(t){if(!t.id||_plIds2[t.id]||_delIds2[t.id])return;_plM2.events.push(t);_added2++;});
             if(_added2>0){
               localStorage.setItem('planning_libre_data',JSON.stringify(_plM2));
               if(window.fbSet) window.fbSet('planning_libre_data',_plM2);
@@ -1560,9 +1561,10 @@ try {
           var _plPostAny=(_plPost.events||[]);
           if(_plPostAny.length===0&&window._seedTenues&&window._seedTenues.length){
             var _seedIds4={}; (_plPost.events||[]).forEach(function(e){if(e.id)_seedIds4[e.id]=true;});
+            var _seedDelIds4={}; (_plPost.deletedIds||[]).forEach(function(id){_seedDelIds4[id]=true;});
             var _seedAdd4=0;
             if(!_plPost.events)_plPost.events=[];
-            window._seedTenues.forEach(function(t){if(!_seedIds4[t.id]){_plPost.events.push(t);_seedAdd4++;}});
+            window._seedTenues.forEach(function(t){if(!t.id||_seedIds4[t.id]||_seedDelIds4[t.id])return;_plPost.events.push(t);_seedAdd4++;});
             if(_seedAdd4>0){
               localStorage.setItem('planning_libre_data',JSON.stringify(_plPost));
               if(window.fbSet)window.fbSet('planning_libre_data',_plPost);
@@ -20375,6 +20377,7 @@ function plDeleteDirect(id,triggerEl){
   var data=plLoad();
   var _evtDel=(data.events||[]).filter(function(x){return x.id===id;})[0];
   if(_evtDel&&_evtDel.date){if(!data.deletedDates)data.deletedDates=[];if(data.deletedDates.indexOf(_evtDel.date)<0)data.deletedDates.push(_evtDel.date);}
+  if(!data.deletedIds)data.deletedIds=[];if(data.deletedIds.indexOf(id)<0)data.deletedIds.push(id);
   data.events=(data.events||[]).filter(function(x){return x.id!==id;});
   plSave(data);
   var contId=null;
@@ -20387,6 +20390,7 @@ function plDeleteFromDispos(id,containerId){
   var data=plLoad();
   var _evtDel=(data.events||[]).filter(function(x){return x.id===id;})[0];
   if(_evtDel&&_evtDel.date){if(!data.deletedDates)data.deletedDates=[];if(data.deletedDates.indexOf(_evtDel.date)<0)data.deletedDates.push(_evtDel.date);}
+  if(!data.deletedIds)data.deletedIds=[];if(data.deletedIds.indexOf(id)<0)data.deletedIds.push(id);
   data.events=(data.events||[]).filter(function(x){return x.id!==id;});
   plSave(data);
   plRenderPlanchesRecap(containerId);
