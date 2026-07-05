@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.177</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.178</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19697,7 +19697,7 @@ function plRenderPlanning(targetId){
     var _tdP='<td style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>';
     var _tdS='<td style="text-align:center;font-weight:700;color:#C080D0;">'+(nbS>0?nbS:'')+'</td>';
     var _actBtns='<button onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
-      +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
+      +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;,this)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
     var _mAdmOpts='<option value=""'+(!e.modeleId?' selected':'')+'>—</option>';
     (D.modeles||[]).forEach(function(m){_mAdmOpts+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
     var _mAdmSel='<select onchange="plModeleChanger(&quot;'+eid+'&quot;,this.value,this)" style="font-size:11px;background:rgba(184,146,42,.07);color:rgba(184,146,42,.9);border:1px solid rgba(184,146,42,.3);border-radius:3px;padding:2px 3px;width:100%;font-family:Raleway,sans-serif;cursor:pointer;">'+_mAdmOpts+'</select>';
@@ -20262,13 +20262,17 @@ function plDelete(){
   data.events=(data.events||[]).filter(function(x){return x.id!==_plEditId;});
   plSave(data);plCloseForm();plRender();plRenderObligatoires();toast('Tenue supprimée.');
 }
-function plDeleteDirect(id){
+function plDeleteDirect(id,triggerEl){
   if(!confirm('Supprimer cette tenue ?'))return;
   var data=plLoad();
   var _evtDel=(data.events||[]).filter(function(x){return x.id===id;})[0];
   if(_evtDel&&_evtDel.date){if(!data.deletedDates)data.deletedDates=[];if(data.deletedDates.indexOf(_evtDel.date)<0)data.deletedDates.push(_evtDel.date);}
   data.events=(data.events||[]).filter(function(x){return x.id!==id;});
-  plSave(data);plRender();plRenderObligatoires();toast('Tenue supprimée.');
+  plSave(data);
+  var contId=null;
+  if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list');if(c)contId=c.id;}
+  if(contId) plRenderPlanning(contId); else plRender();
+  plRenderObligatoires();toast('Tenue supprimée.');
 }
 function plDeleteFromDispos(id,containerId){
   if(!confirm('Supprimer cette tenue du planning ?'))return;
