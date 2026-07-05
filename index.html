@@ -650,7 +650,7 @@ function loginVerif(){
   if(!mdp) return;
   _loginHash(mdp).then(function(hash){
     if(hash === _LOGIN_HASH){
-      try{ localStorage.setItem(_LOGIN_SESSION_KEY,'1'); }catch(e){}
+      try{ sessionStorage.setItem(_LOGIN_SESSION_KEY,'1'); }catch(e){}
       var scr = document.getElementById('login-screen');
       scr.style.transition = 'opacity .4s';
       scr.style.opacity = '0';
@@ -668,7 +668,7 @@ function loginVerif(){
 
 // Si déjà connecté, cacher l'écran de login (app-header/app-main sont toujours visibles)
 (function(){
-  var ok=false; try{ ok=localStorage.getItem(_LOGIN_SESSION_KEY)==='1'; }catch(e){}
+  var ok=false; try{ ok=sessionStorage.getItem(_LOGIN_SESSION_KEY)==='1'; }catch(e){}
   if(ok){
     var scr=document.getElementById('login-screen');
     if(scr) scr.style.display='none';
@@ -706,8 +706,8 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.220</span>
-        <button onclick="(function(){try{localStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.221</span>
+        <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6181,9 +6181,8 @@ function renderAccueilProchaineTenue(){
   var today=new Date(); today.setHours(0,0,0,0);
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  var _critAcc=(typeof plCriteresLoad==='function'?plCriteresLoad():{})||{};
-  var perDeb=(D&&D.loge&&D.loge.periodeDebut)||_critAcc.dateDebut||'';
-  var perFin=(D&&D.loge&&D.loge.periodeFin)||_critAcc.dateFin||'';
+  var perDeb=(D&&D.loge&&D.loge.periodeDebut)||'';
+  var perFin=(D&&D.loge&&D.loge.periodeFin)||'';
   var all=getTenues().filter(function(e){
     if(!e.date) return false;
     if(perDeb && e.date < perDeb) return false;
@@ -15232,7 +15231,7 @@ function adminTab(name, btn){
   if(name==='navigation') setTimeout(adminRenderNavVisib,0);
   if(name==='planning') setTimeout(function(){
     plRenderAdminNav('pl-admin-nav-container-admin');
-    adminPlL1Tab('prog', document.getElementById('admin-pl-l1-btn-prog'));
+    adminPlL1Tab('sans', document.getElementById('admin-pl-l1-btn-sans'));
   },0);
   // Zone Observations
   var adminPanels={offices:'admin-panel-offices',titulaires:'admin-panel-titulaires',navigation:'admin-panel-navigation',responsables:'admin-panel-responsables',config:'admin-panel-config',planning:'admin-panel-planning','planches-tracees':'admin-panel-planches-tracees','correspondance':'admin-panel-correspondance'};
