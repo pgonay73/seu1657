@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.196</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.197</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -18910,134 +18910,136 @@ function plRenderFamille(famille, options){
   el.innerHTML=h;
 }
 
-// ── Tenues fortement conseillées (tc*) ─────────────────────────────────
+// ── Tenues fortement conseillées — règles de fréquence (tc*) ──────────────
+// Chaque règle décrit un type de tenue à programmer à une certaine fréquence.
+// "Tout transférer" réaffecte les tenues libres du planning selon les règles
+// cochées (degré, modèle) en respectant la fréquence choisie.
+
+var TC_FREQ=[
+  {v:'trimestrielle', l:'Trimestrielle', mois:3},
+  {v:'semestrielle',  l:'Semestrielle',  mois:6},
+  {v:'mensuelle',     l:'Mensuelle',     mois:1},
+  {v:'annuelle',      l:'Annuelle',      mois:12}
+];
+
+function tcFreqLabel(v){for(var i=0;i<TC_FREQ.length;i++)if(TC_FREQ[i].v===v)return TC_FREQ[i].l;return v;}
+function tcFreqMois(v){for(var i=0;i<TC_FREQ.length;i++)if(TC_FREQ[i].v===v)return TC_FREQ[i].mois;return 3;}
+
 function tcRender(containerId){
   if(!D.tenuesCons)D.tenuesCons=[];
   var el=document.getElementById(containerId||'admin-tc-list');
   if(!el)return;
-  var _cTcR=plCriteresLoad()||{};
-  var _tcDeb=_cTcR.dateDebut||'';
-  var _tcFin=_cTcR.dateFin||'';
-  function _tcInBornes(d){if(!d)return false;if(_tcDeb&&d<_tcDeb)return false;if(_tcFin&&d>_tcFin)return false;return true;}
-  var btnAjout='<button class="btn btn-outline btn-sm" style="margin-top:12px;" onclick="tcAjouter()">+ Ajouter une tenue conseillée</button>';
-  if(!D.tenuesCons.length){el.innerHTML='<p style="font-size:13px;color:var(--grey);font-style:italic;margin:12px 0;">Aucune tenue fortement conseillée définie.</p>'+btnAjout;return;}
-  var btnTout='<button onclick="tcPlanifierToutes()" style="background:#B8922A;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:6px 14px;font-size:12px;font-weight:700;font-family:Raleway,sans-serif;white-space:nowrap;margin-bottom:10px;">&#8594; Tout basculer dans le planning</button>';
-  var cardS='margin-bottom:4px;border:1px solid rgba(120,180,255,.3);border-radius:5px;padding:6px 10px;background:rgba(120,180,255,.04);';
-  var selS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:4px 6px;font-family:Raleway,sans-serif;font-size:12px;';
-  var inpS='padding:4px 6px;font-size:12px;';
   var hdrS='font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:.6px;font-weight:600;';
-  var h=btnTout+'<div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:flex-end;padding:0 10px 4px;border-bottom:1px solid rgba(120,180,255,.3);margin-bottom:6px;">'
-    +'<div style="flex:0 1 170px;min-width:110px;"><span style="'+hdrS+'">Titre</span></div>'
-    +'<div style="min-width:120px;flex:0 0 auto;"><span style="'+hdrS+'">Mois</span></div>'
-    +'<div style="min-width:120px;flex:0 0 auto;"><span style="'+hdrS+'">Rang</span></div>'
-    +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Date calculée</span></div>'
-    +'<div style="flex:0 0 auto;"><span style="'+hdrS+'">Substitution</span></div>'
-    +'<div style="flex:0 0 auto;min-width:110px;"><span style="'+hdrS+'">Modèle</span></div>'
-    +'</div>';
-  for(var i=0;i<D.tenuesCons.length;i++){
-    var tc=D.tenuesCons[i];
+  var selS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:3px 5px;font-family:Raleway,sans-serif;font-size:12px;';
+  var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:3px 5px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;';
+  var btnTout='<button onclick="tcTransferer()" style="background:#4472C4;border:none;border-radius:4px;color:#FFF;cursor:pointer;padding:7px 16px;font-size:12px;font-weight:700;font-family:Raleway,sans-serif;margin-bottom:10px;">&#8594; Tout transférer dans le planning</button>';
+  var btnAjout='<button class="btn btn-outline btn-sm" style="margin-top:10px;" onclick="tcAjouter()">+ Ajouter une règle</button>';
+  if(!D.tenuesCons.length){el.innerHTML='<p style="font-size:13px;color:var(--grey);font-style:italic;margin:12px 0;">Aucune règle définie. Ajoutez des conseils de planification.</p>'+btnAjout;return;}
+  var h=btnTout;
+  h+='<div style="display:grid;grid-template-columns:32px 1fr 70px 140px 130px 60px 36px;gap:6px;align-items:end;padding:4px 6px 6px;border-bottom:1px solid rgba(120,180,255,.3);margin-bottom:4px;">'
+   +'<span></span>'
+   +'<span style="'+hdrS+'">Description / Conseil</span>'
+   +'<span style="'+hdrS+'">Degré</span>'
+   +'<span style="'+hdrS+'">Modèle</span>'
+   +'<span style="'+hdrS+'">Fréquence</span>'
+   +'<span style="'+hdrS+'text-align:center;">Nb</span>'
+   +'<span></span>'
+   +'</div>';
+  D.tenuesCons.forEach(function(tc,idx){
     var id=tc.id;
-    var th=(tc.theme||'').replace(/"/g,'&quot;');
-    var badge='';
-    if(tc.planifiedDate){badge='<span style="font-size:10px;background:rgba(39,174,96,.18);color:#27AE60;border:1px solid rgba(39,174,96,.4);border-radius:8px;padding:1px 8px;">&#10003; '+tc.planifiedDate+'</span>';}
-    h+='<div style="'+cardS+'">';
-    h+='<div style="display:flex;gap:8px;flex-wrap:nowrap;align-items:center;">';
-    h+='<div style="flex:0 0 auto;display:flex;flex-direction:column;gap:2px;">';
-    h+='<button onclick="tcMonter(''+id+'')" '+(i===0?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:3px;color:#FFFFFF;cursor:pointer;padding:1px 6px;font-size:10px;line-height:1.4;'+(i===0?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9650;</button>';
-    h+='<button onclick="tcDescendre(''+id+'')" '+(i===D.tenuesCons.length-1?'disabled ':'')+'style="background:#2C3E50;border:none;border-radius:3px;color:#FFFFFF;cursor:pointer;padding:1px 6px;font-size:10px;line-height:1.4;'+(i===D.tenuesCons.length-1?'opacity:.3;cursor:not-allowed;':'')+'">'+'&#9660;</button>';
+    var degOpts='';['1°','2°','3°'].forEach(function(d){degOpts+='<option value="'+d+'"'+(tc.degre===d?' selected':'')+'>'+d+'</option>';});
+    var modOpts='<option value="">— Défaut —</option>';
+    (D.modeles||[]).forEach(function(m){modOpts+='<option value="'+m.id+'"'+(tc.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
+    var frqOpts='';TC_FREQ.forEach(function(f){frqOpts+='<option value="'+f.v+'"'+((tc.frequence||'trimestrielle')===f.v?' selected':'')+'>'+f.l+'</option>';});
+    var bg=tc.cochee?'rgba(68,114,196,.12)':'rgba(255,255,255,.03)';
+    var bdr=tc.cochee?'border:1px solid rgba(68,114,196,.4);':'border:1px solid rgba(255,255,255,.08);';
+    h+='<div style="display:grid;grid-template-columns:32px 1fr 70px 140px 130px 60px 36px;gap:6px;align-items:center;padding:5px 6px;border-radius:5px;'+bdr+'background:'+bg+';margin-bottom:3px;">';
+    h+='<input type="checkbox" '+(tc.cochee?'checked':'')+' onchange="tcFieldChange(\'' + id + '\',\'cochee\',this.checked);tcRender()" style="width:18px;height:18px;accent-color:#4472C4;cursor:pointer;">';
+    h+='<input type="text" value="'+(tc.description||'').replace(/"/g,'&quot;')+'" placeholder="Ex : Tenue au 2° à la place d\'une libre" style="'+inpS+'" oninput="tcFieldChange(\'' + id + '\',\'description\',this.value)">';
+    h+='<select style="'+selS+'width:100%;" onchange="tcFieldChange(\'' + id + '\',\'degre\',this.value)">'+degOpts+'</select>';
+    h+='<select style="'+selS+'width:100%;" onchange="tcFieldChange(\'' + id + '\',\'modeleId\',this.value)">'+modOpts+'</select>';
+    h+='<select style="'+selS+'width:100%;" onchange="tcFieldChange(\'' + id + '\',\'frequence\',this.value)">'+frqOpts+'</select>';
+    h+='<input type="number" min="1" max="12" value="'+(tc.nb||1)+'" style="'+inpS+'text-align:center;" onchange="tcFieldChange(\'' + id + '\',\'nb\',+this.value)">';
+    h+='<button onclick="tcSupprimer(\'' + id + '\')" style="background:#C0392B;border:none;border-radius:4px;color:#FFF;cursor:pointer;padding:3px 7px;font-size:12px;">&#128465;</button>';
     h+='</div>';
-    h+='<div style="flex:0 1 170px;min-width:110px;"><input type="text" value="'+th+'" placeholder="Ex : Tenue de mars" style="'+inpS+'width:100%;box-sizing:border-box;" oninput="tcFieldChange(''+id+'','theme',this.value)"/></div>';
-    h+='<div style="min-width:120px;flex:0 0 auto;"><select style="'+selS+'width:100%;" onchange="tcFieldChange(''+id+'','moisTheorique',this.value);tcDateHint(''+id+'')">'+tiMoisOptions(tc.moisTheorique)+'</select></div>';
-    h+='<div style="min-width:120px;flex:0 0 auto;"><select style="'+selS+'width:100%;" onchange="tcFieldChange(''+id+'','rangTheorique',this.value);tcDateHint(''+id+'')">'
-      +'<option value="1"'+(tc.rangTheorique!='2'?' selected':'')+'>1ère tenue</option>'
-      +'<option value="2"'+(tc.rangTheorique=='2'?' selected':'')+'>2ème tenue</option>'
-      +'</select></div>';
-    (function(){
-      var dateCible='';
-      if(tc.moisTheorique) dateCible=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);
-      var dTxt='',dCol='var(--grey)',dBorder='rgba(255,255,255,.12)',dBg='rgba(255,255,255,.04)';
-      if(dateCible){var p=dateCible.split('-');dTxt=p[2]+'/'+p[1]+'/'+p[0];if(_tcInBornes(dateCible)){dCol='#7FBAFF';dBorder='rgba(120,180,255,.4)';}else{dCol='#E74C3C';dBorder='rgba(231,76,60,.5)';dBg='rgba(231,76,60,.08)';dTxt='⚠ '+dTxt;}}
-      else if(tc.moisTheorique){dTxt='—';}
-      h+='<div style="flex:0 0 auto;"><span id="tc-dh-'+id+'" style="font-size:12px;color:'+dCol+';font-style:italic;padding:4px 6px;border:1px solid '+dBorder+';border-radius:4px;background:'+dBg+';white-space:nowrap;display:inline-block;">'+dTxt+'</span></div>';
-    })();
-    (function(){
-      var _seen={},dates=[];
-      getTenues().forEach(function(t){if(t.date&&!_seen[t.date]){_seen[t.date]=true;dates.push(t.date);}});
-      var _plDts=plLoad();
-      (_plDts.events||[]).forEach(function(t){if(t.date&&!_seen[t.date]&&_tcInBornes(t.date)){_seen[t.date]=true;dates.push(t.date);}});
-      dates.sort();
-      var opts='<option value="">— Aucune —</option>';
-      var JN=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-      for(var di=0;di<dates.length;di++){var ds=dates[di];if(!_tcInBornes(ds)&&ds!==tc.dateAlt)continue;var dp=ds.split('-');var dObj=new Date(parseInt(dp[0]),parseInt(dp[1])-1,parseInt(dp[2]));var lbl=JN[dObj.getDay()]+' '+dp[2]+'/'+dp[1]+'/'+dp[0];if(!_tcInBornes(ds))lbl='⚠ '+lbl;opts+='<option value="'+ds+'"'+(tc.dateAlt===ds?' selected':'')+'>'+lbl+'</option>';}
-      h+='<div style="flex:0 0 auto;"><select style="'+selS+'" onchange="tcFieldChange(''+id+'','dateAlt',this.value)">'+opts+'</select></div>';
-    })();
-    h+='<div style="flex:0 0 auto;min-width:110px;"><select style="'+selS+'width:100%;" onchange="tcFieldChange(''+id+'','modeleId',this.value)"><option value="">-- Défaut --</option>';
-    if(D.modeles&&D.modeles.length){for(var mi=0;mi<D.modeles.length;mi++){var mm=D.modeles[mi];h+='<option value="'+mm.id+'"'+(tc.modeleId===mm.id?' selected':'')+'>'+mm.nom+'</option>';}}
-    h+='</select></div>';
-    h+='<div style="flex:0 0 auto;display:flex;align-items:center;gap:4px;">';
-    if(badge) h+=badge;
-    h+='<button onclick="tcPlanifier(''+id+'')" style="background:#4472C4;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 10px;font-size:11px;font-weight:600;white-space:nowrap;">&#8594; Planning</button>';
-    h+='<button onclick="tcSupprimer(''+id+'')" style="background:#C0392B;border:none;border-radius:4px;color:#FFFFFF;cursor:pointer;padding:3px 7px;font-size:12px;">&#128465;</button>';
-    h+='</div>';
-    h+='</div></div>';
-  }
+  });
   el.innerHTML=h+btnAjout;
 }
-function tcDateHint(id){
-  var tc=null;for(var i=0;i<(D.tenuesCons||[]).length;i++){if(D.tenuesCons[i].id===id){tc=D.tenuesCons[i];break;}}
-  var el=document.getElementById('tc-dh-'+id);if(!el||!tc)return;
-  var dateCible='';if(tc.moisTheorique)dateCible=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);
-  var _c2=plCriteresLoad()||{};
-  if(dateCible){var parts=dateCible.split('-');var inB=(!_c2.dateDebut||dateCible>=_c2.dateDebut)&&(!_c2.dateFin||dateCible<=_c2.dateFin);el.style.color=inB?'#7FBAFF':'#E74C3C';el.innerHTML=(inB?'':'⚠ ')+parts[2]+'/'+parts[1]+'/'+parts[0];}
-  else if(tc.moisTheorique){el.style.color='var(--grey)';el.innerHTML='—';}
-  else{el.innerHTML='';}
+
+function tcAjouter(){
+  if(!D.tenuesCons)D.tenuesCons=[];
+  D.tenuesCons.push({id:'tc'+Date.now(),description:'',degre:'2°',modeleId:'',frequence:'trimestrielle',nb:1,cochee:false});
+  save();tcRender();
 }
-function tcAjouter(){if(!D.tenuesCons)D.tenuesCons=[];D.tenuesCons.push({id:'tc'+Date.now(),theme:'',moisTheorique:'',rangTheorique:'1',dateAlt:'',planifiedDate:''});save();tcRender();}
-function tcSupprimer(id){if(!D.tenuesCons)return;D.tenuesCons=D.tenuesCons.filter(function(x){return x.id!==id;});save();tcRender();}
-function tcMonter(id){if(!D.tenuesCons)return;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id&&i>0){var t=D.tenuesCons[i-1];D.tenuesCons[i-1]=D.tenuesCons[i];D.tenuesCons[i]=t;break;}}save();tcRender();}
-function tcDescendre(id){if(!D.tenuesCons)return;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id&&i<D.tenuesCons.length-1){var t=D.tenuesCons[i+1];D.tenuesCons[i+1]=D.tenuesCons[i];D.tenuesCons[i]=t;break;}}save();tcRender();}
-function tcFieldChange(id,field,val){if(!D.tenuesCons)return;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id){D.tenuesCons[i][field]=val;break;}}save();}
-function tcPlanifierToutes(){
-  if(!D.tenuesCons||!D.tenuesCons.length){toast('Aucune tenue fortement conseillée définie.');return;}
-  var plData=plLoad();if(!plData.events)plData.events=[];
-  var _cTc=plCriteresLoad()||{};var _tcDeb=_cTc.dateDebut||'';var _tcFin=_cTc.dateFin||'';
-  function _dB(d){if(_tcDeb&&d<_tcDeb)return false;if(_tcFin&&d>_tcFin)return false;return true;}
-  var ok=0,skip=0;
-  D.tenuesCons.forEach(function(tc){
-    var dateFin='';if(tc.moisTheorique)dateFin=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);
-    if(!dateFin&&tc.dateAlt)dateFin=tc.dateAlt;if(!dateFin){skip++;return;}
-    if(!_dB(dateFin)){if(tc.dateAlt&&tc.dateAlt!==dateFin&&_dB(tc.dateAlt))dateFin=tc.dateAlt;else{skip++;return;}}
-    var conflit=plData.events.some(function(e){return e.date===dateFin;});
-    if(conflit&&tc.dateAlt&&tc.dateAlt!==dateFin&&_dB(tc.dateAlt))dateFin=tc.dateAlt;
-    plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
-    var _tcMd=tc.modeleId?getModele(tc.modeleId):getModeleDefaut();
-    var _tcP=_tcMd?cpP(_tcMd.parties||[]):cpP(D.parDefaut||[]);
-    plData.events.push({id:'pl'+Date.now()+'_'+dateFin,date:dateFin,titre:tc.theme||'Tenue fortement conseillée',categorie:'tenue',degre:'1°',notes:'conseillee:standard',parties:_tcP,modeleId:_tcMd?_tcMd.id:''});
-    tc.planifiedDate=dateFin;ok++;
-  });
-  plSave(plData);save();tcRender();
-  if(ok>0){toast('✓ '+ok+' tenue'+(ok>1?'s':'')+' fortement conseillée'+(ok>1?'s':'')+' ajoutée'+(ok>1?'s':'')+' dans le planning.');plLibreAutoriserEtOuvrir();}
-  else{toast('⚠ Aucune tenue n'a pu être planifiée.');}
-}
-function tcPlanifier(id){
+function tcSupprimer(id){
   if(!D.tenuesCons)return;
-  var tc=null;for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id){tc=D.tenuesCons[i];break;}}
-  if(!tc)return;
-  var dateFin='';if(tc.moisTheorique){dateFin=tiComputeDate(parseInt(tc.moisTheorique),parseInt(tc.rangTheorique)||1);if(!dateFin)toast('⚠ Aucune tenue calculée pour ce mois.');}
-  if(!dateFin&&tc.dateAlt){dateFin=tc.dateAlt;toast('⚠ Date de substitution utilisée.');}
-  if(!dateFin){toast('Configurez un mois et des règles, ou choisissez une date de substitution.');return;}
-  var plData=plLoad();if(!plData.events)plData.events=[];
-  var conflit=plData.events.some(function(e){return e.date===dateFin;});
-  if(conflit&&tc.dateAlt&&tc.dateAlt!==dateFin)dateFin=tc.dateAlt;
-  plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
-  var _tcMd=tc.modeleId?getModele(tc.modeleId):getModeleDefaut();
-  var _tcPart=_tcMd?cpP(_tcMd.parties||[]):cpP(D.parDefaut||[]);
-  plData.events.push({id:'pl'+Date.now(),date:dateFin,titre:tc.theme||'Tenue fortement conseillée',categorie:'tenue',degre:'1°',notes:'conseillee:standard',parties:_tcPart,modeleId:_tcMd?_tcMd.id:''});
-  plSave(plData);
-  tc.planifiedDate=dateFin;save();tcRender();
-  var dp=dateFin.split('-');toast('✓ Tenue «'+(tc.theme||'Fortement conseillée')+'» ajoutée le '+dp[2]+'/'+dp[1]+'/'+dp[0]+'.');
-  plLibreAutoriserEtOuvrir();
+  D.tenuesCons=D.tenuesCons.filter(function(x){return x.id!==id;});
+  save();tcRender();
 }
+function tcFieldChange(id,field,val){
+  if(!D.tenuesCons)return;
+  for(var i=0;i<D.tenuesCons.length;i++){if(D.tenuesCons[i].id===id){D.tenuesCons[i][field]=val;break;}}
+  save();
+}
+
+// Transfert : pour chaque règle cochée, réaffecte des tenues libres dans
+// le planning en respectant la fréquence (N tenues par période).
+function tcTransferer(){
+  if(!D.tenuesCons||!D.tenuesCons.length){toast('Aucune règle définie.');return;}
+  var regles=D.tenuesCons.filter(function(tc){return tc.cochee;});
+  if(!regles.length){toast('Cochez au moins une règle avant de transférer.');return;}
+  var plData=plLoad();if(!plData.events)plData.events=[];
+  var crit=plCriteresLoad()||{};
+  var debStr=crit.dateDebut||'';var finStr=crit.dateFin||'';
+  // Trier les événements par date
+  var evts=plData.events.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var totalChanged=0;
+  regles.forEach(function(tc){
+    var moisPar=tcFreqMois(tc.frequence);var nbPar=tc.nb||1;
+    // Construire les périodes à partir de la date de début
+    if(!debStr&&evts.length) debStr=evts[0].date;
+    if(!debStr) return;
+    var debD=new Date(debStr+'T12:00:00');
+    var finD=finStr?new Date(finStr+'T12:00:00'):new Date(evts[evts.length-1]&&(evts[evts.length-1].date+'T12:00:00')||debStr+'T12:00:00');
+    // Itérer par période
+    var cur=new Date(debD.getFullYear(), debD.getMonth(), 1);
+    while(cur<=finD){
+      var pDebStr=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-01';
+      var pFinD=new Date(cur.getFullYear(), cur.getMonth()+moisPar, 0); // dernier jour de la période
+      var pFinStr=pFinD.getFullYear()+'-'+String(pFinD.getMonth()+1).padStart(2,'0')+'-'+String(pFinD.getDate()).padStart(2,'0');
+      // Trouver des tenues libres dans cette période (deg 1° sans affectation)
+      var libres=evts.filter(function(e){
+        if(!e.date||e.date<pDebStr||e.date>pFinStr) return false;
+        if(e._tcRule) return false; // déjà réaffectée
+        var deg=e.degre||'1°';
+        return deg==='1°'||!e.degre; // libre = 1° sans degré spécifique
+      });
+      for(var li=0;li<Math.min(nbPar,libres.length);li++){
+        var ev=libres[li];
+        for(var ei=0;ei<plData.events.length;ei++){
+          if(plData.events[ei].id===ev.id){
+            plData.events[ei].degre=tc.degre;
+            if(tc.modeleId) plData.events[ei].modeleId=tc.modeleId;
+            if(tc.description) plData.events[ei].titre=tc.description;
+            plData.events[ei]._tcRule=tc.id;
+            ev._tcRule=tc.id; // marquer aussi dans evts pour ne pas le reprendre
+            totalChanged++;break;
+          }
+        }
+      }
+      // Avancer d'une période
+      cur=new Date(cur.getFullYear(), cur.getMonth()+moisPar, 1);
+    }
+  });
+  if(totalChanged>0){
+    plSave(plData);
+    toast('✓ '+totalChanged+' tenue'+(totalChanged>1?'s':'')+' réaffectée'+(totalChanged>1?'s':'')+' dans le planning.');
+    plLibreAutoriserEtOuvrir();
+  } else {
+    toast('⚠ Aucune tenue libre trouvée pour ces règles dans la période configurée.');
+  }
+}
+
 
 // ── Gestion des notes "composées" pour les tenues obligatoires/conseillées ──
 // Format stocké dans e.notes quand plusieurs tenues obligatoires/conseillées
