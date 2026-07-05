@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.176</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.177</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19963,12 +19963,24 @@ function plDetailOuvrir(eid,triggerEl,_retry){
     setTimeout(function(){row.style.backgroundColor='';},900);
   },60);
 }
+function _degreDepuisModele(m){
+  if(!m) return null;
+  var n=(m.nom||'').toLowerCase();
+  if(/3\s*°|au\s*3|troisième|3ème|3eme|ma[îi]tre/.test(n)) return '3°';
+  if(/2\s*°|au\s*2|deuxième|2ème|2eme|compagnon/.test(n)) return '2°';
+  if(/1\s*°|au\s*1|premier|1er|apprenti/.test(n)) return '1°';
+  return null;
+}
 function plModeleChanger(eid,newModeleId,triggerEl){
   var data=plLoad();
   var ev=null;for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
   if(!ev) return;
   ev.modeleId=newModeleId||'';
   ev.detail=[];
+  // Ajuster le degré si le modèle l'indique
+  var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
+  var _deg=_degreDepuisModele(_mRef);
+  if(_deg) ev.degre=_deg;
   plSave(data);
   var contId=null;
   if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list');if(c)contId=c.id;}
