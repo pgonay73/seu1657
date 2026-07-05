@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.203</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.204</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -4006,6 +4006,15 @@ function getModeleDefaut(){
 }
 
 function getModele(id){for(var i=0;i<D.modeles.length;i++)if(D.modeles[i].id===id)return D.modeles[i];return null;}
+function getModeleParDegre(deg){
+  if(!deg||deg==='1°'||deg==='Tous') return getModeleDefaut();
+  var kw=deg==='3°'?['3','troisième','maitre','maître']:deg==='2°'?['2','deuxième','compagnon']:[];
+  for(var i=0;i<(D.modeles||[]).length;i++){
+    var n=D.modeles[i].nom.toLowerCase();
+    for(var k=0;k<kw.length;k++){if(n.indexOf(kw[k])>=0)return D.modeles[i];}
+  }
+  return getModeleDefaut();
+}
 
 function partieDetail(p){
   // Retourne un texte court résumant le contenu spécial d'une partie
@@ -19017,14 +19026,23 @@ function tcTransferer(){
         if(!e.date||e.date<pDebStr||e.date>pFinStr) return false;
         if(e._tcRule) return false; // déjà réaffectée
         var deg=e.degre||'1°';
-        return deg==='1°'||!e.degre; // libre = 1° sans degré spécifique
+        if(!(deg==='1°'||!e.degre)) return false;
+        // Pour les règles au 2° : la cible doit avoir le modèle "tenue au 1"
+        if(tc.degre==='2°'){
+          var mRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
+          var mEff=mRef||getModeleParDegre('1°');
+          var mNom=mEff?mEff.nom.toLowerCase():'';
+          if(mNom.indexOf('1')<0&&mNom.indexOf('premier')<0&&mNom.indexOf('apprent')<0) return false;
+        }
+        return true;
       });
       for(var li=0;li<Math.min(nbPar,libres.length);li++){
         var ev=libres[li];
         for(var ei=0;ei<plData.events.length;ei++){
           if(plData.events[ei].id===ev.id){
             plData.events[ei].degre=tc.degre;
-            if(tc.modeleId) plData.events[ei].modeleId=tc.modeleId;
+            var _mId=tc.modeleId||(getModeleParDegre(tc.degre)||{}).id||'';
+            if(_mId) plData.events[ei].modeleId=_mId;
             if(tc.description) plData.events[ei].titre=tc.description;
             plData.events[ei]._tcRule=tc.id;
             ev._tcRule=tc.id; // marquer aussi dans evts pour ne pas le reprendre
@@ -19809,7 +19827,15 @@ function plRenderPlanning(targetId){
     var aConseillee=clesPO.some(function(c){return c.indexOf('conseillee:')===0;});
     var aTroisieme=clesPO.some(function(c){return c.indexOf('troisieme:')===0;});
     var marqueur=aObligatoire?'&#9733; ':((aConseillee||aTroisieme)?'&#9679; ':'');
-    var titreAffiche=marqueur+(e.titre||(_modRef?_modRef.nom:'—'));
+    var ferie=plJourFerie(e.date);
+    var bgFerie=ferie?'background:rgba(255,80,80,.07);':'';
+    var _modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
+    var _modEffectif=_modRef||(typeof getModeleParDegre==='function'?getModeleParDegre(deg):null);
+    var modeleAff='';
+    if(_modRef)modeleAff='<span onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Cliquer pour modifier le modèle" style="cursor:pointer;font-size:10px;color:rgba(184,146,42,.85);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.35);border-radius:3px;padding:1px 5px;">'+_modRef.nom+' ✎</span>';
+    else if(_modEffectif)modeleAff='<span style="font-size:10px;color:rgba(184,146,42,.55);font-style:italic;background:rgba(184,146,42,.05);border:1px solid rgba(184,146,42,.2);border-radius:3px;padding:1px 5px;">'+_modEffectif.nom+'</span>';
+    var _titreFallback=_modEffectif?_modEffectif.nom:(deg==='3°'?'Tenue au 3°':deg==='2°'?'Tenue au 2°':'—');
+    var titreAffiche=marqueur+(e.titre||_titreFallback);
     var nomTenueAff=e.nomTenue?('<span style="font-size:11px;color:rgba(255,255,255,.55);font-style:italic;">'+e.nomTenue+'</span>'):'';
     var couleurTitre='#FFFFFF';
     var utilisesModules=(e.parties||[]).reduce(function(s,p){return s+(p.modules||0);},0);
@@ -19819,13 +19845,6 @@ function plRenderPlanning(targetId){
     var sujetSymbolisme=plSujetSymbolisme(restants,nbBlocs);
     var minUtilisees=utilisesModules*plDureeModule();
     var dureeUtilisee=Math.floor(minUtilisees/60)+'h'+(minUtilisees%60?String(minUtilisees%60).padStart(2,'0'):'');
-    var ferie=plJourFerie(e.date);
-    var bgFerie=ferie?'background:rgba(255,80,80,.07);':'';
-    var _modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
-    var _modEffectif=_modRef||(typeof getModeleDefaut==='function'?getModeleDefaut():null);
-    var modeleAff='';
-    if(_modRef)modeleAff='<span onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Cliquer pour modifier le modèle" style="cursor:pointer;font-size:10px;color:rgba(184,146,42,.85);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.35);border-radius:3px;padding:1px 5px;">'+_modRef.nom+' ✎</span>';
-    else if(_modEffectif)modeleAff='<span style="font-size:10px;color:rgba(184,146,42,.55);font-style:italic;background:rgba(184,146,42,.05);border:1px solid rgba(184,146,42,.2);border-radius:3px;padding:1px 5px;">'+_modEffectif.nom+'</span>';
     var _modRefParties=_modRef&&(_modRef.parties||[]).length?_modRef.parties:null;
     var _detDur=e.detail&&e.detail.length?e.detail:(_modRefParties||(D.parDefaut||[]));
     var _dureeEff=_detDur.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0);
