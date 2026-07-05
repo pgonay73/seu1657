@@ -669,10 +669,19 @@ function loginVerif(){
 }
 
 // Si déjà connecté dans cette session navigateur, passer directement
+// NB: ce script s'exécute avant que app-header/app-main existent dans le DOM
+// → on utilise DOMContentLoaded pour garantir que les éléments sont présents
 (function(){
   var ok=false; try{ ok=localStorage.getItem(_LOGIN_SESSION_KEY)==='1'; }catch(e){}
-  if(ok){ document.getElementById('login-screen').style.display='none'; var hdr=document.getElementById('app-header'); if(hdr) hdr.style.display=''; var mn=document.getElementById('app-main'); if(mn) mn.style.display=''; }
-  else { setTimeout(function(){ var i=document.getElementById('login-mdp'); if(i) i.focus(); },150); }
+  if(ok){
+    document.addEventListener('DOMContentLoaded', function(){
+      document.getElementById('login-screen').style.display='none';
+      var hdr=document.getElementById('app-header'); if(hdr) hdr.style.display='';
+      var mn=document.getElementById('app-main'); if(mn) mn.style.display='';
+    });
+  } else {
+    setTimeout(function(){ var i=document.getElementById('login-mdp'); if(i) i.focus(); },150);
+  }
 })();
 </script>
 
@@ -704,7 +713,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.216</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.217</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
