@@ -706,7 +706,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.218</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-05.219</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -6180,7 +6180,14 @@ function renderAccueilProchaineTenue(){
   var today=new Date(); today.setHours(0,0,0,0);
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  var all=getTenues().filter(function(e){return!!e.date;});
+  var perDeb=(D&&D.loge&&D.loge.periodeDebut)||'';
+  var perFin=(D&&D.loge&&D.loge.periodeFin)||'';
+  var all=getTenues().filter(function(e){
+    if(!e.date) return false;
+    if(perDeb && e.date < perDeb) return false;
+    if(perFin && e.date > perFin) return false;
+    return true;
+  });
   var prochaine=null;
   all.forEach(function(t){
     var d=new Date(t.date+'T12:00:00');
@@ -21935,10 +21942,17 @@ function adminPlRenderSans(cid){
 }
 function plImprimerSans(){
   var data=plLoad();
-  var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-  if(!evts.length){toast('⚠ Aucune tenue dans le planning.');return;}
-  var loge=(D&&D.config&&D.config.nom)?D.config.nom:'Loge';
-  var num=(D&&D.config&&D.config.num)?D.config.num:'';
+  var perDeb=(D&&D.loge&&D.loge.periodeDebut)||'';
+  var perFin=(D&&D.loge&&D.loge.periodeFin)||'';
+  var evts=(data.events||[]).filter(function(e){
+    if(!e.date) return false;
+    if(perDeb && e.date < perDeb) return false;
+    if(perFin && e.date > perFin) return false;
+    return true;
+  }).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  if(!evts.length){toast('⚠ Aucune tenue dans la période définie.');return;}
+  var loge=(D&&D.loge&&D.loge.nom)?D.loge.nom:((D&&D.config&&D.config.nom)?D.config.nom:'Loge');
+  var num=(D&&D.loge&&D.loge.num)?D.loge.num:((D&&D.config&&D.config.num)?D.config.num:'');
   var today=new Date();
   var moisLong=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   var todayStr=today.getDate()+' '+moisLong[today.getMonth()]+' '+today.getFullYear();
@@ -21988,7 +22002,9 @@ function plImprimerSans(){
 
   var h='<html><head><meta charset="utf-8"><title>Planning des tenues — '+loge+'</title><style>'+css+'</style></head><body>';
   h+='<h1>'+loge+(num?' — N° '+num:'')+' — Planning des tenues sans planches</h1>';
-  h+='<div class="subtitle">Édité le '+todayStr+' &bull; '+evts.length+' tenue'+(evts.length>1?'s':'')+' au planning</div>';
+  var periodeStr='';
+  if(perDeb||perFin){function fmtD(s){if(!s)return'?';var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}periodeStr=' &bull; Période : '+fmtD(perDeb)+' → '+fmtD(perFin);}
+  h+='<div class="subtitle">Édité le '+todayStr+' &bull; '+evts.length+' tenue'+(evts.length>1?'s':'')+periodeStr+'</div>';
   h+='<div class="kpis">';
   h+='<div class="kpi"><span class="knum">'+evts.length+'</span><span class="klbl">Tenues</span></div>';
   h+='<div class="kpi"><span class="knum deg1">'+n1+'</span><span class="klbl">1° degré</span></div>';
