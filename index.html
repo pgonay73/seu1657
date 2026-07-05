@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.174</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.175</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19460,6 +19460,7 @@ function plJourFerie(dateStr){
 }
 function plRenderPlanning(targetId){
   var el=document.getElementById(targetId||'pl-list');if(!el)return;
+  var isAdmin=(targetId||'')==='admin-pl-sans-list';
   plMajResumeCriteres();
   plMajDureeHabituelle();
   var data=plLoad();
@@ -19586,14 +19587,25 @@ function plRenderPlanning(targetId){
     +'<span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#FF4444;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FF4444;flex-shrink:0;"></span>3° Maître</span>'
     +'</div>'
     +'<table style="table-layout:fixed;width:100%;">'
-    +'<thead><tr style="border-bottom:2px solid rgba(184,146,42,.5);">'
-    +'<th style="width:22px;"></th>'
-    +'<th style="width:90px;">Date</th>'
-    +'<th style="text-align:center;width:50px;">Degré</th>'
-    +'<th style="text-align:center;width:28px;" title="Nombre de planches">P</th>'
-    +'<th style="text-align:center;width:28px;" title="Nombre de symbolismes">S</th>'
-    +'<th style="width:auto;">Titre</th>'
-    +'</tr></thead><tbody>';
+    +(isAdmin
+      ?(+'<thead><tr style="border-bottom:2px solid rgba(184,146,42,.5);">'
+        +'<th style="width:22px;"></th>'
+        +'<th style="width:82px;">Date</th>'
+        +'<th style="text-align:center;width:46px;">Degré</th>'
+        +'<th style="text-align:center;width:24px;" title="Planches">P</th>'
+        +'<th style="text-align:center;width:24px;" title="Symbolismes">S</th>'
+        +'<th style="width:auto;">Titre</th>'
+        +'<th style="width:120px;">Modèle</th>'
+        +'<th style="text-align:center;width:62px;">Durée</th>'
+        +'</tr></thead><tbody>')
+      :(+'<thead><tr style="border-bottom:2px solid rgba(184,146,42,.5);">'
+        +'<th style="width:22px;"></th>'
+        +'<th style="width:90px;">Date</th>'
+        +'<th style="text-align:center;width:50px;">Degré</th>'
+        +'<th style="text-align:center;width:28px;" title="Nombre de planches">P</th>'
+        +'<th style="text-align:center;width:28px;" title="Nombre de symbolismes">S</th>'
+        +'<th style="width:auto;">Titre</th>'
+        +'</tr></thead><tbody>'));
   var curTr=null;
   var dateAffPrecedente=null;
   var moduleDefautGlobal=parseInt(plDureeGenereeLoad())||10;
@@ -19604,7 +19616,7 @@ function plRenderPlanning(targetId){
     if(trKey!==curTr){
       curTr=trKey;
       var _trBg='#4472C4';
-      h+='<tr><td data-tri="'+tr+'" colspan="6" style="padding:6px 10px;background:'+_trBg+';background-color:'+_trBg+';color:#fff;font-family:Georgia,serif;font-size:14px;font-weight:700;border-left:5px solid rgba(255,255,255,.5);">'
+      h+='<tr><td data-tri="'+tr+'" colspan="'+(isAdmin?8:6)+'" style="padding:6px 10px;background:'+_trBg+';background-color:'+_trBg+';color:#fff;font-family:Georgia,serif;font-size:14px;font-weight:700;border-left:5px solid rgba(255,255,255,.5);">'
         +TL[tr]+' '+(trKey.split('_')[1]||'')
         +'<span style="margin-left:10px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;opacity:.95;">— '+cnt[trKey]+' tenue'+(cnt[trKey]>1?'s':'')+'</span>'
         +(trStats[trKey]?('<span style="margin-left:14px;font-family:Raleway,sans-serif;font-size:10px;font-weight:600;opacity:.85;">'
@@ -19679,20 +19691,36 @@ function plRenderPlanning(targetId){
       });
       _inlineInfo+='</div>';
     }
-    h+='<tr style="'+traitJournee+bgFerie+'">'
-      +'<td style="text-align:center;"><button onclick="plToggleDetailModules(&quot;'+eid+'&quot;,this)" id="pl-detail-btn-'+eid+'" title="Voir le découpage par module" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;padding:2px;">'+(plAllDetailsExpanded?'&#9660;':'&#9654;')+'</button></td>'
-      +'<td style="white-space:nowrap;color:'+cd+';font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠ Férié</span>':'')+'</td>'
-      +'<td style="text-align:center;color:'+cd+';font-weight:700;">'+deg+'</td>'
-      +'<td style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>'
-      +'<td style="text-align:center;font-weight:700;color:#C080D0;">'+(nbS>0?nbS:'')+'</td>'
-      +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+modeleAff+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div>'+_inlineInfo+'</div><div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0;"><button onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:13px;padding:2px 7px;">✏️</button><button onclick="plDeleteDirect(&quot;'+eid+'&quot;)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:13px;padding:2px 7px;">🗑</button></div></div></td>'
-      +'</tr>';
+    var _tdToggle='<td style="text-align:center;"><button onclick="plToggleDetailModules(&quot;'+eid+'&quot;,this)" id="pl-detail-btn-'+eid+'" title="Voir le découpage par module" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;padding:2px;">'+(plAllDetailsExpanded?'&#9660;':'&#9654;')+'</button></td>';
+    var _tdDate='<td style="white-space:nowrap;color:'+cd+';font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠</span>':'')+'</td>';
+    var _tdDeg='<td style="text-align:center;color:'+cd+';font-weight:700;">'+deg+'</td>';
+    var _tdP='<td style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>';
+    var _tdS='<td style="text-align:center;font-weight:700;color:#C080D0;">'+(nbS>0?nbS:'')+'</td>';
+    var _actBtns='<button onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
+      +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
+    var _mAdmOpts='<option value=""'+(!e.modeleId?' selected':'')+'>—</option>';
+    (D.modeles||[]).forEach(function(m){_mAdmOpts+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
+    var _mAdmSel='<select onchange="plModeleChanger(&quot;'+eid+'&quot;,this.value,this)" style="font-size:11px;background:rgba(184,146,42,.07);color:rgba(184,146,42,.9);border:1px solid rgba(184,146,42,.3);border-radius:3px;padding:2px 3px;width:100%;font-family:Raleway,sans-serif;cursor:pointer;">'+_mAdmOpts+'</select>';
+    var _dureeAdm=_dureeEff>0?(Math.floor(_dureeEff/60)>0?Math.floor(_dureeEff/60)+'h'+((_dureeEff%60)>0?String(_dureeEff%60).padStart(2,'0'):''):(_dureeEff+' min')):'—';
+    if(isAdmin){
+      h+='<tr style="'+traitJournee+bgFerie+'">'
+        +_tdToggle+_tdDate+_tdDeg+_tdP+_tdS
+        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;"><span style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
+        +'<td style="vertical-align:top;padding:4px 6px;">'+_mAdmSel+'</td>'
+        +'<td style="text-align:center;vertical-align:top;color:var(--gold2);font-size:12px;font-weight:600;white-space:nowrap;padding:4px 4px;">'+_dureeAdm+'</td>'
+        +'</tr>';
+    } else {
+      h+='<tr style="'+traitJournee+bgFerie+'">'
+        +_tdToggle+_tdDate+_tdDeg+_tdP+_tdS
+        +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+modeleAff+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div>'+_inlineInfo+'</div><div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0;">'+_actBtns+'</div></div></td>'
+        +'</tr>';
+    }
     // Ligne dépliable : détail du découpage par module de cette tenue,
     // Ligne dépliable : détail de la tenue (parties avec nom et durée)
     var detailParties=e.detail&&e.detail.length?e.detail:(_modRefParties||(D.parDefaut||[]));
     h+='<tr id="pl-detail-row-'+eid+'" style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
     h+='<td></td>';
-    h+='<td colspan="5" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
+    h+='<td colspan="'+(isAdmin?7:5)+'" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
     // Sélecteur de modèle
     var _mSelOpts='<option value=""'+(!e.modeleId?' selected':'')+'>— Défaut (parDefaut) —</option>';
     (D.modeles||[]).forEach(function(m){_mSelOpts+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
