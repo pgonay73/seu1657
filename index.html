@@ -704,7 +704,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.180</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-04.181</span>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
         <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;margin-left:auto;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
@@ -19798,19 +19798,16 @@ function plRenderPlanning(targetId){
     // Dropdown "Ajouter un élément de tenue"
     var _addOpts='<option value="">— Ajouter un élément —</option>';
     (D.parDefaut||[]).forEach(function(pd,pdi){_addOpts+='<option value="'+pdi+'">'+pd.nom+(parseInt(pd.dur)?' ('+pd.dur+' min)':'')+'</option>';});
-    var _cbLbl='font-size:11px;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:4px;cursor:pointer;';
+    var _cbLbl='font-size:11px;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
     var _cbInp='accent-color:var(--gold);cursor:pointer;margin:0;';
-    h+='<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px;">'
-      +'<div style="display:flex;gap:6px;align-items:center;">'
-      +'<select id="pl-add-partie-sel-'+eid+'" onchange="plPartieSelChange(&quot;'+eid+'&quot;,this)" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:4px 8px;font-size:12px;font-family:Raleway,sans-serif;flex:1;max-width:280px;">'+_addOpts+'</select>'
-      +'<button onclick="plDetailPartieAdd(&quot;'+eid+'&quot;,this)" style="background:rgba(184,146,42,.15);border:1px solid rgba(184,146,42,.45);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:12px;padding:4px 12px;font-weight:600;font-family:Raleway,sans-serif;white-space:nowrap;">+ Ajouter</button>'
-      +'</div>'
-      +'<div id="pl-morceau-cb-'+eid+'" style="display:none;gap:14px;align-items:center;flex-wrap:wrap;padding:5px 8px;background:rgba(184,146,42,.06);border:1px solid rgba(184,146,42,.25);border-radius:4px;">'
-      +'<span style="font-size:10px;color:rgba(184,146,42,.85);font-weight:700;text-transform:uppercase;letter-spacing:.5px;">Type :</span>'
-      +'<label style="'+_cbLbl+'"><input type="checkbox" id="pl-cb-planche-'+eid+'" value="planche" style="'+_cbInp+'"> Planche</label>'
-      +'<label style="'+_cbLbl+'"><input type="checkbox" id="pl-cb-symbolisme-'+eid+'" value="symbolisme" style="'+_cbInp+'"> Symbolisme</label>'
+    h+='<div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'
+      +'<select id="pl-add-partie-sel-'+eid+'" onchange="plPartieSelChange(&quot;'+eid+'&quot;,this)" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:4px 8px;font-size:12px;font-family:Raleway,sans-serif;flex:1;min-width:160px;max-width:260px;">'+_addOpts+'</select>'
+      +'<div id="pl-morceau-cb-'+eid+'" style="display:none;gap:10px;align-items:center;">'
+      +'<label style="'+_cbLbl+'"><input type="checkbox" id="pl-cb-planche-'+eid+'" value="planche" style="'+_cbInp+'"> P</label>'
+      +'<label style="'+_cbLbl+'"><input type="checkbox" id="pl-cb-symbolisme-'+eid+'" value="symbolisme" style="'+_cbInp+'"> S</label>'
       +'<label style="'+_cbLbl+'"><input type="checkbox" id="pl-cb-parole-'+eid+'" value="parole" style="'+_cbInp+'"> Parole</label>'
       +'</div>'
+      +'<button onclick="plDetailPartieAdd(&quot;'+eid+'&quot;,this)" style="background:rgba(184,146,42,.15);border:1px solid rgba(184,146,42,.45);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:12px;padding:4px 12px;font-weight:600;font-family:Raleway,sans-serif;white-space:nowrap;">+ Ajouter</button>'
       +'</div>';
     h+='</td></tr>';
   });
