@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.229</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.230</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
@@ -19658,9 +19658,54 @@ function plJourFerie(dateStr){
   if(mois===12 && jour===25) return '🎄 Noël';
   return '';
 }
+// ── Sélecteur de colonnes du planning ─────────────────────────────────────
+function _plColPrefsLoad(t){
+  var def={planning:{degre:true,p:true,s:true},suivi:{nb:true,type:true,degre:true,sujet:true}};
+  try{var s=JSON.parse(localStorage.getItem('pl_col_prefs_'+t)||'null');
+    var base=def[t]||{};var out={};Object.keys(base).forEach(function(k){out[k]=base[k];});
+    if(s)Object.keys(s).forEach(function(k){out[k]=s[k];});return out;}
+  catch(e){return def[t]||{};}
+}
+function _plColPrefsSave(t,p){try{localStorage.setItem('pl_col_prefs_'+t,JSON.stringify(p));}catch(e){}}
+function _plColStyleUpdate(){
+  var sid='pl-col-style';
+  var sEl=document.getElementById(sid);
+  if(!sEl){sEl=document.createElement('style');sEl.id=sid;(document.head||document.body).appendChild(sEl);}
+  var css='';
+  var pp=_plColPrefsLoad('planning'),sp=_plColPrefsLoad('suivi');
+  if(pp.degre===false)css+='.pl-col-dg{display:none!important}';
+  if(pp.p===false)css+='.pl-col-pp{display:none!important}';
+  if(pp.s===false)css+='.pl-col-ss{display:none!important}';
+  if(sp.nb===false)css+='.pl-col-nb{display:none!important}';
+  if(sp.type===false)css+='.pl-col-tp{display:none!important}';
+  if(sp.degre===false)css+='.pl-col-dg2{display:none!important}';
+  if(sp.sujet===false)css+='.pl-col-sj{display:none!important}';
+  sEl.textContent=css;
+}
+function plToggleCol(t,col,val){
+  var p=_plColPrefsLoad(t);p[col]=val;_plColPrefsSave(t,p);
+  _plColStyleUpdate();
+}
+function _plColPickerHTML(t){
+  var p=_plColPrefsLoad(t);
+  var cols=t==='planning'
+    ?[{k:'degre',l:'Degré'},{k:'p',l:'P (planches)'},{k:'s',l:'S (symb.)'}]
+    :[{k:'nb',l:'Nb'},{k:'type',l:'Type'},{k:'degre',l:'Degré'},{k:'sujet',l:'Sujet'}];
+  var items=cols.map(function(c){
+    var on=p[c.k]!==false;
+    return '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;">'
+      +'<input type="checkbox" class="pl-col-chk" data-t="'+t+'" data-c="'+c.k+'"'+(on?' checked':'')
+      +' onchange="plToggleCol(\''+t+'\',\''+c.k+'\',this.checked)" style="cursor:pointer;accent-color:#B8922A;width:13px;height:13px;">'
+      +'<span style="font-size:11px;color:rgba(255,255,255,.75);">'+c.l+'</span></label>';
+  }).join('');
+  return '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:5px 10px;margin-bottom:6px;background:rgba(184,146,42,.06);border:1px solid rgba(184,146,42,.2);border-radius:4px;">'
+    +'<span style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(184,146,42,.8);font-weight:700;white-space:nowrap;flex-shrink:0;">Colonnes :</span>'
+    +items+'</div>';
+}
 function plRenderPlanning(targetId){
   var el=document.getElementById(targetId||'pl-list');if(!el)return;
   var isAdmin=(targetId||'')==='admin-pl-sans-list';
+  _plColStyleUpdate();
   plMajResumeCriteres();
   plMajDureeHabituelle();
   var data=plLoad();
@@ -19794,7 +19839,8 @@ function plRenderPlanning(targetId){
     if(_dt.some(function(p){return !!(p.initDegre||p.initNom);}))trStats[_t].init++;
   });
   var _nomPl=data.nom||'';
-  var h=(_nomPl?'<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;color:var(--gold2);margin-bottom:8px;padding:4px 8px;background:rgba(184,146,42,.07);border-radius:4px;border-left:3px solid rgba(184,146,42,.5);">'+_nomPl+'</div>':'')
+  var h=_plColPickerHTML('planning')
+    +(_nomPl?'<div style="font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;color:var(--gold2);margin-bottom:8px;padding:4px 8px;background:rgba(184,146,42,.07);border-radius:4px;border-left:3px solid rgba(184,146,42,.5);">'+_nomPl+'</div>':'')
     +'<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px;padding:5px 10px;background:rgba(255,255,255,.04);border-radius:5px;border:1px solid rgba(255,255,255,.08);">'
     +'<span style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.4);font-weight:600;">Légende :</span>'
     +'<span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#33DD66;"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#33DD66;flex-shrink:0;"></span>1° Apprenti</span>'
@@ -19806,17 +19852,17 @@ function plRenderPlanning(targetId){
       ?(+'<thead><tr style="border-bottom:2px solid rgba(184,146,42,.5);">'
         +'<th style="width:22px;"></th>'
         +'<th style="width:82px;">Date</th>'
-        +'<th style="text-align:center;width:46px;">Degré</th>'
-        +'<th style="text-align:center;width:24px;" title="Planches">P</th>'
-        +'<th style="text-align:center;width:24px;" title="Symbolismes">S</th>'
+        +'<th class="pl-col-dg" style="text-align:center;width:46px;">Degré</th>'
+        +'<th class="pl-col-pp" style="text-align:center;width:24px;" title="Planches">P</th>'
+        +'<th class="pl-col-ss" style="text-align:center;width:24px;" title="Symbolismes">S</th>'
         +'<th style="width:auto;">Titre</th>'
         +'</tr></thead><tbody>')
       :(+'<thead><tr style="border-bottom:2px solid rgba(184,146,42,.5);">'
         +'<th style="width:22px;"></th>'
         +'<th style="width:90px;">Date</th>'
-        +'<th style="text-align:center;width:50px;">Degré</th>'
-        +'<th style="text-align:center;width:28px;" title="Nombre de planches">P</th>'
-        +'<th style="text-align:center;width:28px;" title="Nombre de symbolismes">S</th>'
+        +'<th class="pl-col-dg" style="text-align:center;width:50px;">Degré</th>'
+        +'<th class="pl-col-pp" style="text-align:center;width:28px;" title="Nombre de planches">P</th>'
+        +'<th class="pl-col-ss" style="text-align:center;width:28px;" title="Nombre de symbolismes">S</th>'
         +'<th style="width:auto;">Titre</th>'
         +'</tr></thead><tbody>'));
   var curTr=null;
@@ -19916,9 +19962,9 @@ function plRenderPlanning(targetId){
     }
     var _tdToggle='<td style="text-align:center;"><button onclick="plToggleDetailModules(&quot;'+eid+'&quot;,this)" id="pl-detail-btn-'+eid+'" title="Voir le découpage par module" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;padding:2px;">'+(plAllDetailsExpanded?'&#9660;':'&#9654;')+'</button></td>';
     var _tdDate='<td style="white-space:nowrap;color:'+cd+';font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠</span>':'')+'</td>';
-    var _tdDeg='<td style="text-align:center;color:'+cd+';font-weight:700;">'+deg+'</td>';
-    var _tdP='<td style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>';
-    var _tdS='<td style="text-align:center;font-weight:700;color:#C080D0;">'+(nbS>0?nbS:'')+'</td>';
+    var _tdDeg='<td class="pl-col-dg" style="text-align:center;color:'+cd+';font-weight:700;">'+deg+'</td>';
+    var _tdP='<td class="pl-col-pp" style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>';
+    var _tdS='<td class="pl-col-ss" style="text-align:center;font-weight:700;color:#C080D0;">'+(nbS>0?nbS:'')+'</td>';
     var _mAdmOpts='<option value=""'+(!e.modeleId?' selected':'')+'>—</option>';
     (D.modeles||[]).forEach(function(m){_mAdmOpts+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
     var _mAdmSel='<select onchange="plModeleChanger(&quot;'+eid+'&quot;,this.value,this)" style="font-size:11px;background:rgba(184,146,42,.07);color:rgba(184,146,42,.9);border:1px solid rgba(184,146,42,.3);border-radius:3px;padding:2px 3px;width:100%;font-family:Raleway,sans-serif;cursor:pointer;">'+_mAdmOpts+'</select>';
@@ -19930,8 +19976,8 @@ function plRenderPlanning(targetId){
     if(_typesBadges)_typesBadges='<span style="margin-left:6px;display:inline-flex;gap:3px;flex-wrap:wrap;vertical-align:middle;">'+_typesBadges+'</span>';
     var _pVal=nbP>0?nbP:(e.P>0?e.P:'');var _sVal=nbS>0?nbS:(e.S>0?e.S:'');
     var _inpPs='width:32px;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.25);font-weight:700;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;';
-    var _tdPAdm='<td style="text-align:center;"><input type="number" min="0" value="'+_pVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'P\',+this.value)" style="'+_inpPs+'color:'+cd+';">'+'</td>';
-    var _tdSAdm='<td style="text-align:center;"><input type="number" min="0" value="'+_sVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'S\',+this.value)" style="'+_inpPs+'color:#C080D0;">'+'</td>';
+    var _tdPAdm='<td class="pl-col-pp" style="text-align:center;"><input type="number" min="0" value="'+_pVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'P\',+this.value)" style="'+_inpPs+'color:'+cd+';">'+'</td>';
+    var _tdSAdm='<td class="pl-col-ss" style="text-align:center;"><input type="number" min="0" value="'+_sVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'S\',+this.value)" style="'+_inpPs+'color:#C080D0;">'+'</td>';
     var _dureeManVal=_dureeEff>0?_dureeEff:(e.duree!=null&&e.duree>0?e.duree:'');
     var _dureeAdmInput='<input type="number" min="0" value="'+_dureeManVal+'" placeholder="—" onblur="plDureeChanger(&quot;'+eid+'&quot;,+this.value)" style="width:48px;background:transparent;border:none;border-bottom:1px dashed rgba(184,146,42,.4);color:var(--gold2);font-weight:600;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"><span style="font-size:10px;color:rgba(184,146,42,.6);"> min</span>';
     var _actBtns='<button onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
@@ -21586,14 +21632,16 @@ function plSuiviParTenueRender(cid){
   });
   var JC2=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   var ML2=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
-  var h='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
+  _plColStyleUpdate();
+  var h=_plColPickerHTML('suivi')
+    +'<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
     +'<th style="width:30%;">Date prévue</th>'
     +'<th style="width:18%;">Nom</th>'
-    +'<th style="text-align:center;width:3%;">Nb</th>'
+    +'<th class="pl-col-nb" style="text-align:center;width:3%;">Nb</th>'
     +'<th style="width:2%;"></th>'
-    +'<th style="text-align:center;width:5%;">Type</th>'
-    +'<th style="text-align:center;width:5%;">Degré</th>'
-    +'<th style="width:22%;">Sujet</th>'
+    +'<th class="pl-col-tp" style="text-align:center;width:5%;">Type</th>'
+    +'<th class="pl-col-dg2" style="text-align:center;width:5%;">Degré</th>'
+    +'<th class="pl-col-sj" style="width:22%;">Sujet</th>'
     +'</tr></thead><tbody>';
   for(var li=0;li<lignes.length;li++){
     var lg=lignes[li];
@@ -21625,24 +21673,24 @@ function plSuiviParTenueRender(cid){
     h+='<tr style="'+border+'">';
     h+='<td style="border-left:3px solid '+cd+';'+border+'overflow:hidden;"><select onchange="plSuiviChoisirTenue(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,this.value)" style="width:100%;">'+optsTenue+'</select></td>';
     h+='<td style="'+border+'width:113px;max-width:113px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--gold2);font-weight:600;font-size:10px;vertical-align:middle;" title="'+nomFrere+'">'+nomFrere+'</td>';
-    h+='<td style="text-align:center;vertical-align:middle;width:28px;">'
+    h+='<td class="pl-col-nb" style="text-align:center;vertical-align:middle;width:28px;">'
       +'<select onchange="plSuiviChangerNb(&quot;'+nomAttr+'&quot;,this.value)" style="min-width:28px;width:28px;" title="Nombre de planches">'
       +'<option value="1"'+(nbLignes===1?' selected':'')+'>1</option>'
       +'<option value="2"'+(nbLignes===2?' selected':'')+'>2</option>'
       +'<option value="3"'+(nbLignes===3?' selected':'')+'>3</option>'
       +'</select></td>';
     h+='<td style="text-align:center;color:rgba(255,255,255,.35);font-size:10px;width:14px;">'+ligne+'</td>';
-    h+='<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;type&quot;,this.value)" style="min-width:34px;width:34px;">'
+    h+='<td class="pl-col-tp" style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;type&quot;,this.value)" style="min-width:34px;width:34px;">'
       +'<option value="Planche"'+(s.type==='Planche'?' selected':'')+'>P</option>'
       +'<option value="Symbolisme"'+(s.type==='Symbolisme'?' selected':'')+'>S</option>'
       +'</select></td>';
-    h+='<td style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;degre&quot;,this.value)" style="min-width:34px;width:34px;">'
+    h+='<td class="pl-col-dg2" style="text-align:center;"><select onchange="plSuiviChanger(&quot;'+nomAttr+'&quot;,&quot;'+ligne+'&quot;,&quot;degre&quot;,this.value)" style="min-width:34px;width:34px;">'
       +'<option value=""'+(!s.degre?' selected':'')+'>—</option>'
       +'<option value="1°"'+(s.degre==='1°'?' selected':'')+'>1</option>'
       +'<option value="2°"'+(s.degre==='2°'?' selected':'')+'>2</option>'
       +'<option value="3°"'+(s.degre==='3°'?' selected':'')+'>3</option>'
       +'</select></td>';
-    h+='<td style="overflow:hidden;">'+plSuiviCelluleSujet(nomAttr,ligne,s)+'</td>';
+    h+='<td class="pl-col-sj" style="overflow:hidden;">'+plSuiviCelluleSujet(nomAttr,ligne,s)+'</td>';
     h+='</tr>'+spacer;
   }
   h+='</tbody></table>';
@@ -21968,6 +22016,7 @@ function adminPlRenderSans(cid){
   plRenderPlanning(cid||'admin-pl-sans-list');
 }
 function plImprimerSans(){
+  var _pImpCP=_plColPrefsLoad('planning');
   var data=plLoad();
   var _critImp=(typeof plCriteresLoad==='function'?plCriteresLoad():{})||{};
   var perDeb=(D&&D.loge&&D.loge.periodeDebut)||_critImp.dateDebut||'';
@@ -22043,10 +22092,10 @@ function plImprimerSans(){
     var degCls=deg==='3°'?'deg3':deg==='2°'?'deg2':'deg1';
     return '<tr'+(i%2?' class="alt"':'')+'>'+
       '<td>'+fmtDate(e.date)+(e.heure?' <span style="color:#aaa;font-size:8.5px;">'+e.heure+'</span>':'')+'</td>'+
-      '<td class="'+degCls+'">'+deg+'</td>'+
+      (_pImpCP.degre!==false?'<td class="'+degCls+'">'+deg+'</td>':'')+
       '<td><strong>'+titre+'</strong></td>'+
-      '<td class="tc" style="color:#1a3d7c;font-weight:700;">'+(nbP||'')+'</td>'+
-      '<td class="tc" style="color:#7B0F9E;font-weight:700;">'+(nbS||'')+'</td>'+
+      (_pImpCP.p!==false?'<td class="tc" style="color:#1a3d7c;font-weight:700;">'+(nbP||'')+'</td>':'')+
+      (_pImpCP.s!==false?'<td class="tc" style="color:#7B0F9E;font-weight:700;">'+(nbS||'')+'</td>':'')+
       '<td class="tc" style="color:#B8922A;font-weight:700;">'+(nbPar||'')+'</td>'+
       '<td class="tc" style="color:#555;">'+(dureeStr)+'</td>'+
       '</tr>';
@@ -22066,7 +22115,12 @@ function plImprimerSans(){
   if(totS) h+='<div class="kpi"><span class="knum" style="color:#7B0F9E;">'+totS+'</span><span class="klbl">Symbolismes</span></div>';
   if(totPar) h+='<div class="kpi"><span class="knum" style="color:#B8922A;">'+totPar+'</span><span class="klbl">Paroles</span></div>';
   h+='</div>';
-  h+='<table><thead><tr><th>Date</th><th>Degré</th><th>Titre</th><th class="tc" title="Planches">P</th><th class="tc" title="Symbolismes">S</th><th class="tc" title="Paroles">Par.</th><th class="tc">Durée</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  h+='<table><thead><tr><th>Date</th>'
+    +(_pImpCP.degre!==false?'<th>Degré</th>':'')
+    +'<th>Titre</th>'
+    +(_pImpCP.p!==false?'<th class="tc" title="Planches">P</th>':'')
+    +(_pImpCP.s!==false?'<th class="tc" title="Symbolismes">S</th>':'')
+    +'<th class="tc" title="Paroles">Par.</th><th class="tc">Durée</th></tr></thead><tbody>'+rows+'</tbody></table>';
   h+='<div class="footer">'+loge+(num?' &mdash; N° '+num:'')+' &mdash; Séau Étoilé d\'Ulysse 1657</div>';
   h+='</body></html>';
   _printHtml(h,'Planning des tenues — '+loge);
