@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.254</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.255</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13715,8 +13715,7 @@ function renderOffice(n){
   }
   if(n==='off-mh'){
     var mhData={}; try{var mhs=localStorage.getItem('mh_playlists');if(mhs)mhData=JSON.parse(mhs);}catch(e){}
-    var _cMH=(typeof plCriteresLoad==='function'?plCriteresLoad():null)||{};var _dbtMH=_cMH.dateDebut||'';var _finMH=_cMH.dateFin||'';
-    var _seenMH={};var tenues=getTenues().filter(function(t){if(_dbtMH&&t.date<_dbtMH)return false;if(_finMH&&t.date>_finMH)return false;if(_seenMH[t.id])return false;_seenMH[t.id]=true;return true;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=(typeof plGetTenuesFiltrees==='function')?plGetTenuesFiltrees():getTenues().filter(function(t){return!t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;';
     var mc='<div class="cfg-box" style="margin-top:12px;overflow-x:auto;">';
@@ -13728,7 +13727,9 @@ function renderOffice(n){
     for(var _ti=0;_ti<tenues.length;_ti++){
       var _t=tenues[_ti];
       var _d=fmtDate(_t.date);
-      mc+='<option value="'+_t.id+'">'+_d+' — '+(_t.titre||'Tenue')+'</option>';
+      var _mhModRef=_t.modeleId?(D.modeles||[]).filter(function(m){return m.id===_t.modeleId;})[0]:null;
+      var _mhLbl=_t.titre||(_mhModRef?_mhModRef.nom:(_t.degre==='3°'?'Tenue au 3°':_t.degre==='2°'?'Tenue au 2°':'Tenue'));
+      mc+='<option value="'+_t.id+'">'+_d+' — '+_mhLbl+'</option>';
     }
     mc+='</select>';
     mc+='</div>';
@@ -13743,7 +13744,9 @@ function renderOffice(n){
       var bg=ti%2===0?'rgba(255,255,255,.04)':'transparent';
       var pl=(mhData[t.id]||'').replace(/"/g,'&quot;');
       mc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
-      mc+='<td style="padding:8px;white-space:nowrap;"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+(t.titre||'Tenue')+'</span></td>';
+      var _mhModRef2=t.modeleId?(D.modeles||[]).filter(function(m){return m.id===t.modeleId;})[0]:null;
+      var _mhLabel=t.titre||(_mhModRef2?_mhModRef2.nom:(t.degre==='3°'?'Tenue au 3°':t.degre==='2°'?'Tenue au 2°':'Tenue'));
+      mc+='<td style="padding:8px;white-space:nowrap;"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mhLabel+'</span></td>';
       mc+='<td style="padding:8px;"><textarea id="mh-pl-'+t.id+'" rows="2" placeholder="Artiste — Titre, ..." style="'+inpS+'resize:none;overflow:hidden;">'+pl+'</textarea></td>';
       mc+='</tr>';
     }
