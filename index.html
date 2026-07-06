@@ -352,7 +352,7 @@ input, select, textarea { color: #1E3660; }
 #v-clefs select, #v-clefs h2, #v-clefs h3, #v-clefs span, #v-clefs div,
 #v-clefs p { color: #FFFFFF !important; }
 #v-clefs .btn-gold, #v-clefs .btn-gold * { color: #FFFFFF !important; }
-#v-clefs h2 { color: var(--gold2) !important; }
+#v-clefs h2 { color: #FFFFFF !important; }
 #v-clefs .cl-titre-rb { color: var(--gold2) !important; }
 /* Patte de l'Expert : tous les textes en blanc */
 #v-motexpert, #v-motexpert *, #v-motexpert label, #v-motexpert input,
@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.244</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.245</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -993,7 +993,7 @@ function loginVerif(){
   <div id="v-clefs" class="view">
     <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:12px;">
-        <h2 style="color:var(--gold2);">Les Clefs du Temple</h2>
+        <h2>Les Clefs du Temple</h2>
         <span id="resp-lbl-clefs" style="font-size:12px;color:rgba(255,255,255,.55);font-style:italic;"></span>
       </div>
       <button onclick="dispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>
@@ -1947,9 +1947,13 @@ function pdRender(){
     var prevDate=selDate.value;
     selDate.innerHTML='<option value="">Toutes les dates</option>';
     var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var _cPd=(typeof plCriteresLoad==='function'?plCriteresLoad():null)||{};
+    var _debPd=_cPd.dateDebut||'';var _finPd=_cPd.dateFin||'';
     for(var ti=0;ti<tenues.length;ti++){
       var t=tenues[ti];
       if(!t.date)continue;
+      if(_debPd&&t.date<_debPd)continue;
+      if(_finPd&&t.date>_finPd)continue;
       var modExclu=['1778227790766','1778182704876'];
       if(modExclu.indexOf(t.modeleId)>=0)continue;
       var titreN=(t.titre||'').toLowerCase();
@@ -11949,12 +11953,12 @@ function renderClefs(){
   for(var i=0;i<data.length;i++){
     var rb=data[i];
     h+='<div class="cfg-box" style="margin-bottom:12px;">';
-    h+='<div style="margin-bottom:10px;"><span class="cl-titre-rb" style="font-size:22px;font-family:\'Cormorant Garamond\',serif;font-weight:700;letter-spacing:1px;">'+(rb.titre||'Rubrique '+(i+1))+'</span></div>';
+    h+='<div style="margin-bottom:8px;"><span class="cl-titre-rb" style="font-size:22px;font-family:\'Cormorant Garamond\',serif;font-weight:700;letter-spacing:1px;">'+(rb.titre||'Rubrique '+(i+1))+'</span></div>';
     if(rb.regles&&rb.regles.length){
       for(var j=0;j<rb.regles.length;j++){
-        h+='<div style="display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;">';
-        h+='<span style="font-size:13px;font-weight:700;color:var(--gold);flex-shrink:0;">'+(j+1)+'.</span>';
-        h+='<p style="font-size:13px;color:#FFFFFF;margin:0;flex:1;">'+(rb.regles[j].texte||'')+'</p>';
+        h+='<div style="margin-bottom:8px;">';
+        h+='<span style="font-size:13px;font-weight:700;color:var(--gold);">'+(j+1)+'. </span>';
+        h+='<span style="font-size:13px;color:#FFFFFF;">'+(rb.regles[j].texte||'<em style="color:var(--grey)">—</em>')+'</span>';
         h+='</div>';
       }
     }
@@ -20384,7 +20388,13 @@ function plRenderPlanchesRecap(containerId){
   var el=document.getElementById(containerId||'pl-planches-recap');if(!el)return;
   var data=plLoad();
   var today=new Date().toISOString().substring(0,10);
-  var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var _cPR=plCriteresLoad()||{};var _debPR=_cPR.dateDebut||'';var _finPR=_cPR.dateFin||'';
+  var evts=(data.events||[]).filter(function(e){
+    if(!e.date)return false;
+    if(_debPR&&e.date<_debPR)return false;
+    if(_finPR&&e.date>_finPR)return false;
+    return true;
+  }).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   var ML=['Jan.','Fév.','Mar.','Avr.','Mai','Jun.','Jul.','Aoû.','Sep.','Oct.','Nov.','Déc.'];
   // Reverse suivi index: tenueId → [{nomFrere, type, degre, sujet}]
