@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.238</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.239</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
@@ -1904,10 +1904,14 @@ function pdGetFreresOpts(selected){
 
 function pdGetDatesOpts(selected, typeFiltre){
   var opts='<option value="">-- Date --</option>';
+  var c=plCriteresLoad()||{};
+  var deb=c.dateDebut||'';var fin=c.dateFin||'';
   var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i];
     if(!t.date)continue;
+    if(deb&&t.date<deb)continue;
+    if(fin&&t.date>fin)continue;
     var p=t.date.split('-');
     var label=(p.length===3?p[2]+'/'+p[1]+'/'+p[0]:t.date)+(t.titre?' — '+t.titre:'');
     opts+='<option value="'+t.date+'"'+(selected===t.date?' selected':'')+'>'+label+'</option>';
@@ -19960,19 +19964,19 @@ function plRenderPlanning(targetId){
     var _tdSAdm='<td class="pl-col-ss" style="text-align:center;"><input type="number" min="0" value="'+_sVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'S\',+this.value)" style="'+_inpPs+'color:#C080D0;">'+'</td>';
     var _dureeManVal=_dureeEff>0?_dureeEff:(e.duree!=null&&e.duree>0?e.duree:'');
     var _dureeAdmInput='<span class="pl-col-duree"><input type="number" min="0" value="'+_dureeManVal+'" placeholder="—" onblur="plDureeChanger(&quot;'+eid+'&quot;,+this.value)" style="width:48px;background:transparent;border:none;border-bottom:1px dashed rgba(184,146,42,.4);color:var(--gold2);font-weight:600;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"><span style="font-size:10px;color:rgba(184,146,42,.6);"> min</span></span>';
-    var _actBtns='<button onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
-      +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;,this)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>'
-      +'<div class="pl-col-modele" style="width:120px;flex-shrink:0;display:flex;align-items:center;">'+modeleAff+'</div>'
-      +_dureeAdmInput;
+    var _actBtnsBase='<button onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
+      +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;,this)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
+    var _actBtns=_actBtnsBase
+      +(isAdmin?'<div class="pl-col-modele" style="width:120px;flex-shrink:0;display:flex;align-items:center;">'+modeleAff+'</div>'+_dureeAdmInput:'');
     if(isAdmin){
       h+='<tr style="'+traitJournee+bgFerie+'">'
         +_tdToggle+_tdDate+_tdDeg+_tdPAdm+_tdSAdm
-        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-end;gap:6px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+(marqueur?'<span style="color:'+cd+';flex-shrink:0;">'+marqueur+'</span>':'')+'<input class="pl-col-titre" type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="'+((_modRef&&_modRef.nom)?_modRef.nom.replace(/"/g,'&quot;'):'(sans titre)')+'" onblur="plTitreChanger(&quot;'+eid+'&quot;,this.value)" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.2);color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;flex:1;min-width:80px;padding:0 2px;outline:none;">'+_typesBadges+'</div>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
+        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+(marqueur?'<span style="color:'+cd+';flex-shrink:0;">'+marqueur+'</span>':'')+'<input class="pl-col-titre" type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="'+((_modRef&&_modRef.nom)?_modRef.nom.replace(/"/g,'&quot;'):'(sans titre)')+'" onblur="plTitreChanger(&quot;'+eid+'&quot;,this.value)" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.2);color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;flex:1;min-width:80px;padding:0 2px;outline:none;">'+_typesBadges+'</div>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
         +'</tr>';
     } else {
       h+='<tr style="'+traitJournee+bgFerie+'">'
         +_tdToggle+_tdDate+_tdDeg+_tdP+_tdS
-        +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:flex-end;gap:8px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="pl-col-titre" style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+modeleAff+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div>'+_inlineInfo+'</div><div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0;">'+_actBtns+'</div></div></td>'
+        +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="pl-col-titre" style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+modeleAff+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div>'+_inlineInfo+'</div><div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0;">'+_actBtns+'</div></div></td>'
         +'</tr>';
     }
     // Ligne dépliable : détail du découpage par module de cette tenue,
