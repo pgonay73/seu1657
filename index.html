@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.248</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.249</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21576,7 +21576,13 @@ function plSuiviParTenueRender(cid){
     return;
   }
   var suivi=plSuiviLoad();
-  var evts=(plLoad().events)||[];
+  var _cSuivTen=plCriteresLoad()||{};var _dbtST=_cSuivTen.dateDebut||'';var _finST=_cSuivTen.dateFin||'';
+  var evts=(plLoad().events||[]).filter(function(e){
+    if(!e.date) return false;
+    if(_dbtST&&e.date<_dbtST) return false;
+    if(_finST&&e.date>_finST) return false;
+    return true;
+  });
   var dateParTenue={};
   evts.forEach(function(e){ if(e.id&&e.date) dateParTenue[e.id]=e.date; });
   var lignes=[];
@@ -21620,6 +21626,8 @@ function plSuiviParTenueRender(cid){
       lignes.push({f:null,nomFrere:'',ligne:'',dateTenue:dTenue,tenueId:tid,nbTotal:0,isEmpty:true,emptyType:'Symbolisme'});
     }
   });
+  // Exclure les entrées assignées à une tenue hors bornes
+  if(_dbtST||_finST) lignes=lignes.filter(function(lg){ return !lg.tenueId||!!dateParTenue[lg.tenueId]; });
   // Tri par date croissante, sans date à la fin ; lignes réelles avant lignes vides dans le même groupe
   lignes.sort(function(a,b){
     if(a.dateTenue && !b.dateTenue) return -1;
