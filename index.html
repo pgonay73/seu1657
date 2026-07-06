@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.249</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.250</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13612,7 +13612,8 @@ function renderOffice(n){
   }
   if(n==='off-mb'){
     var mbData={}; try{var mbs=localStorage.getItem('mb_menus');if(mbs)mbData=JSON.parse(mbs);}catch(e){}
-    var tenues=getTenues().filter(function(t){return !t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var _cMB=(typeof plCriteresLoad==='function'?plCriteresLoad():null)||{};var _dbtMB=_cMB.dateDebut||'';var _finMB=_cMB.dateFin||'';
+    var tenues=getTenues().filter(function(t){if(t.ferie)return false;if(_dbtMB&&t.date<_dbtMB)return false;if(_finMB&&t.date>_finMB)return false;return true;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;resize:none;overflow:hidden;';
     var inpN='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:90px;text-align:right;';
@@ -13702,7 +13703,8 @@ function renderOffice(n){
   }
   if(n==='off-mh'){
     var mhData={}; try{var mhs=localStorage.getItem('mh_playlists');if(mhs)mhData=JSON.parse(mhs);}catch(e){}
-    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var _cMH=(typeof plCriteresLoad==='function'?plCriteresLoad():null)||{};var _dbtMH=_cMH.dateDebut||'';var _finMH=_cMH.dateFin||'';
+    var tenues=getTenues().filter(function(t){if(_dbtMH&&t.date<_dbtMH)return false;if(_finMH&&t.date>_finMH)return false;return true;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;';
     var mc='<div class="cfg-box" style="margin-top:12px;overflow-x:auto;">';
