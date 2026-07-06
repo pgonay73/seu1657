@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.251</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.252</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13676,8 +13676,7 @@ function renderOffice(n){
     // Tableau
     mc+='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:850px;">';
     mc+='<thead><tr style="border-bottom:2px solid var(--gold);">';
-    mc+='<th style="'+thS+'width:95px;">Date</th>';
-    mc+='<th style="'+thS+'width:125px;">Tenue</th>';
+    mc+='<th style="'+thS+'width:155px;">Tenue</th>';
     mc+='<th style="'+thS+'">Menu</th>';
     mc+='<th style="'+thS+'width:80px;text-align:center;">Nb</th>';
     mc+='<th style="'+thS+'width:105px;text-align:center;">△ Triangle (€)</th>';
@@ -13702,8 +13701,7 @@ function renderOffice(n){
         soldeSt='font-weight:700;color:'+(sv>=0?'#1D8A5A':'#C0392B')+';';
       }
       mc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:middle;">';
-      mc+='<td style="padding:8px;color:#FFFFFF;white-space:nowrap;font-weight:600;">'+fmtDate(t.date)+'</td>';
-      mc+='<td style="padding:8px;color:#FFFFFF;font-size:11px;">'+(t.titre||'Tenue')+'</td>';
+      mc+='<td style="padding:8px;white-space:nowrap;"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+(t.titre||'Tenue')+'</span></td>';
       mc+='<td style="padding:6px;"><textarea id="mb-menu-'+t.id+'" rows="2" placeholder="Entrée, plat, dessert..." style="'+inpS+'" oninput="mbUpdateTotals()">'+menu+'</textarea></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-nb-'+t.id+'" value="'+nb+'" min="0" placeholder="0" style="'+inpN+'width:70px;"/></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-triangle-'+t.id+'" value="'+triangle+'" min="0" step="0.01" placeholder="0.00" style="'+inpN+'" oninput="mbUpdateTotals()"/></td>';
@@ -13737,8 +13735,7 @@ function renderOffice(n){
     mc+='</div>';
     mc+='<table style="width:100%;border-collapse:collapse;font-size:13px;">';
     mc+='<thead><tr style="border-bottom:2px solid var(--gold);">';
-    mc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:120px;">Date</th>';
-    mc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Tenue</th>';
+    mc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:160px;">Tenue</th>';
     mc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;min-width:300px;">Playlist</th>';
     mc+='</tr></thead><tbody>';
     for(var ti=0;ti<tenues.length;ti++){
@@ -13746,8 +13743,7 @@ function renderOffice(n){
       var bg=ti%2===0?'rgba(255,255,255,.04)':'transparent';
       var pl=(mhData[t.id]||'').replace(/"/g,'&quot;');
       mc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
-      mc+='<td style="padding:8px;color:#FFFFFF;white-space:nowrap;font-weight:600;">'+fmtDate(t.date)+'</td>';
-      mc+='<td style="padding:8px;color:#FFFFFF;">'+(t.titre||'Tenue')+'</td>';
+      mc+='<td style="padding:8px;white-space:nowrap;"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+(t.titre||'Tenue')+'</span></td>';
       mc+='<td style="padding:8px;"><textarea id="mh-pl-'+t.id+'" rows="2" placeholder="Artiste — Titre, ..." style="'+inpS+'resize:none;overflow:hidden;">'+pl+'</textarea></td>';
       mc+='</tr>';
     }
