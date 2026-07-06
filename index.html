@@ -5,30 +5,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>Gestion Loge</title>
-<script>
-(function(){
-  var _CUR='227';
-  // Ne proposer le rechargement qu'une seule fois par session pour éviter la boucle infinie
-  var _KEY='seu_ver_check_'+_CUR;
-  try{ if(sessionStorage.getItem(_KEY)) return; }catch(e){}
-  try{
-    fetch('/seu1657/version.json?t='+Date.now())
-      .then(function(r){return r.json();})
-      .then(function(d){
-        if(d&&d.v&&d.v!==_CUR){
-          try{ sessionStorage.setItem(_KEY,'1'); }catch(e){}
-          var bar=document.createElement('div');
-          bar.id='seu-update-bar';
-          bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:999999;background:#B8922A;color:#1E3660;font-family:Raleway,sans-serif;font-weight:700;font-size:13px;padding:8px 16px;display:flex;align-items:center;justify-content:center;gap:12px;';
-          bar.innerHTML='Nouvelle version disponible (v'+d.v+') '
-            +'<button onclick="window.location.reload(true)" style="background:#1E3660;color:#D4AF5A;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-weight:700;">Recharger</button>'
-            +'<button onclick="document.getElementById(\'seu-update-bar\').remove()" style="background:transparent;color:#1E3660;border:1px solid #1E3660;border-radius:4px;padding:4px 10px;cursor:pointer;font-weight:700;">Ignorer</button>';
-          document.body.appendChild(bar);
-        }
-      }).catch(function(){});
-  }catch(e){}
-})();
-</script>
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Raleway:wght@300;400;500;600&display=swap');
 :root{
@@ -752,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.227</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.228</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
         <span style="flex:1;"></span>
