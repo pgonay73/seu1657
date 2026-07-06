@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.256</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-06.257</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14100,14 +14100,18 @@ function buildContenusRubriques(officeId){
   if(rubriques.length===1){
     return getRubriqueHTML(rubriques[0], officeId);
   }
+  // Pour off-vm, 'planning' est un onglet-lien (sans panneau) — le premier onglet-panneau est le défaut
+  var _firstPanelIdx=rubriques.reduce(function(acc,rid,i){return(acc===-1&&rid!=='planning')?i:acc;},-1);
+  if(_firstPanelIdx===-1) _firstPanelIdx=0;
   var tabs='<div style="display:flex;gap:0;border-bottom:2px solid var(--cream);margin-bottom:16px;flex-wrap:wrap;">';
   rubriques.forEach(function(rid,i){
-    tabs+='<button class="cfg-tab'+(i===0?' active':'')+'" onclick="officeRubriqueTab(\''+officeId+'\',\''+rid+'\',this)">'+getRubriqueNom(rid)+'</button>';
+    tabs+='<button class="cfg-tab'+(i===_firstPanelIdx?' active':'')+'" onclick="officeRubriqueTab(\''+officeId+'\',\''+rid+'\',this)">'+getRubriqueNom(rid)+'</button>';
   });
   tabs+='</div>';
   var panels='';
   rubriques.forEach(function(rid,i){
-    panels+='<div id="off-rub-panel-'+officeId+'-'+rid+'" style="'+(i>0?'display:none;':'')+'">';
+    if(rid==='planning') return; // pas de panneau pour l'onglet planning (redirection)
+    panels+='<div id="off-rub-panel-'+officeId+'-'+rid+'" style="'+(i!==_firstPanelIdx?'display:none;':'')+'">';
     panels+=getRubriqueHTML(rid, officeId);
     panels+='</div>';
   });
@@ -14207,7 +14211,7 @@ function buildContenusRubriquesExcept(officeId, exclude){
 }
 
 function _vmDefaultRubriques(officeId, rubriques){
-  if(officeId==='off-vm') return ['suivi-tenue','sujets','symbolisme','planning'];
+  if(officeId==='off-vm') return ['planning','suivi-tenue','sujets','symbolisme'];
   return rubriques;
 }
 function renderRubriquesOffice(officeId){
