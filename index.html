@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-07.264</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-07.265</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -19344,7 +19344,7 @@ function plImprimer(){
   var crit=plCriteresLoad()||{};
   var periode='';
   if(crit.dateDebut||crit.dateFin) periode=(crit.dateDebut||'...')+' au '+(crit.dateFin||'...');
-  var mois=['janvier','f\u00e9vrier','mars','avril','mai','juin','juillet','ao\u00fbt','septembre','octobre','novembre','d\u00e9cembre'];
+  var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   var lignes='';
   tenues.forEach(function(t,i){
@@ -19352,30 +19352,39 @@ function plImprimer(){
     var dj=d.getDay();
     var dateStr=(isNaN(dj)?'':jours[dj])+' '+d.getDate()+' '+mois[d.getMonth()]+' '+d.getFullYear();
     var mref=t.modeleId?(D.modeles||[]).filter(function(m){return m.id===t.modeleId;})[0]:null;
-    var label=t.titre||(mref?mref.nom:(t.degre==='3\u00b0'?'Tenue au 3\u00b0':t.degre==='2\u00b0'?'Tenue au 2\u00b0':'Tenue'));
+    var label=t.titre||(mref?mref.nom:(t.degre==='3°'?'Tenue au 3°':t.degre==='2°'?'Tenue au 2°':'Tenue'));
     var heure=t.heure||'';
-    lignes+='<tr'+(i%2===0?' style="background:#f5f2eb"':'')+'>'
-      +'<td>'+dateStr+'</td><td style="text-align:center">'+heure+'</td><td>'+label+'</td></tr>';
+    lignes+='<tr'+(i%2===0?' class="alt"':'')+'>'
+      +'<td>'+dateStr+'</td><td>'+heure+'</td><td>'+label+'</td></tr>';
   });
-  if(!lignes) lignes='<tr><td colspan="3" style="text-align:center;font-style:italic;color:#888">Aucune tenue</td></tr>';
-  var css='body{font-family:Georgia,serif;color:#111;margin:2cm;font-size:12pt}'
-    +'h1{font-size:16pt;border-bottom:2pt solid #B8922A;padding-bottom:4pt;margin-bottom:6pt}'
-    +'p{font-size:9pt;color:#555;margin:0 0 12pt}'
-    +'table{width:100%;border-collapse:collapse;font-size:11pt}'
-    +'th{border-bottom:2pt solid #1E3660;padding:5pt 8pt;text-align:left;font-size:10pt;text-transform:uppercase;letter-spacing:.5pt}'
-    +'td{border-bottom:1pt solid #ccc;padding:5pt 8pt;vertical-align:top}'
-    +'@media print{body{margin:1cm}}';
-  var titre=loge?loge+' \u2014 Planning':'Planning';
-  var w=window.open('','_blank','width=860,height=700');
-  if(!w){alert('Veuillez autoriser les pop-ups pour imprimer.');return;}
-  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+titre+'<\/title><style>'+css+'<\/style><\/head><body>'
-    +'<h1>'+titre+'<\/h1>'
-    +(periode?'<p>P\u00e9riode\u00a0: '+periode+'<\/p>':'')
-    +'<table><thead><tr><th>Date<\/th><th>Heure<\/th><th>Tenue<\/th><\/tr><\/thead><tbody>'+lignes+'<\/tbody><\/table>'
-    +'<\/body><\/html>');
-  w.document.close();
-  w.focus();
-  setTimeout(function(){w.print();},350);
+  if(!lignes) lignes='<tr><td colspan="3">Aucune tenue</td></tr>';
+  var titre=(loge?loge+' — ':'')+'Planning';
+  var html='<h2>'+titre+'</h2>'
+    +(periode?'<p>Période : '+periode+'</p>':'')
+    +'<table><thead><tr><th>Date</th><th>Heure</th><th>Tenue</th></tr></thead><tbody>'+lignes+'</tbody></table>';
+  var pid='__plprint__';
+  var old=document.getElementById(pid); if(old) old.parentNode.removeChild(old);
+  var sid='__plprintstyle__'; var olds=document.getElementById(sid); if(olds) olds.parentNode.removeChild(olds);
+  var div=document.createElement('div'); div.id=pid; div.innerHTML=html; document.body.appendChild(div);
+  var st=document.createElement('style'); st.id=sid;
+  st.innerHTML='@media print{'
+    +'body>*{display:none!important}'
+    +'#'+pid+'{display:block!important;position:fixed;top:0;left:0;width:100%;background:#fff;color:#000;font-family:Georgia,serif;font-size:11pt;padding:1.5cm}'
+    +'#'+pid+' h2{font-size:16pt;border-bottom:1.5pt solid #B8922A;padding-bottom:4pt;margin-bottom:6pt;color:#1E3660}'
+    +'#'+pid+' p{font-size:9pt;color:#444;margin:0 0 10pt}'
+    +'#'+pid+' table{width:100%;border-collapse:collapse}'
+    +'#'+pid+' th{border-bottom:1.5pt solid #1E3660;padding:4pt 8pt;text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.4pt}'
+    +'#'+pid+' td{border-bottom:.5pt solid #ccc;padding:4pt 8pt;font-size:10pt}'
+    +'#'+pid+' tr.alt td{background:#f5f2eb}'
+    +'}';
+  document.head.appendChild(st);
+  setTimeout(function(){
+    window.print();
+    setTimeout(function(){
+      var d2=document.getElementById(pid); if(d2) d2.parentNode.removeChild(d2);
+      var s2=document.getElementById(sid); if(s2) s2.parentNode.removeChild(s2);
+    },3000);
+  },100);
 }
 
 function plConsoliderPlanning(){
