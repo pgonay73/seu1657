@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.272</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.273</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13381,6 +13381,7 @@ function renderOffice(n){
     c+='<button id="admin-pl-l1-btn-sans" onclick="adminPlL1Tab(\'sans\',this)" style="'+_l1I+'">📋 Planning des tenues sans planches</button>';
     c+='<button id="admin-pl-l1-btn-planches" onclick="adminPlL1Tab(\'planches\',this)" style="'+_l1I+'">📐 Programmation des planches</button>';
     c+='<button id="admin-pl-l1-btn-avec" onclick="adminPlL1Tab(\'avec\',this)" style="'+_l1I+'">📊 Planning des tenues avec planches</button>';
+    c+='<button id="admin-pl-l1-btn-ref" onclick="adminPlL1Tab(\'ref\',this)" style="'+_l1I+'">📌 Planning de référence</button>';
     c+='</div>';
     // ─ L1.A : Programmation du planning ─
     c+='<div id="admin-pl-l1-prog">';
@@ -13478,6 +13479,22 @@ function renderOffice(n){
     c+='<div id="admin-pl-avec-tenue-list"></div>';
     c+='</div>';
     c+='</div>';
+    // ─ L1.E : Planning de référence ─
+    c+='<div id="admin-pl-l1-ref" style="display:none;">';
+    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<div>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning de référence</h3>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Synthèse consolidée : tenues impératives + règles conseillées + critères de sélection. Éditable après génération. C\'est la source unique utilisée par tout le logiciel.</p>';
+    c+='</div>';
+    c+='<div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px;">';
+    c+='<button onclick="plGenererPlanningReference()" style="background:#4472C4;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Génère automatiquement le planning depuis les tenues impératives, les règles conseillées et les critères.">🔄 Générer</button>';
+    c+='<button id="adm-pl-ref-btn-toggle" onclick="plToggleTousDetails(this)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:rgba(255,255,255,.75);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">&#9654; Déplier tout</button>';
+    c+='<button onclick="plImprimerSans()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
+    c+='<button onclick="plConsoliderPlanning()" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Consolide et fige ce planning.">🔒 Valider</button>';
+    c+='</div>';
+    c+='</div>';
+    c+='<div id="admin-pl-ref-list"></div>';
+    c+='</div></div>';
     c+='</div>';
 
     c+='<div id="admin-panel-planches-tracees" style="display:none;">';
@@ -15263,7 +15280,7 @@ function adminTab(name, btn){
 
 // ── Planning L1 tabs ───────────────────────────────────────────────────
 function adminPlL1Tab(name,btn){
-  var l1=['prog','sans','planches','avec'];
+  var l1=['prog','sans','planches','avec','ref'];
   var _bS='padding:9px 14px;font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;border:none;cursor:pointer;border-radius:5px 5px 0 0;';
   var _aS=_bS+'background:rgba(184,146,42,.22);color:#D4AF5A;border-bottom:3px solid #D4AF5A;margin-bottom:-3px;';
   var _iS=_bS+'background:transparent;color:rgba(255,255,255,.5);border-bottom:3px solid transparent;margin-bottom:-3px;';
@@ -15283,6 +15300,7 @@ function adminPlL1Tab(name,btn){
     if(db) adminPlTab('sujets',db);
   }
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
+  if(name==='ref'){ setTimeout(function(){ adminPlRenderRef('admin-pl-ref-list'); },0); }
 }
 // ── Planning L2 sub-tabs ───────────────────────────────────────────────
 function adminPlTab(name, btn){
@@ -22022,7 +22040,8 @@ function plRenderAdminNav(containerId){
   if(containerId){
     var l1TabsA=[
       {id:'prog',    label:'📅 Programmation du planning'},
-      {id:'planches',label:'📐 Programmation des planches'}
+      {id:'planches',label:'📐 Programmation des planches'},
+      {id:'ref',     label:'📌 Planning de référence'}
     ];
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
@@ -22065,7 +22084,8 @@ function plRenderAdminNav(containerId){
     {id:'criteres',    label:'Critères de sélection',               fn:'plNavToAdminPl'},
     {id:'tenuesImp',   label:'Tenues impératives',                  fn:'plNavToAdminPl'},
     {id:'tenuesCons',  label:'Fortement conseillé',                 fn:'plNavToAdminPl'},
-    {id:'sans',        label:'📋 Planning des tenues sans planches', fn:'plNavToAdminPl'}
+    {id:'sans',        label:'📋 Planning des tenues sans planches', fn:'plNavToAdminPl'},
+    {id:'ref',         label:'📌 Planning de référence',            fn:'plNavToAdminL1'}
   ];
   var h='<div class="section-header" style="flex-wrap:wrap;gap:8px;margin-bottom:0;">';
   h+='<div style="display:flex;flex-direction:column;align-items:center;">';
@@ -22097,6 +22117,21 @@ function plRenderAdminNav(containerId){
 // ── Admin : Planning des tenues sans planches ─────────────────────────────
 function adminPlRenderSans(cid){
   plRenderPlanning(cid||'admin-pl-sans-list');
+}
+function adminPlRenderRef(cid){
+  plRenderPlanning(cid||'admin-pl-ref-list');
+}
+function plGenererPlanningReference(){
+  if(!confirm('🔄 Générer le planning de référence ?\n\nCette opération va :\n1. Placer toutes les tenues impératives dans le planning\n2. Appliquer toutes les règles de tenues conseillées\n\nLes tenues déjà présentes à ces dates seront remplacées.')) return;
+  if(D.tenuesImp&&D.tenuesImp.length) tiPlanifierToutes();
+  if(D.tenuesCons&&D.tenuesCons.length){
+    var _saves=D.tenuesCons.map(function(tc){return tc.cochee;});
+    D.tenuesCons.forEach(function(tc){tc.cochee=true;});
+    tcTransferer();
+    D.tenuesCons.forEach(function(tc,i){tc.cochee=_saves[i];});
+    save();
+  }
+  setTimeout(function(){ adminPlRenderRef('admin-pl-ref-list'); toast('✓ Planning de référence généré — vérifiez et ajustez si nécessaire.'); },200);
 }
 function plImprimerSans(){
   var _pImpCP=_plColPrefsLoad('planning');
@@ -22618,6 +22653,7 @@ function plNavToAdmin(tab){
 function plNavToAdminPl(tab){
   if(tab==='planning') return;
   if(tab==='sans'){plNavToAdminL1('sans');return;}
+  if(tab==='ref'){plNavToAdminL1('ref');return;}
   var adminPl=document.getElementById('admin-panel-planning');
   var inAdmin=(adminPl&&adminPl.style.display!=='none');
   if(inAdmin){
@@ -22655,7 +22691,7 @@ function plNavToAdminL1(id){
   var inAdmin=(adminPl&&adminPl.style.display!=='none');
   if(inAdmin){
     var _nS2='font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:.3px;border:none;cursor:pointer;padding:9px 14px;background:transparent;border-bottom:3px solid transparent;margin-bottom:-3px;';
-    ['prog','sans','planches','avec'].forEach(function(x){
+    ['prog','sans','planches','avec','ref'].forEach(function(x){
       var b=document.getElementById('pl-adm-l1-nav-'+x);
       if(b) b.style.cssText=_nS2+(x===id?'color:#D4AF5A;border-bottom-color:#D4AF5A;':'color:rgba(255,255,255,.5);');
     });
