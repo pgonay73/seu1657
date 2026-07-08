@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.274</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.275</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -10083,8 +10083,10 @@ function navFreresTab(name, btn){
 }
 
 var _pfSelectedId=null;
-function navFrerePFRender(selectedId){
-  var el=document.getElementById('nav-freres-panel-parfrere');
+var _pfContainerId='nav-freres-panel-parfrere';
+function navFrerePFRender(selectedId, containerId){
+  if(containerId) _pfContainerId=containerId;
+  var el=document.getElementById(_pfContainerId);
   if(!el) return;
   var freres=(D.freres||[]).slice().sort(function(a,b){return (a.nom||'').localeCompare(b.nom||'');});
   if(!freres.length){el.innerHTML='<p style="font-size:13px;color:var(--grey);font-style:italic;padding:20px;">Aucun frère enregistré.</p>';return;}
@@ -10157,7 +10159,7 @@ function navFrerePFRender(selectedId){
     +'<div style="flex:1;overflow-y:auto;padding:0 18px;" id="pf-form-area">'+fH+'</div>'
     +'</div>';
 }
-function navFrerePFLoad(id){_pfSelectedId=id;navFrerePFRender(id);}
+function navFrerePFLoad(id){_pfSelectedId=id;navFrerePFRender(id,_pfContainerId);}
 function navFrerePFToggleAutreLoge(){
   var st=(document.getElementById('pf-statut')||{}).value||'actif';
   var row=document.getElementById('pf-autreloge-row');
@@ -10187,7 +10189,52 @@ function navFrerePFSave(){
     plancheSujet:g('pf-planche-sujet')
   };
   for(var i=0;i<D.freres.length;i++){if(D.freres[i].id===_pfSelectedId){Object.assign(D.freres[i],obj);break;}}
-  save();toast('F. '+nom.trim()+' enregistré.');renderFreres();navFrerePFRender(_pfSelectedId);
+  save();toast('F. '+nom.trim()+' enregistré.');renderFreres();navFrerePFRender(_pfSelectedId,_pfContainerId);
+}
+function adminFreresTab(name, btn){
+  var tabs=document.querySelectorAll('#admin-panel-freres .cfg-tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  if(btn) btn.classList.add('active');
+  var pl=document.getElementById('admin-freres-panel-liste'); if(pl) pl.style.display='none';
+  var pp=document.getElementById('admin-freres-panel-parfrere'); if(pp) pp.style.display='none';
+  if(name==='parfrere'){
+    if(pp){ pp.style.display=''; navFrerePFRender(_pfSelectedId,'admin-freres-panel-parfrere'); }
+    return;
+  }
+  if(pl){ pl.style.display=''; adminFreresRenderListe('admin-freres-liste-content'); }
+}
+function adminFreresRenderListe(cid){
+  var el=document.getElementById(cid||'admin-freres-liste-content');
+  if(!el) return;
+  if(!D.freres||!D.freres.length){el.innerHTML='<div class="empty"><p>Aucun Frère.<br>Utilisez <strong>+ Ajouter</strong> dans la section Frères.</p></div>';return;}
+  var sorted=D.freres.slice().sort(fSortNom);
+  var statutColors={'actif':'#27AE60','affilie':'#4472C4','honoraire':'#B8922A','visiteur':'#7F8C8D'};
+  var statutLbl={'actif':'Titulaire','affilie':'Affilié','honoraire':'Honoraire','visiteur':'Autre'};
+  var gradeLabel={'A':'Apprenti','C':'Compagnon','M':'Maître'};
+  var gradeColor={'A':'#27AE60','C':'#E67E22','M':'#C0392B'};
+  var h='<div style="display:flex;flex-direction:column;gap:6px;">';
+  sorted.forEach(function(f){
+    var nomComplet=(f.prenom?f.prenom+' ':'')+f.nom;
+    var st=f.statut||'actif';
+    var stColor=statutColors[st]||'#7F8C8D';
+    var g=(f.grade||'').toUpperCase();
+    var gCol=gradeColor[g]||'rgba(255,255,255,.4)';
+    var gTxt=gradeLabel[g]||'';
+    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);">';
+    h+='<span style="flex:1;font-size:13px;font-weight:600;color:#fff;">'+nomComplet+'</span>';
+    if(f.fondateur) h+='<span style="color:var(--gold);font-size:13px;" title="Fondateur">★</span>';
+    if(gTxt) h+='<span style="font-size:10px;color:'+gCol+';border:1px solid '+gCol+';border-radius:3px;padding:1px 5px;text-transform:uppercase;">'+gTxt+'</span>';
+    h+='<span style="font-size:10px;color:'+stColor+';border:1px solid '+stColor+';border-radius:3px;padding:1px 5px;text-transform:uppercase;">'+(statutLbl[st]||st)+'</span>';
+    if(f.role) h+='<span style="font-size:11px;color:rgba(255,255,255,.6);">'+f.role+'</span>';
+    h+='<button onclick="adminFreresOuvrirFiche(\''+f.id+'\')" style="padding:3px 10px;font-size:11px;border-radius:4px;background:var(--gold2);color:#fff;border:none;cursor:pointer;">Fiche</button>';
+    h+='</div>';
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
+function adminFreresOuvrirFiche(id){
+  _pfSelectedId=id;
+  adminFreresTab('parfrere',document.getElementById('admin-freres-tab-parfrere'));
 }
 function renderPresences(){
   var data=calcTauxPresence();
@@ -13375,6 +13422,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="adminTab(\'planches-tracees\',this)">Planches tracées</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'correspondance\',this)">Correspondance</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'planning\',this)">📅 Planning / Tenues</button>';
+    c+='<button class="cfg-tab" onclick="adminTab(\'freres\',this)">👥 Frères</button>';
     c+='<button onclick="adminImprimerOnglet()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
     c+='</div>';
     // PANEL OFFICES
@@ -13631,6 +13679,16 @@ function renderOffice(n){
     c+='<textarea id="admin-correspondance-text" rows="12" style="min-height:220px;resize:none;overflow:hidden;width:100%;" placeholder="Saisissez ici la correspondance…" oninput="obsAutoResize(this)" onchange="adminSaveTextPanel(\'correspondance\',this.value)"></textarea>';
     c+='</div></div>';
     c+='</div>';
+    c+='</div>';
+
+    // PANEL FRÈRES
+    c+='<div id="admin-panel-freres" style="display:none;">';
+    c+='<div style="display:flex;gap:0;border-bottom:2px solid var(--gold);margin-bottom:14px;">';
+    c+='<button class="cfg-tab active" id="admin-freres-tab-liste" onclick="adminFreresTab(\'liste\',this)">Liste</button>';
+    c+='<button class="cfg-tab" id="admin-freres-tab-parfrere" onclick="adminFreresTab(\'parfrere\',this)">Par frère</button>';
+    c+='</div>';
+    c+='<div id="admin-freres-panel-liste"><div id="admin-freres-liste-content"></div></div>';
+    c+='<div id="admin-freres-panel-parfrere" style="display:none;"></div>';
     c+='</div>';
 
     c+='</div>';
@@ -15377,6 +15435,8 @@ function adminTab(name, btn){
   var pco=document.getElementById('admin-panel-correspondance');
   if(ppt) ppt.style.display=name==='planches-tracees'?'block':'none';
   if(pco) pco.style.display=name==='correspondance'?'block':'none';
+  var pfr=document.getElementById('admin-panel-freres');
+  if(pfr) pfr.style.display=name==='freres'?'':'none';
   if(name==='config'){ setTimeout(function(){renderConfig();setTimeout(renderStatsth,50);},0); }
   if(name==='planches-tracees'||name==='correspondance') { setTimeout(function(){ adminLoadTextPanel(name); },50); }
   if(name==='responsables') setTimeout(adminRenderResponsables,0);
@@ -15388,8 +15448,9 @@ function adminTab(name, btn){
     plRenderAdminNav('pl-admin-nav-container-admin');
     adminPlRenderSans('admin-pl-sans-list');
   }
+  if(name==='freres') setTimeout(function(){ adminFreresTab('liste',document.getElementById('admin-freres-tab-liste')); },0);
   // Zone Observations
-  var adminPanels={offices:'admin-panel-offices',titulaires:'admin-panel-titulaires',navigation:'admin-panel-navigation',responsables:'admin-panel-responsables',config:'admin-panel-config',planning:'admin-panel-planning','planches-tracees':'admin-panel-planches-tracees','correspondance':'admin-panel-correspondance'};
+  var adminPanels={offices:'admin-panel-offices',titulaires:'admin-panel-titulaires',navigation:'admin-panel-navigation',responsables:'admin-panel-responsables',config:'admin-panel-config',planning:'admin-panel-planning','planches-tracees':'admin-panel-planches-tracees','correspondance':'admin-panel-correspondance',freres:'admin-panel-freres'};
   var apid=adminPanels[name];
   if(apid) setTimeout(function(){ obsInject('admin_'+name.replace('-','_'), apid); },120);
 }
