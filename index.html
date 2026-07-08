@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.277</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.278</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -4578,7 +4578,7 @@ function secFreresTab(name, btn){
 
 }
 
-function fFreresTableauRender(containerId, idPfx){
+function fFreresTableauRender(containerId, idPfx, ficheCallback){
   var el=document.getElementById(containerId);
   if(!el) return;
   var pfx=idPfx||'sec-';
@@ -4670,6 +4670,7 @@ function fFreresTableauRender(containerId, idPfx){
     var fOn=filtVals[c.id];
     h+='<th style="padding:5px 8px;text-align:left;font-size:9px;text-transform:uppercase;color:'+(fOn?'#B8922A':'rgba(255,255,255,.5)')+';">'+c.lbl+(fOn?' ▼':'')+'</th>';
   });
+  if(ficheCallback) h+='<th style="padding:5px 8px;"></th>';
   h+='</tr></thead><tbody>';
   freres.forEach(function(f,i){
     var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
@@ -4685,10 +4686,11 @@ function fFreresTableauRender(containerId, idPfx){
       var fOn=filtVals[c.id];
       h+='<td style="padding:4px 8px;font-size:10px;'+(fOn&&disp?'color:#B8922A;font-weight:700;':'color:rgba(255,255,255,.75);')+'">'+disp+'</td>';
     });
+    if(ficheCallback) h+='<td style="padding:2px 8px;"><button onclick="'+ficheCallback+'(\''+f.id+'\')" style="padding:2px 10px;font-size:10px;border-radius:4px;background:var(--gold2);color:#fff;border:none;cursor:pointer;white-space:nowrap;">📋 Fiche</button></td>';
     h+='</tr>';
   });
   if(!freres.length){
-    h+='<tr><td colspan="'+(2+activeCols.length)+'" style="padding:20px;text-align:center;color:rgba(255,255,255,.5);font-style:italic;">Aucun frère ne correspond aux critères.</td></tr>';
+    h+='<tr><td colspan="'+(2+activeCols.length+(ficheCallback?1:0))+'" style="padding:20px;text-align:center;color:rgba(255,255,255,.5);font-style:italic;">Aucun frère ne correspond aux critères.</td></tr>';
   }
   h+='</tbody></table></div>';
   h+='<p style="font-size:10px;color:rgba(255,255,255,.4);margin-top:5px;">'+freres.length+' frère'+(freres.length>1?'s':'')+' — '+activeCols.length+' colonne'+(activeCols.length>1?'s':'')+'</p>';
@@ -10170,7 +10172,7 @@ function adminFreresRenderListe(cid){
   var el=document.getElementById(cid||'admin-freres-liste-content');
   if(!el) return;
   el.innerHTML='<div id="adm-freres-imp-panel"></div>';
-  fFreresTableauRender('adm-freres-imp-panel','adm-');
+  fFreresTableauRender('adm-freres-imp-panel','adm-','adminFreresOuvrirFiche');
 }
 function adminFreresOuvrirFiche(id){
   _pfSelectedId=id;
