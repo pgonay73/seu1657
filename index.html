@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.281</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.282</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20249,6 +20249,7 @@ function plRenderPlanning(targetId){
         var isMorceau=nomLow.indexOf('morceau')>=0||nomLow.indexOf('architecture')>=0;
         var det=[];
         if(p.titre) det.push('« '+p.titre+' »');
+        if(p.intervenant){var _intF=(D.freres||[]).find(function(f){return f.id===p.intervenant;});if(_intF) det.push("Intervenant : "+((_intF.prenom||"")+" "+(_intF.nom||"")).trim());}
         if(p.conf) det.push('Conf. : '+p.conf);
         if(p.initNom) det.push('Candidat : '+p.initNom+(p.initDegre?' ('+p.initDegre+')':''));
         else if(p.nomProfane) det.push('Candidat : '+p.nomProfane);
@@ -20279,6 +20280,13 @@ function plRenderPlanning(targetId){
             var chk=_effSteps.indexOf(v)>=0?'checked':'';
             _cbsHtml+='<label style="'+_cbl+'"><input type="checkbox" '+chk+' onchange="plDetailPartieToggleType(&quot;'+eid+'&quot;,'+pi+',&quot;'+v+'&quot;,this)" style="'+_cbi+'"> '+v.charAt(0).toUpperCase()+v.slice(1)+'</label>';
           });
+          var _intOpts='<option value="">— Intervenant —</option>';
+          (D.freres||[]).slice().sort(fSortNom).forEach(function(f){
+            var fn=(f.prenom||'')+' '+(f.nom||'');
+            var sel=(p.intervenant&&p.intervenant===f.id)?'selected':'';
+            _intOpts+='<option value="'+f.id+'" '+sel+'>'+fn.trim()+'</option>';
+          });
+          _cbsHtml+='<select onchange="plDetailPartieIntervenantChanger(&quot;'+eid+'&quot;,'+pi+',this.value,this)" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.18);border-radius:3px;padding:1px 4px;font-size:11px;font-family:Raleway,sans-serif;max-width:140px;margin-left:8px;">'+_intOpts+'</select>';
         }
         var _btnUp=pi>0
           ?'<button onclick="plDetailPartieUp(\''+eid+'\','+pi+',this)" title="Monter" style="background:none;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.5);cursor:pointer;font-size:10px;padding:1px 4px;margin-right:2px;">▲</button>'
@@ -20287,9 +20295,12 @@ function plRenderPlanning(targetId){
           ?'<button onclick="plDetailPartieDown(\''+eid+'\','+pi+',this)" title="Descendre" style="background:none;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.5);cursor:pointer;font-size:10px;padding:1px 4px;margin-right:2px;">▼</button>'
           :'<span style="display:inline-block;width:22px;margin-right:2px;"></span>';
         var _btnDel='<button onclick="plDetailPartieDel(\''+eid+'\','+pi+',this)" title="Supprimer ce détail" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:10px;padding:1px 4px;">✕</button>';
+        var _inpDur='<input type="number" min="0" value="'+(p.dur||0)+'" onblur="plDetailPartieDurChanger(&quot;'+eid+'&quot;,'+pi+',+this.value,this)" style="width:38px;background:transparent;border:none;border-bottom:1px dashed rgba(184,146,42,.55);color:var(--gold2);font-weight:700;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"> min';
+        var _nomOpts='';(D.parDefaut||[]).forEach(function(pd){_nomOpts+='<option value="'+pd.nom.replace(/"/g,'&quot;')+'"'+(pd.nom===p.nom?' selected':'')+'>'+pd.nom+'</option>';});
+        var _selNom='<select onchange="plDetailPartieNomChanger(&quot;'+eid+'&quot;,'+pi+',this.value,this)" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.18);border-radius:3px;padding:1px 4px;font-size:11px;font-family:Raleway,sans-serif;max-width:180px;">'+_nomOpts+'</select>';
         h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">'
-          +'<td style="padding:3px 8px;color:var(--gold2);font-weight:700;white-space:nowrap;width:65px;">'+((p.dur||0)+' min')+'</td>'
-          +'<td style="padding:3px 8px;color:#FFFFFF;">'+((p.nom)||'—')+_cbsHtml+detHtml+'</td>'
+          +'<td style="padding:3px 8px;white-space:nowrap;width:70px;">'+_inpDur+'</td>'
+          +'<td style="padding:3px 8px;color:#FFFFFF;">'+_selNom+_cbsHtml+detHtml+'</td>'
           +'<td style="padding:3px 4px;white-space:nowrap;text-align:right;width:76px;">'+_btnUp+_btnDn+_btnDel+'</td>'
           +'</tr>';
       });
@@ -20481,6 +20492,33 @@ function plDetailPartieDown(eid,idx,btn){
   if(!ev||idx>=ev.detail.length-1) return;
   _plDetailEnsure(ev);
   var tmp=ev.detail[idx+1]; ev.detail[idx+1]=ev.detail[idx]; ev.detail[idx]=tmp;
+  plSave(data);
+  _plPartieRefreshCont(eid,btn);
+}
+function plDetailPartieDurChanger(eid,idx,val,btn){
+  var data=plLoad();
+  var ev=null; for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev) return;
+  _plDetailEnsure(ev);
+  if(ev.detail[idx]) ev.detail[idx].dur=val||0;
+  plSave(data);
+  _plPartieRefreshCont(eid,btn);
+}
+function plDetailPartieNomChanger(eid,idx,val,btn){
+  var data=plLoad();
+  var ev=null; for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev) return;
+  _plDetailEnsure(ev);
+  if(ev.detail[idx]) ev.detail[idx].nom=val;
+  plSave(data);
+  _plPartieRefreshCont(eid,btn);
+}
+function plDetailPartieIntervenantChanger(eid,idx,val,btn){
+  var data=plLoad();
+  var ev=null; for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev) return;
+  _plDetailEnsure(ev);
+  if(ev.detail[idx]) ev.detail[idx].intervenant=val||'';
   plSave(data);
   _plPartieRefreshCont(eid,btn);
 }
