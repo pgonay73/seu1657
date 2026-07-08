@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.279</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.280</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -19717,6 +19717,8 @@ function plRenderInto(container){
 function plRender(){
   plRenderPlanning();
   plRenderPlanchesRecap();
+  var _refEl=document.getElementById('admin-pl-ref-list');
+  if(_refEl) adminPlRenderRef('admin-pl-ref-list');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -20418,7 +20420,7 @@ function plDetailPartieToggleType(eid,pi,type,triggerEl){
   ev.P=newP; ev.S=newS;
   plSave(data);
   // Re-render complet du container pour mettre à jour badges, P/S et durée
-  var cont=triggerEl?triggerEl.closest('#pl-list,#admin-pl-sans-list'):null;
+  var cont=triggerEl?triggerEl.closest('#pl-list,#admin-pl-sans-list,#admin-pl-ref-list'):null;
   var contId=cont?cont.id:null;
   if(contId){
     plRenderPlanning(contId);
@@ -20587,7 +20589,7 @@ function plModeleChanger(eid,newModeleId,triggerEl){
   if(_deg) ev.degre=_deg;
   plSave(data);
   var contId=null;
-  if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list');if(c)contId=c.id;}
+  if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list,#admin-pl-ref-list');if(c)contId=c.id;}
   if(contId) plRenderPlanning(contId); else plRenderPlanning();
   setTimeout(function(){
     var cont=contId?document.getElementById(contId):null;
@@ -20881,7 +20883,7 @@ function plDeleteDirect(id,triggerEl){
   data.events=(data.events||[]).filter(function(x){return x.id!==id;});
   plSave(data);
   var contId=null;
-  if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list');if(c)contId=c.id;}
+  if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list,#admin-pl-ref-list');if(c)contId=c.id;}
   if(contId) plRenderPlanning(contId); else plRender();
   plRenderObligatoires();toast('Tenue supprimée.');
 }
