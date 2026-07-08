@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.283</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.284</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20303,6 +20303,80 @@ function plRenderPlanning(targetId){
           +'<td style="padding:3px 8px;color:#FFFFFF;">'+_selNom+_cbsHtml+detHtml+'</td>'
           +'<td style="padding:3px 4px;white-space:nowrap;text-align:right;width:76px;">'+_btnUp+_btnDn+_btnDel+'</td>'
           +'</tr>';
+        // Extra fields sub-row for this party type
+        var _isPl2=isPlancheOuSym(p.nom), _isInter2=isInterventCard(p.nom), _isElec2=isElections(p.nom);
+        var _isInst2=isInstallCard(p.nom), _isInit2=isInitiation(p.nom), _isPr2=isProfane(p.nom);
+        var _isAff2=isAffiliation(p.nom), _isCA2=isConseil(p.nom), _isCerCard2=isCeremCard(p.nom);
+        var _isReunHT2=isReunHTCard(p.nom);
+        var _exH='';
+        var _inpS='background:rgba(20,40,80,.8);color:#FFFFFF;border:1px solid rgba(255,255,255,.22);border-radius:3px;padding:3px 7px;font-size:11px;font-family:Raleway,sans-serif;';
+        var _lbS='font-size:11px;color:rgba(255,255,255,.85);display:inline-flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;';
+        var _cbS='accent-color:var(--gold);cursor:pointer;margin:0;';
+        var _eeid=eid, _epi=pi;
+        if(_isPl2){
+          var _frO='<option value="">— Conférencier —</option>';
+          (D.freres||[]).slice().sort(fSortNom).forEach(function(fr){var fn=(fr.prenom||'')+' '+(fr.nom||'');_frO+='<option value="'+fr.nom.replace(/"/g,'&quot;')+'"'+(p.conf===fr.nom?' selected':'')+'>'+fn.trim()+'</option>';});
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">'
+            +'<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Titre / sujet..." onblur="plPISet(\''+_eeid+'\','+_epi+',\'titre\',this.value)" style="flex:2;min-width:140px;'+_inpS+'">'
+            +'<select onchange="plPISet(\''+_eeid+'\','+_epi+',\'conf\',this.value)" style="flex:1;min-width:120px;'+_inpS+'">'+_frO+'</select>'
+            +'</div>';
+        }
+        if(_isInter2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
+          [{v:'VM',d:15},{v:'Député',d:15},{v:'Autre',d:15}].forEach(function(x){var chk=(p.interSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'interSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
+          _exH+='</div>';
+        }
+        if(_isElec2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
+          [{v:'Collège+VM',d:120},{v:'Renouvellement',d:105},{v:'VM',d:15},{v:'Député',d:15},{v:'Délégués judiciaires',d:10}].forEach(function(x){var chk=(p.elecSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'elecSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
+          _exH+='</div>';
+        }
+        if(_isInst2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
+          [{v:'Collège+VM',d:120},{v:'VM',d:15},{v:'Député',d:15}].forEach(function(x){var chk=(p.instSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'instSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
+          _exH+='</div>';
+        }
+        if(_isInit2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:2px;">';
+          _exH+='<select onchange="plPISet(\''+_eeid+'\','+_epi+',\'initDegre\',this.value)" style="'+_inpS+'"><option value="">— Degré —</option>';
+          ['1°','2°','3°'].forEach(function(d){_exH+='<option value="'+d+'"'+(p.initDegre===d?' selected':'')+'>'+d+'</option>';});
+          _exH+='</select>';
+          _exH+='<input type="text" value="'+(p.initNom||'').replace(/"/g,'&quot;')+'" placeholder="Nom du candidat..." onblur="plPISet(\''+_eeid+'\','+_epi+',\'initNom\',this.value)" style="flex:1;min-width:120px;'+_inpS+'">';
+          _exH+='</div>';
+        }
+        if(_isPr2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;">';
+          [{v:'profane',d:15},{v:'candidature',d:15},{v:'enquete',d:15},{v:'bandeau',d:30}].forEach(function(x){var chk=(p.profSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'profSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+'</label>';});
+          _exH+='</div>';
+          _exH+='<div style="margin-top:4px;"><input type="text" value="'+(p.nomProfane||'').replace(/"/g,'&quot;')+'" placeholder="Prénom Nom du profane..." onblur="plPISet(\''+_eeid+'\','+_epi+',\'nomProfane\',this.value)" style="width:100%;box-sizing:border-box;'+_inpS+'"></div>';
+        }
+        if(_isAff2){
+          var affO='<option value="">— Étape —</option>';
+          [{v:'presentation',lbl:'Présentation + vote',d:30},{v:'enquete',lbl:'Enquête + vote',d:30},{v:'ceremonie',lbl:'Cérémonie',d:15}].forEach(function(x){affO+='<option value="'+x.v+'"'+((p.affSteps||[]).indexOf(x.v)>=0?' selected':'')+'>'+x.lbl+' ('+x.d+' min)</option>';});
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:2px;">'
+            +'<select onchange="plPIToggleSingle(\''+_eeid+'\','+_epi+',\'affSteps\',this.value)" style="flex:1;min-width:140px;'+_inpS+'">'+affO+'</select>'
+            +'<input type="text" value="'+(p.nomAffilie||'').replace(/"/g,'&quot;')+'" placeholder="Nom de l\'affilié..." onblur="plPISet(\''+_eeid+'\','+_epi+',\'nomAffilie\',this.value)" style="flex:1;min-width:120px;'+_inpS+'">'
+            +'</div>';
+        }
+        if(_isCA2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:2px;">';
+          _exH+='<input type="text" value="'+(p.caOdj||'').replace(/"/g,'&quot;')+'" placeholder="Ordre du jour..." onblur="plPISet(\''+_eeid+'\','+_epi+',\'caOdj\',this.value)" style="flex:1;min-width:160px;'+_inpS+'"></div>';
+        }
+        if(_isCerCard2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
+          [{v:'St Jean',d:120},{v:'Jubilé',d:120},{v:'Tenue funèbre',d:120},{v:'Autre',d:120}].forEach(function(x){var chk=(p.cerCardSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'cerCardSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+'</label>';});
+          _exH+='</div>';
+        }
+        if(_isReunHT2){
+          _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
+          [{v:'CA',d:60},{v:'Compagnons',d:120},{v:'Apprentis',d:120}].forEach(function(x){var chk=(p.reunSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'reunSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
+          _exH+='</div>';
+        }
+        if(_exH){
+          h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">'
+            +'<td></td><td colspan="2" style="padding:0 8px 6px 8px;">'+_exH+'</td>'
+            +'</tr>';
+        }
       });
       h+='<tr style="border-top:2px solid rgba(184,146,42,.4);"><td style="padding:4px 8px;color:var(--gold2);font-weight:700;">'+totDurDet+' min</td><td style="padding:4px 8px;color:rgba(255,255,255,.5);font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Total</td><td></td></tr>';
       h+='</table>';
@@ -20522,6 +20596,29 @@ function plDetailPartieIntervenantChanger(eid,idx,val,btn){
   if(ev.detail[idx]) ev.detail[idx].intervenant=val||'';
   plSave(data);
   _plPartieRefreshCont(eid,btn);
+}
+function plPISet(eid,pi,field,val){
+  var data=plLoad();
+  var ev=null;for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev||!ev.detail||!ev.detail[pi])return;
+  ev.detail[pi][field]=val;
+  plSave(data);
+}
+function plPIToggle(eid,pi,field,val,chk){
+  var data=plLoad();
+  var ev=null;for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev||!ev.detail||!ev.detail[pi])return;
+  var arr=(ev.detail[pi][field]||[]).slice();
+  if(chk){if(arr.indexOf(val)<0)arr.push(val);}else arr=arr.filter(function(x){return x!==val;});
+  ev.detail[pi][field]=arr;
+  plSave(data);
+}
+function plPIToggleSingle(eid,pi,field,val){
+  var data=plLoad();
+  var ev=null;for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev||!ev.detail||!ev.detail[pi])return;
+  ev.detail[pi][field]=val?[val]:[];
+  plSave(data);
 }
 function plPartieSelChange(eid,sel){
   // navigation par frères : select → cbDiv (sibling suivant)
