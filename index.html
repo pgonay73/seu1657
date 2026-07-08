@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.275</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-08.276</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -6969,41 +6969,11 @@ function fFmtDate(d){
   return p[2]+'/'+p[1]+'/'+p[0];
 }
 
-function renderFreres(){
-  var vOffSec=document.getElementById('v-off-sec');
-  var inSec=vOffSec&&vOffSec.classList.contains('active');
-  var el=document.getElementById(inSec?'sec-freres-liste-visu':'freres-list');
-  if(!el) return;
-  if(!D.freres||!D.freres.length){el.innerHTML='<div class="empty"><p>Aucun Frere.<br>Cliquez sur <strong>+ Ajouter</strong>.</p></div>';return;}
-  var sorted=D.freres.slice().sort(fSortNom);
+function fBuildFreresHTML(sorted, prefix, editable){
   var h='';
   for(var i=0;i<sorted.length;i++){
     var f=sorted[i];
-    var nomClean=(f.nom||'').replace(/^f\.\s*/i,'').replace(/^fr\.\s*/i,'').trim();
-    var letter=nomClean.charAt(0).toUpperCase();
     var nomComplet=(f.prenom?f.prenom+' ':'')+f.nom;
-    var soustitre=[];if(f.role)soustitre.push(f.role);
-    var statutColors={'actif':'#27AE60','affilie':'#4472C4','honoraire':'#B8922A','visiteur':'#7F8C8D'};
-    var statutLbl={'actif':'Titulaire','affilie':'Affilié','honoraire':'Honoraire','visiteur':'Autre'};
-    var st=f.statut||'actif';
-    var stColor=statutColors[st]||'#7F8C8D';
-    var stBadge='<span style="font-size:10px;font-weight:600;color:'+stColor+';border:1px solid '+stColor+';border-radius:3px;padding:1px 5px;margin-left:6px;text-transform:uppercase;letter-spacing:.5px">'+(statutLbl[st]||st)+'</span>';
-    var fondBadge=f.fondateur?'<span style="color:var(--gold);font-size:13px;margin-left:5px;" title="Fondateur">★</span>':'';
-
-    var gradeColor={'A':'#27AE60','C':'#E67E22','M':'#C0392B'};
-    var gradeLabel={'A':'Apprenti','C':'Compagnon','M':'Maître'};
-    var bordureGrade=gradeColor[(f.grade||'').toUpperCase()]||'rgba(255,255,255,.35)';
-    var gradeCol=gradeColor[(f.grade||'').toUpperCase()]||'rgba(255,255,255,.4)';
-    var gradeTxt=gradeLabel[(f.grade||'').toUpperCase()]||'';
-    var gradeBadge=gradeTxt?'<span style="font-size:10px;font-weight:600;color:'+gradeCol+';border:1px solid '+gradeCol+';border-radius:3px;padding:1px 5px;text-transform:uppercase;letter-spacing:.5px">'+gradeTxt+'</span>':'';
-    var hasOffice=!!(f.role&&f.role.trim());
-    var officeW=hasOffice?6:0;
-    var gradW=10;
-    var fondStyle='position:relative;';
-
-    var fbId=(inSec?'sec-':'')+'fb-'+f.id;
-    h+='<div class="frere-card" data-frere-id="'+f.id+'" style="'+fondStyle+'">';
-
     var _st=f.statut||'actif';
     var _stLbl={'actif':'Titulaire','affilie':'Affilié','honoraire':'Honoraire','visiteur':'Autre'};
     var _stCol={'actif':'#27AE60','affilie':'#4472C4','honoraire':'#B8922A','visiteur':'#7F8C8D'};
@@ -7013,71 +6983,66 @@ function renderFreres(){
     var _row='border-bottom:1px solid rgba(255,255,255,.06);padding:3px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline;font-size:12px;';
     var _lbl='color:rgba(255,255,255,.45);font-size:10px;text-transform:uppercase;letter-spacing:.5px;min-width:0;flex-shrink:0;';
     var _val='color:#fff;';
+    var fbId=(prefix||'')+'fb-'+f.id;
+    h+='<div class="frere-card" data-frere-id="'+f.id+'" style="position:relative;">';
     h+='<div class="frere-head" onclick="toggleFrere(\''+fbId+'\')">';
     h+='<div style="padding:8px 12px;">';
-    // Ligne 1 : Nom Prénom Origine
     h+='<div style="'+_row+'font-weight:700;font-size:13px;">';
     h+=nomComplet;
     if(f.autreLoge) h+='<span style="'+_lbl+'margin-left:8px;">'+f.autreLoge+'</span>';
     h+='</div>';
-    // Ligne 2 : Statut, Degré, Rôle
     h+='<div style="'+_row+'">';
     if(_stLbl[_st]) h+='<span style="color:'+_stCol[_st]+';font-size:10px;font-weight:600;border:1px solid '+_stCol[_st]+';border-radius:3px;padding:1px 5px;">'+(_stLbl[_st]||_st)+'</span>';
     if(_gLbl[_g]) h+='<span style="color:'+(_gCol[_g]||'#fff')+';font-size:10px;font-weight:600;border:1px solid '+(_gCol[_g]||'#fff')+';border-radius:3px;padding:1px 5px;">'+_gLbl[_g]+'</span>';
     if(f.role) h+='<span style="'+_val+'font-size:11px;">'+f.role+'</span>';
     h+='</div>';
-    // Ligne 3 : Tél, Mail, Fondateur
     h+='<div style="'+_row+'">';
     if(f.tel) h+='<span style="'+_val+'">📞 '+f.tel+'</span>';
     if(f.mail) h+='<span style="'+_val+'">✉ '+f.mail+'</span>';
     if(f.fondateur) h+='<span style="color:var(--gold);font-weight:600;">★ Fondateur</span>';
     h+='</div>';
-    // Ligne 4 : Adresse, CP, Ville
     h+='<div style="'+_row+'">';
     if(f.adresse) h+='<span style="'+_val+'">'+f.adresse+'</span>';
     if(f.cp||f.ville) h+='<span style="'+_val+'">'+((f.cp||'')+' '+(f.ville||'')).trim()+'</span>';
     h+='</div>';
-    // Ligne 5 : Date naissance, Date entrée, Date dernière planche
     h+='<div style="'+_row+'">';
     if(f.ddn) h+='<span><span style="'+_lbl+'">Né </span><span style="'+_val+'">'+fFmtDate(f.ddn)+'</span></span>';
     if(f.entree) h+='<span><span style="'+_lbl+'">Entrée </span><span style="'+_val+'">'+fFmtDate(f.entree)+'</span></span>';
     if(f.plancheDate) h+='<span><span style="'+_lbl+'">Dernière planche </span><span style="'+_val+'">'+fFmtDate(f.plancheDate)+'</span></span>';
     h+='</div>';
-    // Ligne 6 : Sujet planche
     if(f.plancheSujet) h+='<div style="'+_row+'"><span style="'+_lbl+'">Sujet </span><span style="'+_val+'">'+f.plancheSujet+'</span></div>';
     h+='</div>';
     h+='<div class="facts">';
-    if(window.freresEditable) h+='<button class="fdel" onclick="event.stopPropagation();delFrere(\''+f.id+'\')" title="Supprimer">&#10005;</button>';
+    if(editable) h+='<button class="fdel" onclick="event.stopPropagation();delFrere(\''+f.id+'\')" title="Supprimer">&#10005;</button>';
     h+='</div></div>';
-
     h+='<div class="frere-body" id="'+fbId+'" style="padding:14px 16px;">';
-    if(window.freresEditable){
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Prénom</label><input data-field="prenom" value="'+(f.prenom||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Nom</label><input data-field="nom" value="'+(f.nom||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Rôle</label><input data-field="role" value="'+(f.role||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Grade</label><input data-field="grade" value="'+(f.grade||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Statut</label><select data-field="statut" style="width:100%;background:rgba(30,54,96,.9);border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;">';
-    var statuts=['actif','affilie','honoraire','visiteur'];
-    var statutLabels=['Titulaire','Affilié','Honoraire','Autre'];
-    for(var s=0;s<statuts.length;s++)h+='<option value="'+statuts[s]+'"'+(f.statut===statuts[s]?' selected':'')+'>'+statutLabels[s]+'</option>';
-    h+='</select></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Loge d&#39;origine</label><input data-field="autreLoge" value="'+(f.autreLoge||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Téléphone</label><input data-field="tel" value="'+(f.tel||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">E-mail</label><input data-field="mail" value="'+(f.mail||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='</div>';
-    h+='<div style="margin-bottom:10px;"><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Adresse</label><input data-field="adresse" value="'+(f.adresse||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div style="display:grid;grid-template-columns:120px 1fr;gap:10px;margin-bottom:10px;">';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">CP</label><input data-field="cp" value="'+(f.cp||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Ville</label><input data-field="ville" value="'+(f.ville||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='</div>';
-    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Date de naissance</label><input type="date" data-field="ddn" value="'+(f.ddn||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Date d&#39;entr&eacute;e</label><input type="date" data-field="entree" value="'+(f.entree||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Date dernière planche</label><input type="date" data-field="plancheDate" value="'+(f.plancheDate||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='</div>';
-    h+='<div style="margin-bottom:10px;"><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Sujet dernière planche</label><input data-field="plancheSujet" value="'+(f.plancheSujet||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
-    h+='<div><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--grey);cursor:pointer;"><input type="checkbox" data-field="fondateur"'+(f.fondateur?' checked':'')+' style="accent-color:var(--gold);width:14px;height:14px;"/> Membre fondateur</label></div>';
+    if(editable){
+      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Prénom</label><input data-field="prenom" value="'+(f.prenom||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Nom</label><input data-field="nom" value="'+(f.nom||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Rôle</label><input data-field="role" value="'+(f.role||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Grade</label><input data-field="grade" value="'+(f.grade||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Statut</label><select data-field="statut" style="width:100%;background:rgba(30,54,96,.9);border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;">';
+      var statuts=['actif','affilie','honoraire','visiteur'];
+      var statutLabels=['Titulaire','Affilié','Honoraire','Autre'];
+      for(var s=0;s<statuts.length;s++) h+='<option value="'+statuts[s]+'"'+(f.statut===statuts[s]?' selected':'')+'>'+statutLabels[s]+'</option>';
+      h+='</select></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Loge d&#39;origine</label><input data-field="autreLoge" value="'+(f.autreLoge||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Téléphone</label><input data-field="tel" value="'+(f.tel||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">E-mail</label><input data-field="mail" value="'+(f.mail||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='</div>';
+      h+='<div style="margin-bottom:10px;"><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Adresse</label><input data-field="adresse" value="'+(f.adresse||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div style="display:grid;grid-template-columns:120px 1fr;gap:10px;margin-bottom:10px;">';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">CP</label><input data-field="cp" value="'+(f.cp||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Ville</label><input data-field="ville" value="'+(f.ville||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='</div>';
+      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Date de naissance</label><input type="date" data-field="ddn" value="'+(f.ddn||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Date d&#39;entr&eacute;e</label><input type="date" data-field="entree" value="'+(f.entree||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Date dernière planche</label><input type="date" data-field="plancheDate" value="'+(f.plancheDate||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='</div>';
+      h+='<div style="margin-bottom:10px;"><label style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;">Sujet dernière planche</label><input data-field="plancheSujet" value="'+(f.plancheSujet||'')+'" style="width:100%;background:#263f72;border:1px solid rgba(184,146,42,.55);border-radius:4px;padding:5px 8px;color:#fff;font-family:Raleway,sans-serif;font-size:13px;box-sizing:border-box;"/></div>';
+      h+='<div><label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--grey);cursor:pointer;"><input type="checkbox" data-field="fondateur"'+(f.fondateur?' checked':'')+' style="accent-color:var(--gold);width:14px;height:14px;"/> Membre fondateur</label></div>';
     } else {
       var fmtDate=function(d){if(!d)return'';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
       var lbl=function(t,v){return v?'<div style="margin-bottom:8px;"><div style="font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">'+t+'</div><div style="font-size:13px;color:#FFFFFF;">'+v+'</div></div>':'';};
@@ -7092,13 +7057,21 @@ function renderFreres(){
     }
     h+='</div></div>';
   }
-  el.innerHTML = inSec
-    ? '<div class="freres-grid">'+h+'</div>'
-    : h;
+  return h;
+}
+function renderFreres(){
+  var vOffSec=document.getElementById('v-off-sec');
+  var inSec=vOffSec&&vOffSec.classList.contains('active');
+  var el=document.getElementById(inSec?'sec-freres-liste-visu':'freres-list');
+  if(!el) return;
+  if(!D.freres||!D.freres.length){el.innerHTML='<div class="empty"><p>Aucun Frere.<br>Cliquez sur <strong>+ Ajouter</strong>.</p></div>';return;}
+  var sorted=D.freres.slice().sort(fSortNom);
+  var h=fBuildFreresHTML(sorted, inSec?'sec-':'', window.freresEditable);
+  el.innerHTML = inSec ? '<div class="freres-grid">'+h+'</div>' : h;
 }
 
-function saveAllFreres(){
-  var cards=document.querySelectorAll('.frere-card[data-frere-id]');
+function saveAllFreres(container){
+  var cards=(container||document).querySelectorAll('.frere-card[data-frere-id]');
   var count=0;
   for(var c=0;c<cards.length;c++){
     var card=cards[c];
@@ -10208,29 +10181,8 @@ function adminFreresRenderListe(cid){
   if(!el) return;
   if(!D.freres||!D.freres.length){el.innerHTML='<div class="empty"><p>Aucun Frère.<br>Utilisez <strong>+ Ajouter</strong> dans la section Frères.</p></div>';return;}
   var sorted=D.freres.slice().sort(fSortNom);
-  var statutColors={'actif':'#27AE60','affilie':'#4472C4','honoraire':'#B8922A','visiteur':'#7F8C8D'};
-  var statutLbl={'actif':'Titulaire','affilie':'Affilié','honoraire':'Honoraire','visiteur':'Autre'};
-  var gradeLabel={'A':'Apprenti','C':'Compagnon','M':'Maître'};
-  var gradeColor={'A':'#27AE60','C':'#E67E22','M':'#C0392B'};
-  var h='<div style="display:flex;flex-direction:column;gap:6px;">';
-  sorted.forEach(function(f){
-    var nomComplet=(f.prenom?f.prenom+' ':'')+f.nom;
-    var st=f.statut||'actif';
-    var stColor=statutColors[st]||'#7F8C8D';
-    var g=(f.grade||'').toUpperCase();
-    var gCol=gradeColor[g]||'rgba(255,255,255,.4)';
-    var gTxt=gradeLabel[g]||'';
-    h+='<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);">';
-    h+='<span style="flex:1;font-size:13px;font-weight:600;color:#fff;">'+nomComplet+'</span>';
-    if(f.fondateur) h+='<span style="color:var(--gold);font-size:13px;" title="Fondateur">★</span>';
-    if(gTxt) h+='<span style="font-size:10px;color:'+gCol+';border:1px solid '+gCol+';border-radius:3px;padding:1px 5px;text-transform:uppercase;">'+gTxt+'</span>';
-    h+='<span style="font-size:10px;color:'+stColor+';border:1px solid '+stColor+';border-radius:3px;padding:1px 5px;text-transform:uppercase;">'+(statutLbl[st]||st)+'</span>';
-    if(f.role) h+='<span style="font-size:11px;color:rgba(255,255,255,.6);">'+f.role+'</span>';
-    h+='<button onclick="adminFreresOuvrirFiche(\''+f.id+'\')" style="padding:3px 10px;font-size:11px;border-radius:4px;background:var(--gold2);color:#fff;border:none;cursor:pointer;">Fiche</button>';
-    h+='</div>';
-  });
-  h+='</div>';
-  el.innerHTML=h;
+  var btnSave='<div style="text-align:right;margin-bottom:10px;"><button onclick="saveAllFreres(document.getElementById(\'admin-freres-liste-content\'));renderFreres();toast(\'✓ Frères enregistrés.\');" style="padding:5px 16px;background:var(--gold2);color:#fff;border:none;border-radius:4px;font-size:12px;cursor:pointer;">💾 Tout enregistrer</button></div>';
+  el.innerHTML=btnSave+fBuildFreresHTML(sorted,'adm-',true);
 }
 function adminFreresOuvrirFiche(id){
   _pfSelectedId=id;
