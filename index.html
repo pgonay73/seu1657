@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.312</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.313</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20985,6 +20985,11 @@ function plPIToggle(eid,pi,field,val,chk){
   if(chk){if(arr.indexOf(val)<0)arr.push(val);}else arr=arr.filter(function(x){return x!==val;});
   ev.detail[pi][field]=arr;
   plSave(data);
+  // Une planche/symbolisme (dé)cochée modifie le nombre de créneaux à pourvoir :
+  // rafraîchir les écrans de suivi par frère et par tenue.
+  if(field==='plancheSteps'||field==='symDegres'){
+    setTimeout(function(){try{plSuiviRender();}catch(e){}try{_plSuiviTenueRefreshAll();}catch(e){}},60);
+  }
 }
 function plPIToggleSingle(eid,pi,field,val){
   var data=plLoad();
@@ -20992,6 +20997,9 @@ function plPIToggleSingle(eid,pi,field,val){
   if(!ev||!ev.detail||!ev.detail[pi])return;
   ev.detail[pi][field]=val?[val]:[];
   plSave(data);
+  if(field==='plancheSteps'||field==='symDegres'){
+    setTimeout(function(){try{plSuiviRender();}catch(e){}try{_plSuiviTenueRefreshAll();}catch(e){}},60);
+  }
 }
 function plPartieSelChange(eid,sel){
   // navigation par frères : select → cbDiv (sibling suivant)
@@ -21537,6 +21545,8 @@ function plValiderLigneTenue(btn){
   evt.detail = peGet('pe-pl-detail');
   plSave(data);
   plRender();
+  // Une planche/symbolisme saisie ici modifie les créneaux à pourvoir : rafraîchir le suivi.
+  setTimeout(function(){try{plSuiviRender();}catch(e){}try{_plSuiviTenueRefreshAll();}catch(e){}},60);
   // Feedback visuel
   var orig = btn.textContent;
   btn.textContent = '✓ Ok';
@@ -21556,6 +21566,8 @@ function plFermerDetailTenue(){
   document.getElementById('ov-pl-detail').style.display = 'none';
   _plDetailTenueId = null;
   if(eid){ plRender(); setTimeout(function(){ var r=document.getElementById('pl-detail-row-'+eid); if(r){r.style.display='table-row'; var b=document.getElementById('pl-detail-btn-'+eid); if(b)b.innerHTML='&#9660;';} },120); }
+  // Rafraîchir le suivi par frère / par tenue au cas où des planches auraient été (dé)saisies.
+  setTimeout(function(){try{plSuiviRender();}catch(e){}try{_plSuiviTenueRefreshAll();}catch(e){}},80);
 }
 function plOuvrirDetailTenueFromInline(eid){
   plValiderLigneTenueAuto(eid);
@@ -22499,12 +22511,13 @@ function plSuiviParTenueRender(cid){
     var key=lg.tenueId+'|'+(s2.type||'Planche');
     assignesParTenueType[key]=(assignesParTenueType[key]||0)+1;
   });
-  // Ajouter des lignes vides pour les slots de planches/symbolismes non encore assignés
-  var tenueIdsVus={};
-  lignes.forEach(function(lg){ if(lg.tenueId) tenueIdsVus[lg.tenueId]=true; });
-  Object.keys(tenueIdsVus).forEach(function(tid){
-    var evt=evtsIndex[tid];
-    if(!evt) return;
+  // Ajouter des lignes vides pour les slots de planches/symbolismes non encore assignés.
+  // On parcourt TOUTES les tenues du planning qui comportent une planche/symbolisme,
+  // et pas seulement celles ayant déjà un frère assigné : ainsi une planche fraîchement
+  // saisie dans le planning de référence apparaît immédiatement comme créneau à pourvoir.
+  evts.forEach(function(evt){
+    var tid=evt.id;
+    if(!tid) return;
     var det=evt.detail||[];
     if(!det.length) return;
     var nbP=det.filter(function(p){ return p.plancheSteps&&p.plancheSteps.indexOf('planche')>=0; }).length;
