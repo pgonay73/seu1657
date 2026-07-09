@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.304</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.305</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14006,6 +14006,7 @@ function renderOffice(n){
     dc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:120px;">Date</th>';
     dc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Tenue</th>';
     dc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;min-width:300px;">Sujet de l\'intervention</th>';
+    dc+='<th style="padding:8px;width:54px;"></th>';
     dc+='</tr></thead><tbody>';
     for(var dti=0;dti<tenues.length;dti++){
       var dt=tenues[dti];
@@ -14014,11 +14015,15 @@ function renderOffice(n){
       var hasInterv=depData[dt.id]&&depData[dt.id].trim();
       var intervBorder=hasInterv?'border-left:3px solid var(--gold);':'';
       dc+='<tr style="background:'+dbg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;'+intervBorder+'">';
-      dc+='<td style="padding:8px;color:#FFFFFF;white-space:nowrap;font-weight:600;">'+fmtDate(dt.date)+'</td>';
+      dc+='<td style="padding:8px;white-space:nowrap;font-weight:600;"><div id="dep-plan-cell-'+dt.id+'"><span style="color:#FFFFFF;">'+fmtDate(dt.date)+'</span></div></td>';
       dc+='<td style="padding:8px;color:#FFFFFF;">'+(dt.titre||'Tenue')+'</td>';
       dc+='<td style="padding:8px;"><textarea id="dep-int-'+dt.id+'" rows="2" placeholder="Sujet, compte-rendu..." style="'+inpS+'width:100%;min-width:200px;">'+dsujet+'</textarea>';
       if(hasInterv) dc+='<span style="font-size:9px;color:var(--gold);display:block;margin-top:2px;">✓ Intervention saisie</span>';
-      dc+='</td></tr>';
+      dc+='</td>';
+      dc+='<td style="padding:4px;text-align:center;vertical-align:middle;white-space:nowrap;">'
+        +'<button onclick="editPlanningDateHeure(\'dep-plan-cell-'+dt.id+'\',\''+dt.id+'\',\'off-dep\')" title="Modifier date/heure" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:13px;padding:2px 3px;" onmouseover="this.style.color=\'#FFF\'" onmouseout="this.style.color=\'rgba(255,255,255,.35)\'">✏️</button>'
+        +'<button onclick="plSupprimerTenueFromReunion(\''+dt.id+'\',\'off-dep\')" title="Supprimer du planning" style="background:none;border:none;color:rgba(220,80,80,.4);cursor:pointer;font-size:13px;padding:2px 3px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.4)\'">🗑</button>'
+        +'</td></tr>';
     }
     dc+='</tbody></table></div></div>';
     // ── Panel Planches
