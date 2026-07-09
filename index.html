@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.290</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.291</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20347,12 +20347,7 @@ function plRenderPlanning(targetId){
         var _cbS='accent-color:var(--gold);cursor:pointer;margin:0;';
         var _eeid=eid, _epi=pi;
         if(_isPl2){
-          var _frO='<option value="">— Conférencier —</option>';
-          (D.freres||[]).slice().sort(fSortNom).forEach(function(fr){var fn=((fr.prenom||'')+' '+(fr.nom||'')).trim();_frO+='<option value="'+fn.replace(/"/g,'&quot;')+'"'+(p.conf===fn?' selected':'')+'>'+fn+'</option>';});
-          _exH+='<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">'
-            +'<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Titre / sujet..." onblur="plPISet(\''+_eeid+'\','+_epi+',\'titre\',this.value)" style="flex:2;min-width:140px;'+_inpS+'">'
-            +'<select onchange="plPISet(\''+_eeid+'\','+_epi+',\'conf\',this.value)" style="flex:1;min-width:120px;'+_inpS+'">'+_frO+'</select>'
-            +'</div>';
+          _exH+='<span style="font-size:10.5px;color:rgba(184,146,42,.5);font-style:italic;">Titre et conférencier :</span> <button onclick="plOuvrirDetailTenueFromInline(\''+eid+'\')" style="background:none;border:none;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;padding:0;text-decoration:underline;font-weight:600;">📋 Ouvrir la carte complète</button>';
         }
         if(_isInter2){
           _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
