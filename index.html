@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.297</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.298</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -758,6 +758,9 @@ function loginVerif(){
 
       <!-- Prochaine tenue + Les news : 3 cases -->
       <div style="width:80%;min-width:600px;">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+          <button onclick="imprimerAccueil()" style="background:none;border:1px solid rgba(184,146,42,.4);color:rgba(184,146,42,.75);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;">🖨️ Imprimer la page</button>
+        </div>
 
         <!-- Prochaine tenue -->
         <div id="accueil-prochaine-tenue" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid var(--gold);padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;">
@@ -6213,6 +6216,54 @@ function accueilSupprimerProchaineTenue(id){
   plSave(data);
   renderAccueilProchaineTenue();
   if(typeof plRender==='function') plRender();
+}
+
+function imprimerAccueil(){
+  var loge=(D&&D.loge&&D.loge.nom)?D.loge.nom:'';
+  var today=new Date();
+  var ml=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  var dateStr=today.getDate()+' '+ml[today.getMonth()]+' '+today.getFullYear();
+  var css='*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:20px;font-size:12px;}h1{font-size:18px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:6px;}.subtitle{font-size:10px;color:#7F8C8D;margin-bottom:18px;}.section{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #EDE9E2;}.section-title{font-size:13px;font-weight:700;color:#1E3660;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}.section-content{font-size:12px;line-height:1.8;white-space:pre-wrap;}@media print{body{margin:10mm;}}';
+  var h='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Accueil</title><style>'+css+'</style></head><body>';
+  h+='<h1>'+(loge?loge+' — ':'')+'Page d\'accueil</h1>';
+  h+='<div class="subtitle">Édité le '+dateStr+'</div>';
+  var addSection=function(title, content){
+    if(!content||!content.trim()) return;
+    h+='<div class="section"><div class="section-title">'+title+'</div><div class="section-content">'+content.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
+  };
+  var t=document.getElementById('accueil-titre'); var tx=document.getElementById('accueil-texte');
+  if(t&&t.textContent.trim()) addSection(t.textContent.trim(), tx?tx.textContent:'');
+  var pt=document.getElementById('accueil-prochaine-tenue');
+  if(pt&&pt.style.display!=='none'){
+    var pd=document.getElementById('accueil-prochaine-tenue-date');
+    var pti=document.getElementById('accueil-prochaine-tenue-titre');
+    addSection('Prochaine tenue', (pd?pd.textContent:'')+' '+(pti?pti.textContent:''));
+  }
+  ['1','2','3'].forEach(function(n){
+    var el=document.getElementById('accueil-news'+n);
+    if(el&&el.textContent.trim()) addSection('News '+n, el.textContent);
+  });
+  var cartes=[
+    {id:'accueil-carte-app',   title:'Réunions Apprentis'},
+    {id:'accueil-carte-comp',  title:'Réunions Compagnons'},
+    {id:'accueil-carte-ca',    title:'CA'},
+    {id:'accueil-carte-planche', title:'Planche tracée'},
+    {id:'accueil-carte-correspondance', title:'Correspondance'},
+    {id:'accueil-carte-playlist', title:'Playlist'},
+    {id:'accueil-carte-agapes', title:'Agapes'}
+  ];
+  cartes.forEach(function(c){
+    var el=document.getElementById(c.id);
+    if(el&&el.style.display!=='none'&&el.textContent.trim()) addSection(c.title, el.textContent.trim());
+  });
+  var pres=document.getElementById('accueil-presences');
+  if(pres&&pres.style.display!=='none'){
+    var presT=document.getElementById('accueil-presences-tenue');
+    var presL=document.getElementById('accueil-presences-list');
+    addSection('Présents — '+(presT?presT.textContent:''), presL?presL.textContent:'');
+  }
+  h+='</body></html>';
+  _printHtml(h,'Accueil — '+(loge||'Loge'));
 }
 
 function accueilImprimerNews(num){
@@ -13714,7 +13765,7 @@ function renderOffice(n){
       sc2+='<td style="padding:6px;"><textarea id="surv2-odj-'+t2.id+'" rows="3" placeholder="Points à aborder..." style="'+inpS2+'">'+odj2+'</textarea></td>';
       sc2+='<td style="padding:6px;"><textarea id="surv2-par-'+t2.id+'" rows="3" placeholder="Noms des participants..." style="'+inpS2+'">'+par2+'</textarea></td>';
       sc2+='<td style="padding:6px;"><textarea id="surv2-not-'+t2.id+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS2+'">'+not2+'</textarea></td>';
-      sc2+='<td></td>';
+      sc2+='<td style="padding:8px;text-align:center;vertical-align:middle;"><button onclick="plSupprimerTenueFromReunion(\''+t2.id+'\',\'off-2surv\')" title="Supprimer du planning" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
       sc2+='</tr>';
     }
     for(var ri2=0;ri2<surv2Data.reunions.length;ri2++){
@@ -13766,7 +13817,7 @@ function renderOffice(n){
       sc+='<td style="padding:6px;"><textarea id="surv1-odj-'+t.id+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+odj+'</textarea></td>';
       sc+='<td style="padding:6px;"><textarea id="surv1-par-'+t.id+'" rows="3" placeholder="Noms des participants..." style="'+inpS+'">'+par+'</textarea></td>';
       sc+='<td style="padding:6px;"><textarea id="surv1-not-'+t.id+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS+'">'+not+'</textarea></td>';
-      sc+='<td></td>';
+      sc+='<td style="padding:8px;text-align:center;vertical-align:middle;"><button onclick="plSupprimerTenueFromReunion(\''+t.id+'\',\'off-1surv\')" title="Supprimer du planning" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
       sc+='</tr>';
     }
     for(var ri=0;ri<survData.reunions.length;ri++){
@@ -14025,6 +14076,7 @@ function renderOffice(n){
       +'<button class="cfg-tab" id="sec-tab-presences" onclick="secTab(\'presences\',this)">&#10003; Présences aux tenues</button>'
       +'<button class="cfg-tab" id="sec-tab-invitation" onclick="secTab(\'invitation\',this)">&#9993; Invitation tenue</button>'
       +'<button class="cfg-tab" id="sec-tab-tableau" onclick="secTab(\'tableau\',this)">&#128200; Tableau de bord</button>'
+      +'<button class="cfg-tab" id="sec-tab-ca" onclick="secTab(\'ca\',this)">🏛 CA</button>'
       +'<button onclick="secDispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>'
       +'</div>'
       +'<div id="sec-panel-freres">'
@@ -14087,6 +14139,7 @@ function renderOffice(n){
        +'</div>'
        +'</div>'
       +'<div id="ora-clefs-content"></div>'
+      +'<div id="sec-panel-ca" style="display:none;"></div>'
       +'</div>'
       +'</div>';
   }
@@ -14552,6 +14605,162 @@ function surv1Supprimer(idx){
   try{localStorage.setItem('surv1_reunions',JSON.stringify(d));}catch(e){}
   if(window.fbSet) window.fbSet('surv1_reunions', d);
   renderOffice('off-1surv');
+}
+
+function plSupprimerTenueFromReunion(id, officeId){
+  if(!confirm('Supprimer cette tenue du planning ?')) return;
+  var data=plLoad();
+  data.events=(data.events||[]).filter(function(e){return e.id!==id;});
+  plSave(data);
+  renderOffice(officeId);
+  renderAccueilProchaineTenue();
+  if(typeof plRender==='function') plRender();
+}
+
+function caReunLoad(){try{var s=localStorage.getItem('sec_ca_reunions');return s?JSON.parse(s):{reunions:[]};}catch(e){return{reunions:[]};}}
+function caReunSave(d){try{localStorage.setItem('sec_ca_reunions',JSON.stringify(d));}catch(e){} if(window.fbSet)window.fbSet('sec_ca_reunions',d);}
+
+function caReunRowHTML(idx,date,odj,par,not,inpS){
+  inpS=inpS||'background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:100%;resize:none;overflow:hidden;';
+  var h='<tr id="ca-reun-row-'+idx+'" style="border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
+  h+='<td style="padding:8px;"><input type="date" id="ca-reun-date-'+idx+'" value="'+date+'" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:140px;"/></td>';
+  h+='<td style="padding:6px;"><textarea id="ca-reun-odj-r-'+idx+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+(odj||'').replace(/"/g,'&quot;')+'</textarea></td>';
+  h+='<td style="padding:6px;"><textarea id="ca-reun-par-r-'+idx+'" rows="3" placeholder="Membres présents..." style="'+inpS+'">'+(par||'').replace(/"/g,'&quot;')+'</textarea></td>';
+  h+='<td style="padding:6px;"><textarea id="ca-reun-not-r-'+idx+'" rows="3" placeholder="Décisions, PV..." style="'+inpS+'">'+(not||'').replace(/"/g,'&quot;')+'</textarea></td>';
+  h+='<td style="padding:8px;text-align:center;"><button onclick="caReunSupprimerManuel('+idx+')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;">&#10005;</button></td>';
+  h+='</tr>';
+  return h;
+}
+
+function caReunAjouterAvecDate(){
+  var inp=document.getElementById('ca-reun-new-date');
+  var date=inp?inp.value:'';
+  if(!date) date=new Date().toISOString().slice(0,10);
+  var d=caReunLoad();
+  d.reunions.push({date:date,odj:'',par:'',not:''});
+  caReunSave(d);
+  secCAReunRender();
+}
+
+function caReunSupprimerManuel(idx){
+  caReunSaveAll(true);
+  var d=caReunLoad();
+  d.reunions.splice(idx,1);
+  caReunSave(d);
+  secCAReunRender();
+}
+
+function caReunSupprimerPlanning(id){
+  if(!confirm('Supprimer cette tenue CA du planning ?')) return;
+  caReunSaveAll(true);
+  var data=plLoad();
+  data.events=(data.events||[]).filter(function(e){return e.id!==id;});
+  plSave(data);
+  secCAReunRender();
+  renderAccueilProchaineTenue();
+  if(typeof plRender==='function') plRender();
+}
+
+function caReunSaveAll(silent){
+  var d=caReunLoad();
+  var tenues=getTenues();
+  for(var i=0;i<tenues.length;i++){
+    var tid=tenues[i].id;
+    var eo=document.getElementById('ca-reun-odj-'+tid);
+    var ep=document.getElementById('ca-reun-par-'+tid);
+    var en=document.getElementById('ca-reun-not-'+tid);
+    if(eo||ep||en){
+      var prev=d[tid]||{}; if(typeof prev==='string') prev={odj:prev,par:'',not:''};
+      d[tid]={odj:eo?eo.value:prev.odj||'',par:ep?ep.value:prev.par||'',not:en?en.value:prev.not||''};
+    }
+  }
+  for(var ri=0;ri<d.reunions.length;ri++){
+    var de=document.getElementById('ca-reun-date-'+ri);
+    var ro=document.getElementById('ca-reun-odj-r-'+ri);
+    var rp=document.getElementById('ca-reun-par-r-'+ri);
+    var rn=document.getElementById('ca-reun-not-r-'+ri);
+    if(de) d.reunions[ri].date=de.value;
+    if(ro) d.reunions[ri].odj=ro.value;
+    if(rp) d.reunions[ri].par=rp.value;
+    if(rn) d.reunions[ri].not=rn.value;
+  }
+  caReunSave(d);
+  if(!silent) toast('✓ CA enregistré.');
+}
+
+function secCAReunRender(){
+  var el=document.getElementById('sec-panel-ca');
+  if(!el) return;
+  var d=caReunLoad();
+  var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:100%;resize:none;overflow:hidden;';
+  var thS='text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;';
+  var fmtDate=function(dd){if(!dd)return'—';var p=dd.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:dd;};
+  var h='<div class="cfg-box" style="overflow-x:auto;">';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">';
+  h+='<div style="display:flex;align-items:center;gap:10px;">';
+  h+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;">Conseil d\'Administration</h3>';
+  h+='<input type="date" id="ca-reun-new-date" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-size:11px;"/>';
+  h+='</div>';
+  h+='<div style="display:flex;gap:8px;">';
+  h+='<button class="btn btn-outline btn-sm" onclick="caReunAjouterAvecDate()">+ Ajouter</button>';
+  h+='<button class="btn btn-outline btn-sm" onclick="caReunSaveAll()">💾 Enregistrer</button>';
+  h+='<button onclick="imprimerCA()" style="background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">🖨️ Imprimer</button>';
+  h+='</div></div>';
+  h+='<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px;"><thead><tr style="border-bottom:2px solid var(--gold);">';
+  h+='<th style="'+thS+'width:140px;">Date</th>';
+  h+='<th style="'+thS+'">Ordre du jour</th>';
+  h+='<th style="'+thS+'">Membres présents</th>';
+  h+='<th style="'+thS+'">Décisions / PV</th>';
+  h+='<th style="padding:8px;width:36px;"></th>';
+  h+='</tr></thead><tbody>';
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  for(var ti=0;ti<tenues.length;ti++){
+    var t=tenues[ti];
+    var titre=(t.titre||'').toLowerCase();
+    if(titre.indexOf('conseil')<0||titre.indexOf('admin')<0) continue;
+    var bg=ti%2===0?'rgba(255,255,255,.04)':'transparent';
+    var rec=d[t.id]||{}; if(typeof rec==='string') rec={odj:rec,par:'',not:''};
+    var odj=(rec.odj||'').replace(/"/g,'&quot;');
+    var par=(rec.par||'').replace(/"/g,'&quot;');
+    var not=(rec.not||'').replace(/"/g,'&quot;');
+    h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;">';
+    h+='<td style="padding:8px;color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate(t.date)+'<br><span style="font-size:10px;color:var(--grey);font-weight:400;">planning</span></td>';
+    h+='<td style="padding:6px;"><textarea id="ca-reun-odj-'+t.id+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+odj+'</textarea></td>';
+    h+='<td style="padding:6px;"><textarea id="ca-reun-par-'+t.id+'" rows="3" placeholder="Membres présents..." style="'+inpS+'">'+par+'</textarea></td>';
+    h+='<td style="padding:6px;"><textarea id="ca-reun-not-'+t.id+'" rows="3" placeholder="Décisions, PV..." style="'+inpS+'">'+not+'</textarea></td>';
+    h+='<td style="padding:8px;text-align:center;vertical-align:middle;"><button onclick="caReunSupprimerPlanning(\''+t.id+'\')" title="Supprimer du planning" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
+    h+='</tr>';
+  }
+  for(var ri=0;ri<d.reunions.length;ri++){
+    var r=d.reunions[ri];
+    h+=caReunRowHTML(ri,r.date||'',r.odj||'',r.par||'',r.not||'',inpS);
+  }
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
+}
+
+function imprimerCA(){
+  caReunSaveAll(true);
+  var loge=(D&&D.loge&&D.loge.nom)?D.loge.nom:'Loge';
+  var d=caReunLoad();
+  var fmtDate=function(dd){if(!dd)return'—';var p=dd.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:dd;};
+  var h='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>CA</title>';
+  h+='<style>*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:20px;font-size:10.5px;}h1{font-size:17px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:4px;}.subtitle{font-size:9.5px;color:#7F8C8D;margin-bottom:14px;}table{width:100%;border-collapse:collapse;font-size:10px;}thead tr{background:#1E3660;color:#fff;}th{padding:5px 8px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;}td{padding:5px 8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}@media print{body{margin:10mm;}tr{page-break-inside:avoid;}}</style></head><body>';
+  var today=new Date();var ml=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  h+='<h1>'+loge+' — Conseil d\'Administration</h1>';
+  h+='<div class="subtitle">Édité le '+today.getDate()+' '+ml[today.getMonth()]+' '+today.getFullYear()+'</div>';
+  h+='<table><thead><tr><th>Date</th><th>Ordre du jour</th><th>Membres présents</th><th>Décisions / PV</th></tr></thead><tbody>';
+  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  for(var i=0;i<tenues.length;i++){
+    var t=tenues[i]; var titre=(t.titre||'').toLowerCase();
+    if(titre.indexOf('conseil')<0||titre.indexOf('admin')<0) continue;
+    var rec=d[t.id]||{}; if(typeof rec==='string')rec={odj:rec};
+    if(!rec.odj&&!rec.par&&!rec.not) continue;
+    h+='<tr><td>'+fmtDate(t.date)+'</td><td>'+(rec.odj||'').replace(/</g,'&lt;')+'</td><td>'+(rec.par||'').replace(/</g,'&lt;')+'</td><td>'+(rec.not||'').replace(/</g,'&lt;')+'</td></tr>';
+  }
+  if(d.reunions){for(var j=0;j<d.reunions.length;j++){var r=d.reunions[j];h+='<tr><td>'+fmtDate(r.date)+'</td><td>'+(r.odj||'').replace(/</g,'&lt;')+'</td><td>'+(r.par||'').replace(/</g,'&lt;')+'</td><td>'+(r.not||'').replace(/</g,'&lt;')+'</td></tr>';}}
+  h+='</tbody></table></body></html>';
+  _printHtml(h,'CA — '+loge);
 }
 
 function surv1Save(){
@@ -15747,11 +15956,13 @@ function secTab(name, btn){
   var piv=document.getElementById('sec-panel-invitation');       if(piv) piv.style.display=name==='invitation'?'':'none';
   var pc=document.getElementById('sec-panel-clefs');             if(pc) pc.style.display=name==='clefs'?'':'none';
   var pt=document.getElementById('sec-panel-tableau');           if(pt) pt.style.display=name==='tableau'?'':'none';
+  var pca=document.getElementById('sec-panel-ca');               if(pca) pca.style.display=name==='ca'?'':'none';
   if(name==='freres'){ window.freresEditable=true; secFreresTab('impression', document.getElementById('sec-ftab-impression')); }
   if(name==='freres') secFreresImpressionRender();
   if(name==='presences') secPresRender();
   if(name==='tableau') secTableauRender();
   if(name==='invitation'){ invInitSelect(); invChargerInfos(); }
+  if(name==='ca') secCAReunRender();
   if(name==='planning'){ impPlanningInit(); }
   var PE={
     freres:       null,
