@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.299</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.300</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13734,6 +13734,7 @@ function renderOffice(n){
     sc2+='<div style="display:flex;align-items:center;gap:10px;">';
     sc2+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;">Réunions des Apprentis</h3>';
     sc2+='<input type="date" id="surv2-new-date" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-size:11px;"/>';
+    sc2+='<input type="time" id="surv2-new-time" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-size:11px;width:100px;"/>';
     sc2+='</div>';
     sc2+='<div style="display:flex;gap:8px;">';
     sc2+='<button class="btn btn-outline btn-sm" onclick="surv2AjouterAvecDate()">+ Ajouter</button>';
@@ -13741,7 +13742,7 @@ function renderOffice(n){
     sc2+='</div></div>';
     sc2+='<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px;">';
     sc2+='<thead><tr style="border-bottom:2px solid var(--gold);">';
-    sc2+='<th style="'+thS2+'width:140px;">Date</th>';
+    sc2+='<th style="'+thS2+'width:150px;">Date / Heure</th>';
     sc2+='<th style="'+thS2+'">Ordre du jour</th>';
     sc2+='<th style="'+thS2+'">Participants</th>';
     sc2+='<th style="'+thS2+'">Notes</th>';
@@ -13759,7 +13760,12 @@ function renderOffice(n){
       var par2=(rec2.par||'').replace(/"/g,'&quot;');
       var not2=(rec2.not||'').replace(/"/g,'&quot;');
       sc2+='<tr style="background:'+bg2+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
-      sc2+='<td style="padding:8px;color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate2(t2.date)+'<br><span style="font-size:10px;color:var(--grey);font-weight:400;">planning</span></td>';
+      sc2+='<td style="padding:8px;"><div id="surv2-plan-cell-'+t2.id+'">'
+        +'<span style="color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate2(t2.date)+'</span>'
+        +'<span style="display:block;font-size:11px;color:rgba(255,255,255,.75);">'+(t2.heure||'—')+'</span>'
+        +'<span style="display:block;font-size:10px;color:var(--grey);">planning</span>'
+        +'<button onclick="editPlanningDateHeure(\'surv2-plan-cell-'+t2.id+'\',\''+t2.id+'\',\'off-2surv\')" title="Modifier date/heure" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:12px;padding:1px 0;">✏️</button>'
+        +'</div></td>';
       sc2+='<td style="padding:6px;"><textarea id="surv2-odj-'+t2.id+'" rows="3" placeholder="Points à aborder..." style="'+inpS2+'">'+odj2+'</textarea></td>';
       sc2+='<td style="padding:6px;"><textarea id="surv2-par-'+t2.id+'" rows="3" placeholder="Noms des participants..." style="'+inpS2+'">'+par2+'</textarea></td>';
       sc2+='<td style="padding:6px;"><textarea id="surv2-not-'+t2.id+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS2+'">'+not2+'</textarea></td>';
@@ -13768,7 +13774,7 @@ function renderOffice(n){
     }
     for(var ri2=0;ri2<surv2Data.reunions.length;ri2++){
       var r2=surv2Data.reunions[ri2];
-      sc2+=surv2RowHTML(ri2, r2.date||'', r2.odj||'', r2.par||'', r2.not||'', inpS2);
+      sc2+=surv2RowHTML(ri2, r2.date||'', r2.heure||'', r2.odj||'', r2.par||'', r2.not||'', inpS2);
     }
     sc2+='</tbody></table></div>';
     sc2+=obsHTML('off_2surv');
@@ -13784,6 +13790,7 @@ function renderOffice(n){
     sc+='<div style="display:flex;align-items:center;gap:10px;">';
     sc+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;">Réunions des Compagnons</h3>';
     sc+='<input type="date" id="surv1-new-date" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-size:11px;"/>';
+    sc+='<input type="time" id="surv1-new-time" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-size:11px;width:100px;"/>';
     sc+='</div>';
     sc+='<div style="display:flex;gap:8px;">';
     sc+='<button class="btn btn-outline btn-sm" onclick="surv1AjouterAvecDate()">+ Ajouter</button>';
@@ -13792,7 +13799,7 @@ function renderOffice(n){
     sc+='</div></div>';
     sc+='<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px;" id="surv1-table">';
     sc+='<thead><tr style="border-bottom:2px solid var(--gold);">';
-    sc+='<th style="'+thS+'width:140px;">Date</th>';
+    sc+='<th style="'+thS+'width:150px;">Date / Heure</th>';
     sc+='<th style="'+thS+'">Ordre du jour</th>';
     sc+='<th style="'+thS+'">Participants</th>';
     sc+='<th style="'+thS+'">Notes</th>';
@@ -13811,7 +13818,12 @@ function renderOffice(n){
       var par=(rec.par||'').replace(/"/g,'&quot;');
       var not=(rec.not||'').replace(/"/g,'&quot;');
       sc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
-      sc+='<td style="padding:8px;color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate(t.date)+'<br><span style="font-size:10px;color:var(--grey);font-weight:400;">planning</span></td>';
+      sc+='<td style="padding:8px;"><div id="surv1-plan-cell-'+t.id+'">'
+        +'<span style="color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate(t.date)+'</span>'
+        +'<span style="display:block;font-size:11px;color:rgba(255,255,255,.75);">'+(t.heure||'—')+'</span>'
+        +'<span style="display:block;font-size:10px;color:var(--grey);">planning</span>'
+        +'<button onclick="editPlanningDateHeure(\'surv1-plan-cell-'+t.id+'\',\''+t.id+'\',\'off-1surv\')" title="Modifier date/heure" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:12px;padding:1px 0;">✏️</button>'
+        +'</div></td>';
       sc+='<td style="padding:6px;"><textarea id="surv1-odj-'+t.id+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+odj+'</textarea></td>';
       sc+='<td style="padding:6px;"><textarea id="surv1-par-'+t.id+'" rows="3" placeholder="Noms des participants..." style="'+inpS+'">'+par+'</textarea></td>';
       sc+='<td style="padding:6px;"><textarea id="surv1-not-'+t.id+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS+'">'+not+'</textarea></td>';
@@ -13820,7 +13832,7 @@ function renderOffice(n){
     }
     for(var ri=0;ri<survData.reunions.length;ri++){
       var r=survData.reunions[ri];
-      sc+=surv1RowHTML(ri, r.date||'', r.odj||'', r.par||'', r.not||'', inpS);
+      sc+=surv1RowHTML(ri, r.date||'', r.heure||'', r.odj||'', r.par||'', r.not||'', inpS);
     }
     sc+='</tbody></table></div>';
     sc+=obsHTML('off_1surv');
@@ -14492,10 +14504,11 @@ function plLibreAutoriserEtOuvrir(){
   nav('planning-libre');
 }
 
-function surv2RowHTML(idx, date, odj, par, not, inpS){
+function surv2RowHTML(idx, date, heure, odj, par, not, inpS){
   inpS=inpS||'background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:100%;resize:none;overflow:hidden;';
+  var dtS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;display:block;margin-bottom:4px;';
   var h='<tr id="surv2-row-'+idx+'" style="border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
-  h+='<td style="padding:8px;"><input type="date" id="surv2-date-'+idx+'" value="'+date+'" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:140px;"/></td>';
+  h+='<td style="padding:8px;"><input type="date" id="surv2-date-'+idx+'" value="'+date+'" style="'+dtS+'width:140px;"/><input type="time" id="surv2-heure-'+idx+'" value="'+(heure||'')+'" style="'+dtS+'width:110px;"/></td>';
   h+='<td style="padding:6px;"><textarea id="surv2-odj-r-'+idx+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+(odj||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv2-par-r-'+idx+'" rows="3" placeholder="Noms des participants..." style="'+inpS+'">'+(par||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv2-not-r-'+idx+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS+'">'+(not||'').replace(/"/g,'&quot;')+'</textarea></td>';
@@ -14508,9 +14521,11 @@ function surv2AjouterAvecDate(){
   var inp=document.getElementById('surv2-new-date');
   var date=inp?inp.value:'';
   if(!date) date=new Date().toISOString().slice(0,10);
+  var tinp=document.getElementById('surv2-new-time');
+  var heure=tinp?tinp.value:'';
   var d={}; try{var s=localStorage.getItem('surv2_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
-  d.reunions.push({date:date,odj:'',par:'',not:''});
+  d.reunions.push({date:date,heure:heure,odj:'',par:'',not:''});
   try{localStorage.setItem('surv2_reunions',JSON.stringify(d));}catch(e){}
   if(window.fbSet) window.fbSet('surv2_reunions', d);
   renderOffice('off-2surv');
@@ -14550,10 +14565,12 @@ function surv2Save(){
   }
   for(var ri=0;ri<d.reunions.length;ri++){
     var de=document.getElementById('surv2-date-'+ri);
+    var he2=document.getElementById('surv2-heure-'+ri);
     var ro=document.getElementById('surv2-odj-r-'+ri);
     var rp=document.getElementById('surv2-par-r-'+ri);
     var rn=document.getElementById('surv2-not-r-'+ri);
     if(de) d.reunions[ri].date=de.value;
+    if(he2) d.reunions[ri].heure=he2.value;
     if(ro) d.reunions[ri].odj=ro.value;
     if(rp) d.reunions[ri].par=rp.value;
     if(rn) d.reunions[ri].not=rn.value;
@@ -14564,10 +14581,11 @@ function surv2Save(){
   toast('✓ Réunions enregistrées.');
 }
 
-function surv1RowHTML(idx, date, odj, par, not, inpS){
+function surv1RowHTML(idx, date, heure, odj, par, not, inpS){
   inpS=inpS||'background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:100%;resize:none;overflow:hidden;';
+  var dtS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;display:block;margin-bottom:4px;';
   var h='<tr id="surv1-row-'+idx+'" style="border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
-  h+='<td style="padding:8px;"><input type="date" id="surv1-date-'+idx+'" value="'+date+'" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:140px;"/></td>';
+  h+='<td style="padding:8px;"><input type="date" id="surv1-date-'+idx+'" value="'+date+'" style="'+dtS+'width:140px;"/><input type="time" id="surv1-heure-'+idx+'" value="'+(heure||'')+'" style="'+dtS+'width:110px;"/></td>';
   h+='<td style="padding:6px;"><textarea id="surv1-odj-r-'+idx+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+(odj||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv1-par-r-'+idx+'" rows="3" placeholder="Noms des participants..." style="'+inpS+'">'+(par||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv1-not-r-'+idx+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS+'">'+(not||'').replace(/"/g,'&quot;')+'</textarea></td>';
@@ -14580,9 +14598,11 @@ function surv1AjouterAvecDate(){
   var inp=document.getElementById('surv1-new-date');
   var date=inp?inp.value:'';
   if(!date) date=new Date().toISOString().slice(0,10);
+  var tinp=document.getElementById('surv1-new-time');
+  var heure=tinp?tinp.value:'';
   var d={}; try{var s=localStorage.getItem('surv1_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
-  d.reunions.push({date:date,odj:'',par:'',not:''});
+  d.reunions.push({date:date,heure:heure,odj:'',par:'',not:''});
   try{localStorage.setItem('surv1_reunions',JSON.stringify(d));}catch(e){}
   if(window.fbSet) window.fbSet('surv1_reunions', d);
   renderOffice('off-1surv');
@@ -14615,13 +14635,45 @@ function plSupprimerTenueFromReunion(id, officeId){
   if(typeof plRender==='function') plRender();
 }
 
+function editPlanningDateHeure(cellId, tid, officeId){
+  var cell=document.getElementById(cellId);
+  if(!cell) return;
+  var data=plLoad();
+  var ev=(data.events||[]).filter(function(e){return e.id===tid;})[0]||{};
+  var dtS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:4px 6px;font-size:11px;box-sizing:border-box;display:block;margin-bottom:4px;';
+  cell.innerHTML='<input type="date" id="epl-date-'+tid+'" value="'+(ev.date||'')+'" style="'+dtS+'width:130px;"/>'
+    +'<input type="time" id="epl-heure-'+tid+'" value="'+(ev.heure||'')+'" style="'+dtS+'width:100px;"/>'
+    +'<div style="display:flex;gap:4px;margin-top:2px;">'
+    +'<button onclick="savePlanningDateHeure(\''+cellId+'\',\''+tid+'\',\''+officeId+'\')" style="background:#1D8A5A;border:none;color:#fff;padding:3px 10px;border-radius:3px;font-size:12px;cursor:pointer;">✓</button>'
+    +'<button onclick="renderOffice(\''+officeId+'\')" style="background:none;border:1px solid rgba(255,255,255,.4);color:rgba(255,255,255,.7);padding:3px 8px;border-radius:3px;font-size:12px;cursor:pointer;">✗</button>'
+    +'</div>';
+}
+function savePlanningDateHeure(cellId, tid, officeId){
+  var dEl=document.getElementById('epl-date-'+tid);
+  var hEl=document.getElementById('epl-heure-'+tid);
+  if(!dEl) return;
+  var data=plLoad();
+  for(var i=0;i<(data.events||[]).length;i++){
+    if(data.events[i].id===tid){
+      data.events[i].date=dEl.value;
+      if(hEl) data.events[i].heure=hEl.value;
+      break;
+    }
+  }
+  plSave(data);
+  if(officeId==='sec-ca') secCAReunRender(); else renderOffice(officeId);
+  renderAccueilProchaineTenue();
+  if(typeof plRender==='function') plRender();
+}
+
 function caReunLoad(){try{var s=localStorage.getItem('sec_ca_reunions');return s?JSON.parse(s):{reunions:[]};}catch(e){return{reunions:[]};}}
 function caReunSave(d){try{localStorage.setItem('sec_ca_reunions',JSON.stringify(d));}catch(e){} if(window.fbSet)window.fbSet('sec_ca_reunions',d);}
 
-function caReunRowHTML(idx,date,odj,par,not,inpS){
+function caReunRowHTML(idx,date,heure,odj,par,not,inpS){
   inpS=inpS||'background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:100%;resize:none;overflow:hidden;';
+  var dtS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;display:block;margin-bottom:4px;';
   var h='<tr id="ca-reun-row-'+idx+'" style="border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
-  h+='<td style="padding:8px;"><input type="date" id="ca-reun-date-'+idx+'" value="'+date+'" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:140px;"/></td>';
+  h+='<td style="padding:8px;"><input type="date" id="ca-reun-date-'+idx+'" value="'+date+'" style="'+dtS+'width:140px;"/><input type="time" id="ca-reun-heure-'+idx+'" value="'+(heure||'')+'" style="'+dtS+'width:110px;"/></td>';
   h+='<td style="padding:6px;"><textarea id="ca-reun-odj-r-'+idx+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+(odj||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="ca-reun-par-r-'+idx+'" rows="3" placeholder="Membres présents..." style="'+inpS+'">'+(par||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="ca-reun-not-r-'+idx+'" rows="3" placeholder="Décisions, PV..." style="'+inpS+'">'+(not||'').replace(/"/g,'&quot;')+'</textarea></td>';
@@ -14634,8 +14686,10 @@ function caReunAjouterAvecDate(){
   var inp=document.getElementById('ca-reun-new-date');
   var date=inp?inp.value:'';
   if(!date) date=new Date().toISOString().slice(0,10);
+  var tinp=document.getElementById('ca-reun-new-time');
+  var heure=tinp?tinp.value:'';
   var d=caReunLoad();
-  d.reunions.push({date:date,odj:'',par:'',not:''});
+  d.reunions.push({date:date,heure:heure,odj:'',par:'',not:''});
   caReunSave(d);
   secCAReunRender();
 }
@@ -14674,10 +14728,12 @@ function caReunSaveAll(silent){
   }
   for(var ri=0;ri<d.reunions.length;ri++){
     var de=document.getElementById('ca-reun-date-'+ri);
+    var heca=document.getElementById('ca-reun-heure-'+ri);
     var ro=document.getElementById('ca-reun-odj-r-'+ri);
     var rp=document.getElementById('ca-reun-par-r-'+ri);
     var rn=document.getElementById('ca-reun-not-r-'+ri);
     if(de) d.reunions[ri].date=de.value;
+    if(heca) d.reunions[ri].heure=heca.value;
     if(ro) d.reunions[ri].odj=ro.value;
     if(rp) d.reunions[ri].par=rp.value;
     if(rn) d.reunions[ri].not=rn.value;
@@ -14698,6 +14754,7 @@ function secCAReunRender(){
   h+='<div style="display:flex;align-items:center;gap:10px;">';
   h+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;">Conseil d\'Administration</h3>';
   h+='<input type="date" id="ca-reun-new-date" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-size:11px;"/>';
+  h+='<input type="time" id="ca-reun-new-time" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-size:11px;width:100px;"/>';
   h+='</div>';
   h+='<div style="display:flex;gap:8px;">';
   h+='<button class="btn btn-outline btn-sm" onclick="caReunAjouterAvecDate()">+ Ajouter</button>';
@@ -14705,7 +14762,7 @@ function secCAReunRender(){
   h+='<button onclick="imprimerCA()" style="background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">🖨️ Imprimer</button>';
   h+='</div></div>';
   h+='<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:700px;"><thead><tr style="border-bottom:2px solid var(--gold);">';
-  h+='<th style="'+thS+'width:140px;">Date</th>';
+  h+='<th style="'+thS+'width:150px;">Date / Heure</th>';
   h+='<th style="'+thS+'">Ordre du jour</th>';
   h+='<th style="'+thS+'">Membres présents</th>';
   h+='<th style="'+thS+'">Décisions / PV</th>';
@@ -14722,7 +14779,12 @@ function secCAReunRender(){
     var par=(rec.par||'').replace(/"/g,'&quot;');
     var not=(rec.not||'').replace(/"/g,'&quot;');
     h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;">';
-    h+='<td style="padding:8px;color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate(t.date)+'<br><span style="font-size:10px;color:var(--grey);font-weight:400;">planning</span></td>';
+    h+='<td style="padding:8px;"><div id="ca-reun-plan-cell-'+t.id+'">'
+      +'<span style="color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate(t.date)+'</span>'
+      +'<span style="display:block;font-size:11px;color:rgba(255,255,255,.75);">'+(t.heure||'—')+'</span>'
+      +'<span style="display:block;font-size:10px;color:var(--grey);">planning</span>'
+      +'<button onclick="editPlanningDateHeure(\'ca-reun-plan-cell-'+t.id+'\',\''+t.id+'\',\'sec-ca\')" title="Modifier date/heure" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:12px;padding:1px 0;">✏️</button>'
+      +'</div></td>';
     h+='<td style="padding:6px;"><textarea id="ca-reun-odj-'+t.id+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+odj+'</textarea></td>';
     h+='<td style="padding:6px;"><textarea id="ca-reun-par-'+t.id+'" rows="3" placeholder="Membres présents..." style="'+inpS+'">'+par+'</textarea></td>';
     h+='<td style="padding:6px;"><textarea id="ca-reun-not-'+t.id+'" rows="3" placeholder="Décisions, PV..." style="'+inpS+'">'+not+'</textarea></td>';
@@ -14731,7 +14793,7 @@ function secCAReunRender(){
   }
   for(var ri=0;ri<d.reunions.length;ri++){
     var r=d.reunions[ri];
-    h+=caReunRowHTML(ri,r.date||'',r.odj||'',r.par||'',r.not||'',inpS);
+    h+=caReunRowHTML(ri,r.date||'',r.heure||'',r.odj||'',r.par||'',r.not||'',inpS);
   }
   h+='</tbody></table></div>';
   el.innerHTML=h;
@@ -14778,10 +14840,12 @@ function surv1Save(){
   }
   for(var ri=0;ri<d.reunions.length;ri++){
     var de=document.getElementById('surv1-date-'+ri);
+    var he1=document.getElementById('surv1-heure-'+ri);
     var ro=document.getElementById('surv1-odj-r-'+ri);
     var rp=document.getElementById('surv1-par-r-'+ri);
     var rn=document.getElementById('surv1-not-r-'+ri);
     if(de) d.reunions[ri].date=de.value;
+    if(he1) d.reunions[ri].heure=he1.value;
     if(ro) d.reunions[ri].odj=ro.value;
     if(rp) d.reunions[ri].par=rp.value;
     if(rn) d.reunions[ri].not=rn.value;
