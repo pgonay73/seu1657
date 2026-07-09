@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.286</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.287</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20656,6 +20656,7 @@ function plPISet(eid,pi,field,val){
   if(!ev||!ev.detail||!ev.detail[pi])return;
   ev.detail[pi][field]=val;
   plSave(data);
+  if(field==='conf'||field==='titre') setTimeout(function(){_plRefToSuivi(eid,pi);},0);
 }
 function plPIToggle(eid,pi,field,val,chk){
   var data=plLoad();
@@ -21675,6 +21676,7 @@ function plSuiviChanger(nomFrere,ligne,champ,val){
   if(ligne==='A' && d[nomFrere]) delete d[nomFrere]; // nettoyage définitif de l'ancienne clé migrée
   plSuiviSave(d);
   if(champ==='type'||champ==='degre'){ plSuiviRender(); _plSuiviTenueRefreshAll(); }
+  if(champ==='sujet'){ setTimeout(function(){_plSuiviToRef(nomFrere,ligne);_plSuiviTenueRefreshAll();},60); }
 }
 function plSuiviChoisirTenue(nomFrere,ligne,tenueId){
   var d=plSuiviLoad();
@@ -21689,6 +21691,7 @@ function plSuiviChoisirTenue(nomFrere,ligne,tenueId){
   plSuiviSave(d);
   plSuiviRender();
   _plSuiviTenueRefreshAll();
+  setTimeout(function(){_plSuiviToRef(nomFrere,ligne);},80);
 }
 // Génère la cellule "Sujet" du Suivi des planches par frère et tenue : un menu déroulant filtré
 // par le degré déjà choisi sur la ligne (1°/2°/3°), alimenté par la banque
@@ -21740,6 +21743,68 @@ function plSuiviChangerSujetSelect(nomAttr,ligne,select){
   if(champLibre&&champLibre.value.trim()){select.value='';return;}
   plSuiviChanger(nomAttr,ligne,'sujet',select.value);
   setTimeout(plSuiviRender,0);
+}
+// ── Bridge bidirectionnel Suivi <-> Planning de référence ─────────────
+function _plSuiviToRef(nomAttr,ligne){
+  var sd=plSuiviLoad();
+  var s=plSuiviEntree(sd,nomAttr,ligne);
+  if(!s||!s.tenueId) return;
+  var data=plLoad();
+  var ev=null;
+  for(var i=0;i<(data.events||[]).length;i++){if(data.events[i].id===s.tenueId){ev=data.events[i];break;}}
+  if(!ev) return;
+  _plDetailEnsure(ev);
+  var isSym=s.type==='Symbolisme';
+  var idx=-1;
+  for(var j=0;j<ev.detail.length;j++){var p=ev.detail[j];if(isPlancheOuSym(p.nom)&&isSymbolisme(p.nom)===isSym&&(p.conf||'')===(nomAttr)){idx=j;break;}}
+  if(idx<0){for(var k=0;k<ev.detail.length;k++){var p2=ev.detail[k];if(isPlancheOuSym(p2.nom)&&isSymbolisme(p2.nom)===isSym&&!p2.conf){idx=k;break;}}}
+  if(idx<0){for(var m=0;m<ev.detail.length;m++){var p3=ev.detail[m];if(isPlancheOuSym(p3.nom)&&isSymbolisme(p3.nom)===isSym){idx=m;break;}}}
+  if(idx<0) return;
+  ev.detail[idx].conf=nomAttr;
+  if(s.sujet) ev.detail[idx].titre=s.sujet;
+  plSave(data);
+  setTimeout(function(){
+    var r=document.getElementById('admin-pl-ref-list');if(r) adminPlRenderRef('admin-pl-ref-list');
+    plRenderPlanning();
+  },60);
+}
+function _plRefToSuivi(eid,pi){
+  var data=plLoad();
+  var ev=null;
+  for(var i=0;i<(data.events||[]).length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
+  if(!ev||!ev.detail||!ev.detail[pi]) return;
+  var p=ev.detail[pi];
+  if(!isPlancheOuSym(p.nom)) return;
+  var isSym=isSymbolisme(p.nom);
+  var pConf=(p.conf||'').trim();
+  var pTitre=(p.titre||'').trim();
+  var sd=plSuiviLoad();
+  var changed=false;
+  var existingKey=null;
+  Object.keys(sd).forEach(function(k){
+    if(k.indexOf('#nb')>=0||k.indexOf('#')<0) return;
+    var e=sd[k];
+    if(e&&e.tenueId===eid&&(e.type==='Symbolisme')===isSym) existingKey=k;
+  });
+  if(pConf){
+    var newKey=null;
+    ['A','B','C'].forEach(function(lg){var k2=pConf+'#'+lg;if(!newKey&&sd[k2]&&sd[k2].tenueId===eid) newKey=k2;});
+    if(!newKey){['A','B','C'].forEach(function(lg){var k2=pConf+'#'+lg;if(!newKey&&(!sd[k2]||!sd[k2].tenueId)) newKey=k2;});}
+    if(!newKey) newKey=pConf+'#A';
+    if(existingKey&&existingKey!==newKey){sd[existingKey].tenueId='';changed=true;}
+    if(!sd[newKey]) sd[newKey]={type:isSym?'Symbolisme':'Planche',degre:'',sujet:'',tenueId:''};
+    sd[newKey].tenueId=eid;
+    sd[newKey].type=isSym?'Symbolisme':'Planche';
+    if(pTitre) sd[newKey].sujet=pTitre;
+    changed=true;
+  } else {
+    if(existingKey){sd[existingKey].tenueId='';changed=true;}
+    if(pTitre&&existingKey){sd[existingKey].sujet=pTitre;changed=true;}
+  }
+  if(changed){
+    plSuiviSave(sd);
+    setTimeout(function(){plSuiviRender();_plSuiviTenueRefreshAll();},60);
+  }
 }
 function plSuiviRenderLigne(suivi,nomFrere,nomAttr,ligne,estPremiereLigne,estDerniereLigne,nbLignes,withGoldBorder,addSpacer){
   if(withGoldBorder===undefined) withGoldBorder=estPremiereLigne;
