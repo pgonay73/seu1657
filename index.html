@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.291</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.292</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22700,6 +22700,8 @@ function adminPlRenderCriteres(){
   h+=' / <a href="#" onclick="admSelectNoSems();return false;" style="color:rgba(255,255,255,.4);text-decoration:none;">Aucune</a>';
   h+='</span>';
   h+='</div></div>';
+  h+='<div><label style="'+lblS+'">Heure</label>';
+  h+='<input type="time" id="adm-crit-heure" value="'+(c.heure||'')+'" onchange="admCritSave();" style="'+inS+'"></div>';
   h+='</div>';
   // Option 5e semaine → 3e
   h+='<div style="margin-bottom:22px;">';
@@ -22749,7 +22751,7 @@ function admCritSave(){
     dateDebut:(document.getElementById('adm-crit-date-debut')||{}).value||'',
     dateFin:(document.getElementById('adm-crit-date-fin')||{}).value||'',
     jour:(document.getElementById('adm-crit-jour')||{}).value||'',
-    heure:(document.getElementById('pl-crit-heure')||{}).value||'',
+    heure:(document.getElementById('adm-crit-heure')||document.getElementById('pl-crit-heure')||{}).value||'',
     semaines:_plCritSemaines.slice(),
     modeleDefaut:(document.getElementById('adm-crit-modele')||{}).value||'',
     cinqiemeSurTrois:_chk5?_chk5.checked:false
@@ -22772,6 +22774,7 @@ function admResetCriteres(){
   var dD=document.getElementById('adm-crit-date-debut'); if(dD) dD.value='';
   var dF=document.getElementById('adm-crit-date-fin'); if(dF) dF.value='';
   var dJ=document.getElementById('adm-crit-jour'); if(dJ) dJ.value='';
+  var dH=document.getElementById('adm-crit-heure'); if(dH) dH.value='';
   var dM=document.getElementById('adm-crit-modele'); if(dM) dM.value='';
   _plCritSemaines=[];
   document.querySelectorAll('.pl-sbtn').forEach(function(b){b.classList.remove('on');});
