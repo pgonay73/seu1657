@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.302</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.303</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -6556,7 +6556,7 @@ function cfgAccueilCartesRender(){
     h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:4px solid '+c.color+';border-radius:6px;padding:14px 16px;margin-bottom:14px;">';
     h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">';
     h+='<input type="checkbox" id="cfg-carte-visib-'+c.key+'" '+(d.visible!==false?'checked':'')+' onchange="accueilCartesAutoSave()" style="width:16px;height:16px;accent-color:'+c.color+';flex-shrink:0;" title="Afficher/masquer">';
-    h+='<input type="text" id="cfg-carte-titre-'+c.key+'" value="'+titre+'" placeholder="Titre de la carte" oninput="accueilCartesAutoSave()" style="flex:1;background:transparent;border:none;border-bottom:2px solid '+c.color+';padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
+    h+='<input type="text" id="cfg-carte-titre-'+c.key+'" value="'+titre+'" placeholder="Titre de la carte" oninput="accueilCartesAutoSave()" style="flex:1;background:transparent;border:none;border-bottom:2px solid '+c.color+';padding:4px 6px;color:'+c.color+';font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
     h+='</div>';
     h+='<textarea id="cfg-carte-contenu-'+c.key+'" rows="5" placeholder="'+c.hint.replace(/"/g,'&quot;')+'" oninput="accueilCartesAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+contenu+'</textarea>';
     h+='</div>';
@@ -14217,7 +14217,7 @@ function renderOffice(n){
     'off-hosp': {key:'hosp',    idPfx:'hospacc', color:'#27AE60',fn:'hospAccueilAutoSave', hint:'Ex : Point de situation — Visite du F∴ X prévue le 12 mars'},
     'off-ora':  {key:'ora',     idPfx:'oraacc',  color:'#7D3C98',fn:'oraAccueilAutoSave',  hint:'Ex : Prochaine planche — F∴ Dupont sur la fraternité'},
     'off-exp':  {key:'exp',     idPfx:'expacc',  color:'#2471A3',fn:'expAccueilAutoSave',  hint:'Ex : Patte de l\'Expert mise à jour — voir document joint'},
-    'off-tres': {key:'tres',    idPfx:'tresacc', color:'#1A5276',fn:'tresAccueilAutoSave', hint:'Ex : Capitations 2025 — rappel de paiement avant le 31 mars'},
+    'off-tres': {key:'tres',    idPfx:'tresacc', color:'#00BCD4',fn:'tresAccueilAutoSave', hint:'Ex : Capitations 2025 — rappel de paiement avant le 31 mars'},
     'off-dep':  {key:'dep',     idPfx:'depacc',  color:'#5D6D7E',fn:'depAccueilAutoSave',  hint:'Ex : Retour de la GL — séance du 15 mars\nPoints à l\'ordre du jour : ...'}
   };
   if(_offAccMap[n]){
@@ -14231,7 +14231,7 @@ function renderOffice(n){
       +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>'
       +'</div>'
       +'<div style="margin-bottom:8px;">'
-      +'<input type="text" id="'+_oa.idPfx+'-titre" value="'+_oat+'" placeholder="Titre de la carte" oninput="'+_oa.fn+'()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid '+_oa.color+';padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'<input type="text" id="'+_oa.idPfx+'-titre" value="'+_oat+'" placeholder="Titre de la carte" oninput="'+_oa.fn+'()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid '+_oa.color+';padding:4px 6px;color:'+_oa.color+';font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
       +'</div>'
       +'<textarea id="'+_oa.idPfx+'-contenu" rows="4" placeholder="'+_oa.hint.replace(/"/g,'&quot;')+'" oninput="'+_oa.fn+'()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_oac+'</textarea>'
       +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>'
