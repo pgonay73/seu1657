@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.295</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.296</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22713,7 +22713,12 @@ function adminPlRenderCriteres(){
   var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
   var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
   var h='<div class="cfg-box">';
-  h+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Critères de sélection</h3>';
+  h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+  h+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0;">Critères de sélection</h3>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">';
+  h+='<button class="pl-btn pl-btn-outline pl-btn-sm" onclick="admResetCriteres()">Réinitialiser</button>';
+  h+='<button onclick="plViderPlanning()" style="background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#E74C3C;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;padding:4px 12px;border-radius:4px;cursor:pointer;">🗑 Nouveau planning</button>';
+  h+='</div></div>';
   // Dates bornes
   h+='<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px;align-items:flex-end;">';
   h+='<div><label style="'+lblS+'">Date début</label>';
@@ -22769,10 +22774,6 @@ function adminPlRenderCriteres(){
   h+='<div style="margin-bottom:22px;">';
   h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Transférer au planning</button>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères ci-dessus et les ajoute au planning. Les dates déjà présentes ne sont pas écrasées.</div>';
-  h+='</div>';
-  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">';
-  h+='<button class="pl-btn pl-btn-outline pl-btn-sm" onclick="admResetCriteres()">Réinitialiser les critères</button>';
-  h+='<button class="pl-btn pl-btn-sm" onclick="plViderPlanning()" style="background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#E74C3C;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:4px;cursor:pointer;">🗑 Nouveau planning (vider tout)</button>';
   h+='</div>';
   h+='</div>';
   el.innerHTML=h;
