@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.289</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.290</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13552,6 +13552,7 @@ function renderOffice(n){
     c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">Banque de sujets classés par degré — utilisés dans le suivi des planches.</p>';
     c+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
     c+='<button class="btn btn-gold btn-sm" onclick="plSujetsAjouter();setTimeout(function(){_plSujetsRefreshAll();},100)">+ Ajouter un sujet</button>';
+    c+='<button onclick="plImporterSujetsDuPlanning()" style="background:rgba(68,114,196,.15);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:4px 12px;">⬇ Importer depuis le planning</button>';
     c+='</div>';
     c+='<div id="admin-pl-sujets-list"></div>';
     c+='</div></div>';
@@ -13560,6 +13561,7 @@ function renderOffice(n){
     c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">Banque de sujets de symbolisme classés par degré — utilisés dans le suivi quand le type est S.</p>';
     c+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
     c+='<button class="btn btn-gold btn-sm" onclick="plSymAjouter();setTimeout(function(){_plSymRefreshAll();},100)">+ Ajouter un sujet</button>';
+    c+='<button onclick="plImporterSujetsDuPlanning()" style="background:rgba(68,114,196,.15);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:4px 12px;">⬇ Importer depuis le planning</button>';
     c+='</div>';
     c+='<div id="admin-pl-sym-list"></div>';
     c+='</div></div>';
@@ -21713,6 +21715,7 @@ function plSuiviChangerSujetLibre(nomAttr,ligne,input){
   if(val){if(sel){sel.value='';sel.style.opacity='.4';}}
   else{if(sel){sel.style.opacity='';}}
   plSuiviChanger(nomAttr,ligne,'sujet',val);
+  if(val){var _sd=plSuiviLoad();var _se=plSuiviEntree(_sd,nomAttr,ligne);if(_se&&_se.type==='Symbolisme')_plSymAddIfNew(val,'');else _plSujetsAddIfNew(val,'');}
   setTimeout(plSuiviRender,0);
 }
 // Menu déroulant : ignoré si le champ libre est rempli.
@@ -21723,6 +21726,48 @@ function plSuiviChangerSujetSelect(nomAttr,ligne,select){
   setTimeout(plSuiviRender,0);
 }
 // ── Bridge bidirectionnel Suivi <-> Planning de référence ─────────────
+function _plSujetsAddIfNew(sujet,degre){
+  if(!sujet||!sujet.trim()) return;
+  var d=plSujetsLoad();
+  if(d.some(function(s){return s.sujet===sujet.trim();})) return;
+  d.push({sujet:sujet.trim(),degre:degre||'',actif:true});
+  plSujetsSave(d);
+  setTimeout(_plSujetsRefreshAll,120);
+}
+function _plSymAddIfNew(sujet,degre){
+  if(!sujet||!sujet.trim()) return;
+  var d=plSymLoad();
+  if(d.some(function(s){return s.sujet===sujet.trim();})) return;
+  d.push({sujet:sujet.trim(),degre:degre||'',actif:true});
+  plSymSave(d);
+  setTimeout(_plSymRefreshAll,120);
+}
+function plImporterSujetsDuPlanning(){
+  var data=plLoad();
+  var addedP=0,addedS=0;
+  (data.events||[]).forEach(function(ev){
+    var deg=ev.degre||'';
+    (ev.detail||[]).forEach(function(p){
+      if(!isPlancheOuSym(p.nom)) return;
+      var titre=(p.titre||'').trim();
+      if(!titre) return;
+      if(isSymbolisme(p.nom)){
+        var ds=plSymLoad();
+        if(!ds.some(function(s){return s.sujet===titre;})){ds.push({sujet:titre,degre:deg,actif:true});plSymSave(ds);addedS++;}
+      } else {
+        var dp=plSujetsLoad();
+        if(!dp.some(function(s){return s.sujet===titre;})){dp.push({sujet:titre,degre:deg,actif:true});plSujetsSave(dp);addedP++;}
+      }
+    });
+  });
+  _plSujetsRefreshAll();
+  _plSymRefreshAll();
+  var msg=[];
+  if(addedP>0) msg.push(addedP+' planche'+(addedP>1?'s':''));
+  if(addedS>0) msg.push(addedS+' symbolisme'+(addedS>1?'s':''));
+  if(msg.length) alert('Importé depuis le planning : '+msg.join(', ')+'.');
+  else alert('Aucun nouveau sujet à importer (tous déjà présents).');
+}
 function _plSuiviToRef(nomAttr,ligne){
   var sd=plSuiviLoad();
   var s=plSuiviEntree(sd,nomAttr,ligne);
@@ -21740,6 +21785,7 @@ function _plSuiviToRef(nomAttr,ligne){
   if(idx<0) return;
   ev.detail[idx].conf=nomAttr;
   if(s.sujet) ev.detail[idx].titre=s.sujet;
+  if(s.sujet){if(isSym)_plSymAddIfNew(s.sujet,ev.degre||'');else _plSujetsAddIfNew(s.sujet,ev.degre||'');}
   plSave(data);
   setTimeout(function(){
     var r=document.getElementById('admin-pl-ref-list');if(r) adminPlRenderRef('admin-pl-ref-list');
@@ -21779,6 +21825,7 @@ function _plRefToSuivi(eid,pi){
     if(existingKey){sd[existingKey].tenueId='';changed=true;}
     if(pTitre&&existingKey){sd[existingKey].sujet=pTitre;changed=true;}
   }
+  if(pTitre){if(isSym)_plSymAddIfNew(pTitre,ev.degre||'');else _plSujetsAddIfNew(pTitre,ev.degre||'');}
   if(changed){
     plSuiviSave(sd);
     setTimeout(function(){plSuiviRender();_plSuiviTenueRefreshAll();},60);
