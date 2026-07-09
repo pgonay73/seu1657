@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.306</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.307</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13934,9 +13934,16 @@ function renderOffice(n){
         soldeHtml=(sv>=0?'+':'')+sv.toFixed(2);
         soldeSt='font-weight:700;color:'+(sv>=0?'#1D8A5A':'#C0392B')+';';
       }
-      mc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:middle;">';
       var _mbModRef=t.modeleId?(D.modeles||[]).filter(function(m){return m.id===t.modeleId;})[0]:null;
       var _mbLabel=t.titre||(_mbModRef?_mbModRef.nom:(t.degre==='3°'?'Tenue au 3°':t.degre==='2°'?'Tenue au 2°':'Tenue'));
+      var _mbLow=_mbLabel.toLowerCase();
+      var _mbColor=null;
+      if(_mbLow.indexOf('apprenti')>=0) _mbColor='#33DD66';
+      else if(_mbLow.indexOf('compagnon')>=0) _mbColor='#FF9900';
+      else if(_mbLow.indexOf('conseil')>=0&&_mbLow.indexOf('admin')>=0) _mbColor='#4472C4';
+      var _mbRgb=_mbColor==='#33DD66'?'51,221,102':_mbColor==='#FF9900'?'255,153,0':'68,114,196';
+      var _mbBorder=_mbColor?'border-left:4px solid '+_mbColor+';background:rgba('+_mbRgb+',.09);':'';
+      mc+='<tr style="background:'+(_mbColor?'transparent':bg)+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:middle;'+_mbBorder+'">';
       mc+='<td style="padding:8px;white-space:nowrap;"><div id="mb-plan-cell-'+t.id+'"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mbLabel+'</span></div></td>';
       mc+='<td style="padding:6px;"><textarea id="mb-menu-'+t.id+'" rows="2" placeholder="Entrée, plat, dessert..." style="'+inpS+'" oninput="mbUpdateTotals()">'+menu+'</textarea></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-nb-'+t.id+'" value="'+nb+'" min="0" placeholder="0" style="'+inpN+'width:70px;"/></td>';
@@ -13984,9 +13991,16 @@ function renderOffice(n){
       var t=tenues[ti];
       var bg=ti%2===0?'rgba(255,255,255,.04)':'transparent';
       var pl=(mhData[t.id]||'').replace(/"/g,'&quot;');
-      mc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
       var _mhModRef2=t.modeleId?(D.modeles||[]).filter(function(m){return m.id===t.modeleId;})[0]:null;
       var _mhLabel=t.titre||(_mhModRef2?_mhModRef2.nom:(t.degre==='3°'?'Tenue au 3°':t.degre==='2°'?'Tenue au 2°':'Tenue'));
+      var _mhLow=_mhLabel.toLowerCase();
+      var _mhColor=null;
+      if(_mhLow.indexOf('apprenti')>=0) _mhColor='#33DD66';
+      else if(_mhLow.indexOf('compagnon')>=0) _mhColor='#FF9900';
+      else if(_mhLow.indexOf('conseil')>=0&&_mhLow.indexOf('admin')>=0) _mhColor='#4472C4';
+      var _mhRgb=_mhColor==='#33DD66'?'51,221,102':_mhColor==='#FF9900'?'255,153,0':'68,114,196';
+      var _mhBorder=_mhColor?'border-left:4px solid '+_mhColor+';background:rgba('+_mhRgb+',.09);':'';
+      mc+='<tr style="background:'+(_mhColor?'transparent':bg)+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;'+_mhBorder+'">';
       mc+='<td style="padding:8px;white-space:nowrap;"><div id="mh-plan-cell-'+t.id+'"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mhLabel+'</span></div></td>';
       mc+='<td style="padding:8px;"><textarea id="mh-pl-'+t.id+'" rows="2" placeholder="Artiste — Titre, ..." style="'+inpS+'resize:none;overflow:hidden;">'+pl+'</textarea></td>';
       mc+='<td style="padding:4px;text-align:center;vertical-align:middle;white-space:nowrap;">'
@@ -14027,8 +14041,14 @@ function renderOffice(n){
       var dbg=dti%2===0?'rgba(255,255,255,.04)':'transparent';
       var dsujet=(depData[dt.id]||'').replace(/"/g,'&quot;');
       var hasInterv=depData[dt.id]&&depData[dt.id].trim();
-      var intervBorder=hasInterv?'border-left:3px solid var(--gold);':'';
-      dc+='<tr style="background:'+dbg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;'+intervBorder+'">';
+      var _dtLow=(dt.titre||'').toLowerCase();
+      var _depColor=null;
+      if(_dtLow.indexOf('apprenti')>=0) _depColor='#33DD66';
+      else if(_dtLow.indexOf('compagnon')>=0) _depColor='#FF9900';
+      else if(_dtLow.indexOf('conseil')>=0&&_dtLow.indexOf('admin')>=0) _depColor='#4472C4';
+      var _depRgb=_depColor==='#33DD66'?'51,221,102':_depColor==='#FF9900'?'255,153,0':'68,114,196';
+      var intervBorder=_depColor?'border-left:4px solid '+_depColor+';background:rgba('+_depRgb+',.09);':hasInterv?'border-left:3px solid var(--gold);':'';
+      dc+='<tr style="background:'+(_depColor?'transparent':dbg)+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;'+intervBorder+'">';
       dc+='<td style="padding:8px;white-space:nowrap;font-weight:600;"><div id="dep-plan-cell-'+dt.id+'"><span style="color:#FFFFFF;">'+fmtDate(dt.date)+'</span></div></td>';
       dc+='<td style="padding:8px;color:#FFFFFF;">'+(dt.titre||'Tenue')+'</td>';
       dc+='<td style="padding:8px;"><textarea id="dep-int-'+dt.id+'" rows="2" placeholder="Sujet, compte-rendu..." style="'+inpS+'width:100%;min-width:200px;">'+dsujet+'</textarea>';
