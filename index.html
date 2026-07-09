@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.288</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.289</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20225,11 +20225,6 @@ function plRenderPlanning(targetId){
     (D.modeles||[]).forEach(function(m){_mAdmOpts+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
     var _mAdmSel='<select onchange="plModeleChanger(&quot;'+eid+'&quot;,this.value,this)" style="font-size:11px;background:rgba(184,146,42,.07);color:rgba(184,146,42,.9);border:1px solid rgba(184,146,42,.3);border-radius:3px;padding:2px 3px;width:100%;font-family:Raleway,sans-serif;cursor:pointer;">'+_mAdmOpts+'</select>';
     var _dureeAdm=_dureeEff>0?(Math.floor(_dureeEff/60)>0?Math.floor(_dureeEff/60)+'h'+((_dureeEff%60)>0?String(_dureeEff%60).padStart(2,'0'):''):(_dureeEff+' min')):'—';
-    var _typesCompte={};
-    (e.detail||[]).forEach(function(pd){var nLow=(pd.nom||'').toLowerCase();if(nLow.indexOf('morceau')>=0||nLow.indexOf('architecture')>=0){var _eff2=pd.plancheSteps&&pd.plancheSteps.length?pd.plancheSteps:['planche','parole'];_eff2.forEach(function(v){_typesCompte[v]=(_typesCompte[v]||0)+1;});}});
-    var _typesBadges='';var _tcols={'planche':'rgba(120,185,255,.9)','symbolisme':'rgba(190,140,255,.9)','parole':'rgba(255,190,80,.9)'};var _tbgs={'planche':'rgba(100,150,255,.1)','symbolisme':'rgba(160,100,255,.1)','parole':'rgba(255,160,50,.1)'};
-    Object.keys(_typesCompte).forEach(function(v){var cnt=_typesCompte[v];var col=_tcols[v]||'rgba(255,255,255,.7)';var bg=_tbgs[v]||'rgba(255,255,255,.08)';_typesBadges+='<span style="font-size:10px;background:'+bg+';border:1px solid '+col.replace('.9','.4')+';border-radius:3px;padding:0 5px;color:'+col+';white-space:nowrap;">'+(cnt>1?(cnt+'x'):'')+(v==='planche'?'Planche':v==='symbolisme'?'Symbolisme':'Parole')+'</span>';});
-    if(_typesBadges)_typesBadges='<span class="pl-col-badges" style="margin-left:6px;display:inline-flex;gap:3px;flex-wrap:wrap;vertical-align:middle;">'+_typesBadges+'</span>';
     var _pVal=nbP>0?nbP:(e.P>0?e.P:'');var _sVal=nbS>0?nbS:(e.S>0?e.S:'');
     var _inpPs='width:32px;background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.25);font-weight:700;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;';
     var _tdPAdm='<td class="pl-col-pp" style="text-align:center;"><input type="number" min="0" value="'+_pVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'P\',+this.value)" style="'+_inpPs+'color:'+cd+';">'+'</td>';
@@ -20243,7 +20238,7 @@ function plRenderPlanning(targetId){
     if(isAdmin){
       h+='<tr style="'+traitJournee+bgFerie+'">'
         +_tdToggle+_tdDate+_tdDeg+_tdPAdm+_tdSAdm
-        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;overflow:hidden;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+(marqueur?'<span style="color:'+cd+';flex-shrink:0;">'+marqueur+'</span>':'')+'<input class="pl-col-titre" type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="'+((_modRef&&_modRef.nom)?_modRef.nom.replace(/"/g,'&quot;'):'(sans titre)')+'" onblur="plTitreChanger(&quot;'+eid+'&quot;,this.value)" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.2);color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;flex:1;min-width:80px;padding:0 2px;outline:none;">'+_typesBadges+'</div>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
+        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;overflow:hidden;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+(marqueur?'<span style="color:'+cd+';flex-shrink:0;">'+marqueur+'</span>':'')+'<input class="pl-col-titre" type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="'+((_modRef&&_modRef.nom)?_modRef.nom.replace(/"/g,'&quot;'):'(sans titre)')+'" onblur="plTitreChanger(&quot;'+eid+'&quot;,this.value)" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.2);color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;flex:1;min-width:80px;padding:0 2px;outline:none;"></div>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
         +'</tr>';
     } else {
       h+='<tr style="'+traitJournee+bgFerie+'">'
@@ -20324,23 +20319,6 @@ function plRenderPlanning(targetId){
         if(p.reunSteps&&p.reunSteps.length) det.push(p.reunSteps.join(' · '));
         var detHtml=det.length?'<span style="font-size:10.5px;color:rgba(255,255,255,.45);font-style:italic;margin-left:8px;">'+det.join(' — ')+'</span>':'';
         var _cbsHtml='';
-        if(isMorceau){
-          var _cbl='font-size:11px;color:rgba(255,255,255,.85);display:inline-flex;align-items:center;gap:3px;cursor:pointer;margin-left:8px;white-space:nowrap;';
-          var _cbi='accent-color:var(--gold);cursor:pointer;margin:0;';
-          ['planche','symbolisme','parole'].forEach(function(v){
-            var _dfSteps=(isMorceau&&(!p.plancheSteps||!p.plancheSteps.length))?['planche','parole']:[];
-            var _effSteps=p.plancheSteps&&p.plancheSteps.length?p.plancheSteps:_dfSteps;
-            var chk=_effSteps.indexOf(v)>=0?'checked':'';
-            _cbsHtml+='<label style="'+_cbl+'"><input type="checkbox" '+chk+' onchange="plDetailPartieToggleType(&quot;'+eid+'&quot;,'+pi+',&quot;'+v+'&quot;,this)" style="'+_cbi+'"> '+v.charAt(0).toUpperCase()+v.slice(1)+'</label>';
-          });
-          var _intOpts='<option value="">— Intervenant —</option>';
-          (D.freres||[]).slice().sort(fSortNom).forEach(function(f){
-            var fn=(f.prenom||'')+' '+(f.nom||'');
-            var sel=(p.intervenant&&p.intervenant===f.id)?'selected':'';
-            _intOpts+='<option value="'+f.id+'" '+sel+'>'+fn.trim()+'</option>';
-          });
-          _cbsHtml+='<select onchange="plDetailPartieIntervenantChanger(&quot;'+eid+'&quot;,'+pi+',this.value,this)" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.18);border-radius:3px;padding:1px 4px;font-size:11px;font-family:Raleway,sans-serif;max-width:140px;margin-left:8px;">'+_intOpts+'</select>';
-        }
         var _btnUp=pi>0
           ?'<button onclick="plDetailPartieUp(\''+eid+'\','+pi+',this)" title="Monter" style="background:none;border:1px solid rgba(255,255,255,.18);border-radius:3px;color:rgba(255,255,255,.5);cursor:pointer;font-size:10px;padding:1px 4px;margin-right:2px;">▲</button>'
           :'<span style="display:inline-block;width:22px;margin-right:2px;"></span>';
