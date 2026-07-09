@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.308</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.309</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13907,7 +13907,7 @@ function renderOffice(n){
     mc+='</div></div>';
 
     // Tableau
-    mc+='<table style="width:100%;border-collapse:collapse;font-size:12px;min-width:850px;">';
+    mc+='<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:850px;">';
     mc+='<thead><tr style="border-bottom:2px solid var(--gold);">';
     mc+='<th style="'+thS+'width:155px;">Tenue</th>';
     mc+='<th style="'+thS+'">Menu</th>';
@@ -13944,7 +13944,7 @@ function renderOffice(n){
       var _mbRgb=_mbColor==='#33DD66'?'51,221,102':_mbColor==='#FF9900'?'255,153,0':'68,114,196';
       var _mbBorder=_mbColor?'border-left:4px solid '+_mbColor+';background:rgba('+_mbRgb+',.09);':'';
       mc+='<tr style="background:'+(_mbColor?'transparent':bg)+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:middle;'+_mbBorder+'">';
-      mc+='<td style="padding:8px;white-space:nowrap;"><div id="mb-plan-cell-'+t.id+'"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mbLabel+'</span></div></td>';
+      mc+='<td style="padding:8px;"><div id="mb-plan-cell-'+t.id+'"><span style="color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate(t.date)+'</span><span style="display:block;font-size:11px;color:rgba(255,255,255,.75);">'+(t.heure||'—')+'</span><span style="display:block;font-size:10px;color:var(--grey);">'+_mbLabel+'</span></div></td>';
       mc+='<td style="padding:6px;"><textarea id="mb-menu-'+t.id+'" rows="2" placeholder="Entrée, plat, dessert..." style="'+inpS+'" oninput="mbUpdateTotals()">'+menu+'</textarea></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-nb-'+t.id+'" value="'+nb+'" min="0" placeholder="0" style="'+inpN+'width:70px;"/></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-triangle-'+t.id+'" value="'+triangle+'" min="0" step="0.01" placeholder="0.00" style="'+inpN+'" oninput="mbUpdateTotals()"/></td>';
@@ -14001,7 +14001,7 @@ function renderOffice(n){
       var _mhRgb=_mhColor==='#33DD66'?'51,221,102':_mhColor==='#FF9900'?'255,153,0':'68,114,196';
       var _mhBorder=_mhColor?'border-left:4px solid '+_mhColor+';background:rgba('+_mhRgb+',.09);':'';
       mc+='<tr style="background:'+(_mhColor?'transparent':bg)+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;'+_mhBorder+'">';
-      mc+='<td style="padding:8px;white-space:nowrap;"><div id="mh-plan-cell-'+t.id+'"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mhLabel+'</span></div></td>';
+      mc+='<td style="padding:8px;"><div id="mh-plan-cell-'+t.id+'"><span style="color:var(--gold);font-weight:600;white-space:nowrap;">'+fmtDate(t.date)+'</span><span style="display:block;font-size:11px;color:rgba(255,255,255,.75);">'+(t.heure||'—')+'</span><span style="display:block;font-size:10px;color:var(--grey);">'+_mhLabel+'</span></div></td>';
       mc+='<td style="padding:8px;"><textarea id="mh-pl-'+t.id+'" rows="2" placeholder="Artiste — Titre, ..." style="'+inpS+'resize:none;overflow:hidden;">'+pl+'</textarea></td>';
       mc+='<td style="padding:4px;text-align:center;vertical-align:middle;white-space:nowrap;">'
         +'<button onclick="editPlanningDateHeure(\'mh-plan-cell-'+t.id+'\',\''+t.id+'\',\'off-mh\')" title="Modifier date/heure" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:13px;padding:2px 3px;" onmouseover="this.style.color=\'#FFF\'" onmouseout="this.style.color=\'rgba(255,255,255,.35)\'">✏️</button>'
