@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.301</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.302</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -6338,7 +6338,7 @@ var _ACCUEIL_CARTES_DEF=[
    hint:'Ex : Menu du 15 janvier\n— Velouté de potimarron\n— Filet de bœuf sauce bordelaise\n— Plateau de fromages\n— Tarte Tatin'},
   {key:'planche',       color:'#8E44AD', titre:'Planche tracée',
    hint:'Ex : Tenue du 10 décembre\nPlanche de F∴ Dupont sur le thème de la fraternité.\nRésumé : ...'},
-  {key:'correspondance',color:'#2C3E50', titre:'Correspondance',
+  {key:'correspondance',color:'#E91E63', titre:'Correspondance',
    hint:'Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars\nCourrier du 2e Surveillant de la Loge X...'},
   {key:'vm',   color:'#B8860B', titre:'Vénérable Maître',
    hint:'Ex : Message du VM — Prochaine tenue le 10 mars à 20h\nThème : ...'},
@@ -6348,7 +6348,7 @@ var _ACCUEIL_CARTES_DEF=[
    hint:'Ex : Planche du 10 mars — F∴ Dupont sur la fraternité\nProchaine planche : à définir'},
   {key:'exp',  color:'#2471A3', titre:'Expert',
    hint:'Ex : Patte de l\'Expert mise à jour — voir document joint\nPrécisions : ...'},
-  {key:'tres', color:'#1A5276', titre:'Trésorier',
+  {key:'tres', color:'#00BCD4', titre:'Trésorier',
    hint:'Ex : Capitations 2025 — rappel de paiement\nSolde disponible : ...'},
   {key:'dep',  color:'#5D6D7E', titre:'Député',
    hint:'Ex : Retour de la GL — séance du 15 mars\nPoints à l\'ordre du jour : ...'}
