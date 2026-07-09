@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.294</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.295</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22006,6 +22006,20 @@ function plSuiviRender(containerId){
       return true;
     });
   }
+  // Entrées orphelines : clés suivi ne correspondant à aucun frère enregistré
+  var _nomsFreres={};
+  D.freres.forEach(function(f){_nomsFreres[((f.prenom||'')+' '+(f.nom||'')).trim()]=true;});
+  var _orphelins=[];
+  Object.keys(suivi).forEach(function(cle){
+    if(cle.indexOf('#nb')>=0) return;
+    var val=suivi[cle];
+    if(!val||typeof val!=='object') return;
+    var parts=cle.split('#');
+    var lig=parts[parts.length-1];
+    if(['A','B','C'].indexOf(lig)<0) return;
+    var nm=parts.slice(0,-1).join('#');
+    if(!_nomsFreres[nm]) _orphelins.push({cle:cle,nom:nm,ligne:lig,val:val});
+  });
   // Les frères distincts (pour le compteur de bas de page)
   var freresTries=D.freres.slice().sort(fSortNom);
   var h='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
@@ -22035,8 +22049,36 @@ function plSuiviRender(containerId){
       h+=plSuiviRenderLigneAutonome(suivi,nomFrere,nomAttr,lg.ligne,vraiNb,withGold,addSpc);
     }
   }
-  h+='</tbody></table><p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">'+freresTries.length+' frère'+(freresTries.length>1?'s':'')+' &bull; nombre de planches réglable par frère (1 à 3).</p>';
+  h+='</tbody></table>';
+  if(_orphelins.length){
+    h+='<div style="margin-top:16px;padding:10px 14px;background:rgba(255,160,30,.07);border:1px solid rgba(255,160,30,.35);border-radius:6px;">';
+    h+='<div style="font-size:11px;color:rgba(255,180,50,.9);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">⚠ Entrées non rattachées à un frère enregistré ('+_orphelins.length+')</div>';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="border-bottom:1px solid rgba(255,160,30,.25);"><th style="text-align:left;padding:3px 8px;color:rgba(255,255,255,.4);font-size:10px;text-transform:uppercase;font-weight:600;">Nom stocké</th><th style="padding:3px 8px;color:rgba(255,255,255,.4);font-size:10px;text-transform:uppercase;font-weight:600;">Type</th><th style="padding:3px 8px;color:rgba(255,255,255,.4);font-size:10px;text-transform:uppercase;font-weight:600;">Degré</th><th style="text-align:left;padding:3px 8px;color:rgba(255,255,255,.4);font-size:10px;text-transform:uppercase;font-weight:600;">Sujet</th><th style="padding:3px 8px;color:rgba(255,255,255,.4);font-size:10px;text-transform:uppercase;font-weight:600;">Tenue</th><th></th></tr></thead><tbody>';
+    _orphelins.forEach(function(o){
+      var dateTenue=o.val.tenueId?(dateParTenue[o.val.tenueId]||'—'):'—';
+      var cleEnc=encodeURIComponent(o.cle);
+      h+='<tr style="border-top:1px solid rgba(255,160,30,.15);">';
+      h+='<td style="padding:5px 8px;color:rgba(255,200,100,.9);font-weight:600;">'+o.nom+'</td>';
+      h+='<td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.65);">'+(o.val.type||'Planche')+'</td>';
+      h+='<td style="padding:5px 8px;text-align:center;color:rgba(255,255,255,.65);">'+(o.val.degre||'—')+'</td>';
+      h+='<td style="padding:5px 8px;color:rgba(255,255,255,.85);">'+(o.val.sujet||'—')+'</td>';
+      h+='<td style="padding:5px 8px;color:rgba(255,255,255,.4);white-space:nowrap;">'+dateTenue+'</td>';
+      h+='<td style="padding:5px 8px;"><button onclick="plSuiviSupprimerCleRaw(decodeURIComponent(\''+cleEnc+'\'))" title="Supprimer cette entrée" style="background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);border-radius:3px;color:#E74C3C;cursor:pointer;font-size:12px;padding:2px 7px;font-family:Raleway,sans-serif;">🗑</button></td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+  h+='<p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">'+freresTries.length+' frère'+(freresTries.length>1?'s':'')+' &bull; nombre de planches réglable par frère (1 à 3).</p>';
   el.innerHTML=h;
+}
+function plSuiviSupprimerCleRaw(cle){
+  if(!confirm('Supprimer cette entrée suivi ?\n\nNom stocké : '+cle)) return;
+  var d=plSuiviLoad();
+  delete d[cle];
+  plSuiviSave(d);
+  plSuiviRender();
+  _plSuiviTenueRefreshAll();
+  var r=document.getElementById('admin-pl-ref-list');if(r) adminPlRenderRef('admin-pl-ref-list');
 }
 
 var _plSFDeg='';
