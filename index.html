@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.303</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.304</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13901,6 +13901,7 @@ function renderOffice(n){
     mc+='<th style="'+thS+'width:105px;text-align:center;">△ Triangle (€)</th>';
     mc+='<th style="'+thS+'width:105px;text-align:center;">Achats (€)</th>';
     mc+='<th style="'+thS+'width:95px;text-align:center;">Solde (€)</th>';
+    mc+='<th style="padding:8px;width:54px;"></th>';
     mc+='</tr></thead><tbody>';
 
     for(var ti=0;ti<tenues.length;ti++){
@@ -13922,12 +13923,16 @@ function renderOffice(n){
       mc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:middle;">';
       var _mbModRef=t.modeleId?(D.modeles||[]).filter(function(m){return m.id===t.modeleId;})[0]:null;
       var _mbLabel=t.titre||(_mbModRef?_mbModRef.nom:(t.degre==='3°'?'Tenue au 3°':t.degre==='2°'?'Tenue au 2°':'Tenue'));
-      mc+='<td style="padding:8px;white-space:nowrap;"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mbLabel+'</span></td>';
+      mc+='<td style="padding:8px;white-space:nowrap;"><div id="mb-plan-cell-'+t.id+'"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mbLabel+'</span></div></td>';
       mc+='<td style="padding:6px;"><textarea id="mb-menu-'+t.id+'" rows="2" placeholder="Entrée, plat, dessert..." style="'+inpS+'" oninput="mbUpdateTotals()">'+menu+'</textarea></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-nb-'+t.id+'" value="'+nb+'" min="0" placeholder="0" style="'+inpN+'width:70px;"/></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-triangle-'+t.id+'" value="'+triangle+'" min="0" step="0.01" placeholder="0.00" style="'+inpN+'" oninput="mbUpdateTotals()"/></td>';
       mc+='<td style="padding:6px;text-align:center;"><input type="number" id="mb-achats-'+t.id+'" value="'+achats+'" min="0" step="0.01" placeholder="0.00" style="'+inpN+'" oninput="mbUpdateTotals()"/></td>';
       mc+='<td style="padding:8px;text-align:center;"><span id="mb-solde-'+t.id+'" style="'+soldeSt+'">'+soldeHtml+'</span></td>';
+      mc+='<td style="padding:4px;text-align:center;vertical-align:middle;white-space:nowrap;">'
+        +'<button onclick="editPlanningDateHeure(\'mb-plan-cell-'+t.id+'\',\''+t.id+'\',\'off-mb\')" title="Modifier date/heure" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:13px;padding:2px 3px;" onmouseover="this.style.color=\'#FFF\'" onmouseout="this.style.color=\'rgba(255,255,255,.35)\'">✏️</button>'
+        +'<button onclick="plSupprimerTenueFromReunion(\''+t.id+'\',\'off-mb\')" title="Supprimer du planning" style="background:none;border:none;color:rgba(220,80,80,.4);cursor:pointer;font-size:13px;padding:2px 3px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.4)\'">🗑</button>'
+        +'</td>';
       mc+='</tr>';
     }
     mc+='</tbody></table></div>';
@@ -13959,6 +13964,7 @@ function renderOffice(n){
     mc+='<thead><tr style="border-bottom:2px solid var(--gold);">';
     mc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:160px;">Tenue</th>';
     mc+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;min-width:300px;">Playlist</th>';
+    mc+='<th style="padding:8px;width:54px;"></th>';
     mc+='</tr></thead><tbody>';
     for(var ti=0;ti<tenues.length;ti++){
       var t=tenues[ti];
@@ -13967,8 +13973,12 @@ function renderOffice(n){
       mc+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.5);vertical-align:top;">';
       var _mhModRef2=t.modeleId?(D.modeles||[]).filter(function(m){return m.id===t.modeleId;})[0]:null;
       var _mhLabel=t.titre||(_mhModRef2?_mhModRef2.nom:(t.degre==='3°'?'Tenue au 3°':t.degre==='2°'?'Tenue au 2°':'Tenue'));
-      mc+='<td style="padding:8px;white-space:nowrap;"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mhLabel+'</span></td>';
+      mc+='<td style="padding:8px;white-space:nowrap;"><div id="mh-plan-cell-'+t.id+'"><span style="font-size:13px;font-weight:700;font-family:Cormorant Garamond,serif;color:var(--gold2);">'+fmtDate(t.date)+'</span><br><span style="font-size:10px;color:rgba(255,255,255,.55);">'+_mhLabel+'</span></div></td>';
       mc+='<td style="padding:8px;"><textarea id="mh-pl-'+t.id+'" rows="2" placeholder="Artiste — Titre, ..." style="'+inpS+'resize:none;overflow:hidden;">'+pl+'</textarea></td>';
+      mc+='<td style="padding:4px;text-align:center;vertical-align:middle;white-space:nowrap;">'
+        +'<button onclick="editPlanningDateHeure(\'mh-plan-cell-'+t.id+'\',\''+t.id+'\',\'off-mh\')" title="Modifier date/heure" style="background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:13px;padding:2px 3px;" onmouseover="this.style.color=\'#FFF\'" onmouseout="this.style.color=\'rgba(255,255,255,.35)\'">✏️</button>'
+        +'<button onclick="plSupprimerTenueFromReunion(\''+t.id+'\',\'off-mh\')" title="Supprimer du planning" style="background:none;border:none;color:rgba(220,80,80,.4);cursor:pointer;font-size:13px;padding:2px 3px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.4)\'">🗑</button>'
+        +'</td>';
       mc+='</tr>';
     }
     mc+='</tbody></table></div>';
