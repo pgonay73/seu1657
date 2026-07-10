@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.319</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.320</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14145,30 +14145,30 @@ function renderOffice(n){
     var _corrTitre0=(_corrD0.titre||'Correspondance').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var _corrContenu0=(_corrD0.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     var _secAccueilTop=''
-      +'<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid #4472C4;">'
+      +'<div class="cfg-box" style="margin-bottom:16px;border:2px solid #4472C4 !important;">'
       +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
       +'<input type="checkbox" id="secacc-visib" '+(_secaD0.visible!==false?'checked':'')+' onchange="secAccueilAutoSave()" style="width:16px;height:16px;accent-color:#4472C4;flex-shrink:0;">'
-      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (CA)</h3>'
+      +'<h3 style="font-size:18px;color:#4472C4 !important;margin:0;flex:1;">Texte de la page d\'accueil (CA)</h3>'
       +'</div><div style="margin-bottom:8px;">'
-      +'<input type="text" id="secacc-titre" value="'+_secaTitre0+'" placeholder="Titre" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #4472C4;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'<input type="text" id="secacc-titre" value="'+_secaTitre0+'" placeholder="Titre" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #4472C4;padding:4px 6px;color:#4472C4;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
       +'</div>'
       +'<textarea id="secacc-contenu" rows="4" placeholder="Ex : Prochain CA le 8 janvier à 19h30" oninput="secAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_secaContenu0+'</textarea>'
       +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p></div>'
-      +'<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid #8E44AD;">'
+      +'<div class="cfg-box" style="margin-bottom:16px;border:2px solid #8E44AD !important;">'
       +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
       +'<input type="checkbox" id="plancheacc-visib" '+(_planchaD0.visible!==false?'checked':'')+' onchange="plancheAccueilAutoSave()" style="width:16px;height:16px;accent-color:#8E44AD;flex-shrink:0;">'
-      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Planche tracée)</h3>'
+      +'<h3 style="font-size:18px;color:#8E44AD !important;margin:0;flex:1;">Texte de la page d\'accueil (Planche tracée)</h3>'
       +'</div><div style="margin-bottom:8px;">'
-      +'<input type="text" id="plancheacc-titre" value="'+_planchaTitre0+'" placeholder="Titre" oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #8E44AD;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'<input type="text" id="plancheacc-titre" value="'+_planchaTitre0+'" placeholder="Titre" oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #8E44AD;padding:4px 6px;color:#8E44AD;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
       +'</div>'
       +'<textarea id="plancheacc-contenu" rows="4" placeholder="Ex : Tenue du 10 décembre — Planche de F∴ Dupont" oninput="plancheAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_planchaContenu0+'</textarea>'
       +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p></div>'
-      +'<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid #7F8C8D;">'
+      +'<div class="cfg-box" style="margin-bottom:16px;border:2px solid #E91E63 !important;">'
       +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
-      +'<input type="checkbox" id="corracc-visib" '+(_corrD0.visible!==false?'checked':'')+' onchange="corrAccueilAutoSave()" style="width:16px;height:16px;accent-color:#7F8C8D;flex-shrink:0;">'
-      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil (Correspondance)</h3>'
+      +'<input type="checkbox" id="corracc-visib" '+(_corrD0.visible!==false?'checked':'')+' onchange="corrAccueilAutoSave()" style="width:16px;height:16px;accent-color:#E91E63;flex-shrink:0;">'
+      +'<h3 style="font-size:18px;color:#E91E63 !important;margin:0;flex:1;">Texte de la page d\'accueil (Correspondance)</h3>'
       +'</div><div style="margin-bottom:8px;">'
-      +'<input type="text" id="corracc-titre" value="'+_corrTitre0+'" placeholder="Titre" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #7F8C8D;padding:4px 6px;color:#FFF;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
+      +'<input type="text" id="corracc-titre" value="'+_corrTitre0+'" placeholder="Titre" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #E91E63;padding:4px 6px;color:#E91E63;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
       +'</div>'
       +'<textarea id="corracc-contenu" rows="4" placeholder="Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_corrContenu0+'</textarea>'
       +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p></div>';
