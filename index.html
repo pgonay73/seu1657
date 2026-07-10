@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.317</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.318</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -6600,7 +6600,7 @@ function cfgAccueilCartesRender(){
     var d=data[c.key]||{};
     var titre=(d.titre||c.titre).replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var contenu=(d.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    h+='<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-left:4px solid '+c.color+';border-radius:6px;padding:14px 16px;margin-bottom:14px;">';
+    h+='<div style="background:rgba(255,255,255,.04);border:2px solid '+c.color+';border-radius:6px;padding:14px 16px;margin-bottom:14px;">';
     h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">';
     h+='<input type="checkbox" id="cfg-carte-visib-'+c.key+'" '+(d.visible!==false?'checked':'')+' onchange="accueilCartesAutoSave()" style="width:16px;height:16px;accent-color:'+c.color+';flex-shrink:0;" title="Afficher/masquer">';
     h+='<input type="text" id="cfg-carte-titre-'+c.key+'" value="'+titre+'" placeholder="Titre de la carte" oninput="accueilCartesAutoSave()" style="flex:1;background:transparent;border:none;border-bottom:2px solid '+c.color+';padding:4px 6px;color:'+c.color+';font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">';
@@ -14317,10 +14317,10 @@ function renderOffice(n){
     var _oad=accueilCartesLoad()[_oa.key]||{};
     var _oat=(_oad.titre||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var _oac=(_oad.contenu||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    contenu='<div class="cfg-box" style="margin-bottom:16px;border-left:4px solid '+_oa.color+';">'
+    contenu='<div class="cfg-box" style="margin-bottom:16px;border:2px solid '+_oa.color+' !important;">'
       +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
       +'<input type="checkbox" id="'+_oa.idPfx+'-visib" '+(_oad.visible!==false?'checked':'')+' onchange="'+_oa.fn+'()" style="width:16px;height:16px;accent-color:'+_oa.color+';flex-shrink:0;" title="Afficher/masquer sur la page d\'accueil">'
-      +'<h3 style="font-size:18px;color:#FFFFFF;margin:0;flex:1;">Texte de la page d\'accueil</h3>'
+      +'<h3 style="font-size:18px;color:'+_oa.color+' !important;margin:0;flex:1;">Texte de la page d\'accueil</h3>'
       +'</div>'
       +'<div style="margin-bottom:8px;">'
       +'<input type="text" id="'+_oa.idPfx+'-titre" value="'+_oat+'" placeholder="Titre de la carte" oninput="'+_oa.fn+'()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid '+_oa.color+';padding:4px 6px;color:'+_oa.color+';font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
