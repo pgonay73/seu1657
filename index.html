@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.321</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.322</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -6548,6 +6548,68 @@ function corrAccueilAutoSave(){
     if(window.fbSet) window.fbSet('accueil_cartes',data);
     renderAccueilCartes();
   },400);
+}
+// ── Correspondance : pièces jointes (base64 dans accueil_cartes.correspondance.fichiers) ──
+function corrFichierAjouter(inp){
+  var file=inp.files&&inp.files[0];
+  if(!file){return;}
+  if(file.size>5*1024*1024){ alert('Fichier trop volumineux (max 5 Mo).'); inp.value=''; return; }
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var data=accueilCartesLoad();
+    if(!data.correspondance) data.correspondance={visible:true,titre:'Correspondance',contenu:''};
+    if(!data.correspondance.fichiers) data.correspondance.fichiers=[];
+    data.correspondance.fichiers.push({nom:file.name,type:file.type,data:ev.target.result});
+    try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+    if(window.fbSet) window.fbSet('accueil_cartes',data);
+    corrFichiersRender();
+    renderAccueilCartes();
+    toast('✓ Fichier joint : '+file.name);
+  };
+  reader.readAsDataURL(file);
+  inp.value='';
+}
+function corrFichierSupprimer(idx){
+  var data=accueilCartesLoad();
+  if(!data.correspondance||!data.correspondance.fichiers) return;
+  var f=data.correspondance.fichiers[idx];
+  if(!confirm('Supprimer la pièce jointe "'+((f&&f.nom)||'')+'" ?')) return;
+  data.correspondance.fichiers.splice(idx,1);
+  try{localStorage.setItem('accueil_cartes',JSON.stringify(data));}catch(e){}
+  if(window.fbSet) window.fbSet('accueil_cartes',data);
+  corrFichiersRender();
+  renderAccueilCartes();
+}
+function corrFichierOuvrir(idx){
+  var data=accueilCartesLoad();
+  var f=(data.correspondance&&data.correspondance.fichiers)?data.correspondance.fichiers[idx]:null;
+  if(!f||!f.data) return;
+  var win=window.open('');
+  if(!win) return;
+  if((f.type||'').indexOf('image')>=0){
+    win.document.write('<img src="'+f.data+'" style="max-width:100%;height:auto;">');
+  } else {
+    var a=win.document.createElement('a');
+    a.href=f.data; a.download=f.nom; a.click();
+    win.close();
+  }
+}
+function corrFichiersRender(){
+  var el=document.getElementById('corracc-fichiers-list');
+  if(!el) return;
+  var data=accueilCartesLoad();
+  var fichiers=(data.correspondance&&data.correspondance.fichiers)||[];
+  if(!fichiers.length){ el.innerHTML='<span style="font-size:11px;color:rgba(255,255,255,.4);font-style:italic;">Aucune pièce jointe.</span>'; return; }
+  var h='';
+  fichiers.forEach(function(f,i){
+    var isImg=(f.type||'').indexOf('image')>=0;
+    h+='<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;background:rgba(255,255,255,.06);border:1px solid rgba(233,30,99,.35);border-radius:4px;margin-bottom:4px;">';
+    if(isImg) h+='<img src="'+f.data+'" onclick="corrFichierOuvrir('+i+')" style="height:32px;width:auto;border-radius:3px;cursor:pointer;flex-shrink:0;" title="'+(f.nom||'').replace(/"/g,'&quot;')+'">';
+    h+='<span onclick="corrFichierOuvrir('+i+')" style="flex:1;font-size:12px;color:#FFFFFF;cursor:pointer;text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="Ouvrir / télécharger">📎 '+(f.nom||'fichier')+'</span>';
+    h+='<button onclick="corrFichierSupprimer('+i+')" title="Supprimer la pièce jointe" style="background:none;border:none;color:rgba(220,80,80,.7);cursor:pointer;font-size:14px;flex-shrink:0;">🗑</button>';
+    h+='</div>';
+  });
+  el.innerHTML=h;
 }
 function _genericOfficeAccueilSave(key,idPfx,defTitre){
   var data=accueilCartesLoad();
@@ -14171,7 +14233,15 @@ function renderOffice(n){
       +'<input type="text" id="corracc-titre" value="'+_corrTitre0+'" placeholder="Titre" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:transparent;border:none;border-bottom:2px solid #E91E63;padding:4px 6px;color:#E91E63;font-family:\'Cormorant Garamond\',Georgia,serif;font-size:15px;font-weight:700;outline:none;">'
       +'</div>'
       +'<textarea id="corracc-contenu" rows="4" placeholder="Ex : Lettre reçue de la GL — Convocation au Grand Chapitre le 20 mars" oninput="corrAccueilAutoSave()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:4px;padding:8px 10px;color:rgba(255,255,255,.85);font-size:13px;line-height:1.6;resize:vertical;">'+_corrContenu0+'</textarea>'
-      +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p></div>';
+      +'<p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Coché et non vide : affiché sur la page d\'accueil. Sauvegarde automatique.</p>'
+      +'<div style="margin-top:10px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px;">'
+      +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">'
+      +'<span style="font-size:12px;font-weight:700;color:#E91E63 !important;">Pièces jointes</span>'
+      +'<label style="background:rgba(233,30,99,.15);border:1px solid rgba(233,30,99,.5);border-radius:4px;color:#E91E63;cursor:pointer;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;padding:4px 12px;white-space:nowrap;">📎 Joindre un fichier<input type="file" accept="image/*,application/pdf,.doc,.docx,.txt,.odt,.xls,.xlsx" onchange="corrFichierAjouter(this)" style="display:none;"></label>'
+      +'<span style="font-size:10px;color:rgba(255,255,255,.4);">max 5 Mo par fichier</span>'
+      +'</div>'
+      +'<div id="corracc-fichiers-list"></div>'
+      +'</div></div>';
     contenu=_secAccueilTop+'<div id="off-sec-content">'
       +'<div id="sec-tab-bar" style="display:flex;gap:0;border-bottom:2px solid rgba(184,146,42,.55);margin-bottom:14px;flex-wrap:wrap;align-items:flex-end;">'
       +'<button class="cfg-tab active" id="sec-tab-freres" onclick="secTab(\'freres\',this)">&#128101; Frères</button>'
@@ -14364,7 +14434,7 @@ function renderOffice(n){
     if(_epp) _epp.style.display='none';
   }
   if(n==='off-sec'){
-    setTimeout(function(){ secFreresTab('impression', document.getElementById('sec-ftab-impression')); },0);
+    setTimeout(function(){ secFreresTab('impression', document.getElementById('sec-ftab-impression')); corrFichiersRender(); },0);
   }
   if(n==='off-dep'){
     setTimeout(function(){ depPlRender(); },0);
