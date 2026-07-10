@@ -750,7 +750,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.332</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.333</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21866,6 +21866,21 @@ function plDetailAjouterPartie(nom){
 
 function plFermerDetailTenue(){
   var eid=_plDetailTenueId;
+  // Auto-enregistrement à la SORTIE : toutes les infos saisies dans la carte sont
+  // persistées dès qu'on ferme (croix, Fermer ou Enregistrer), puis affichées sur
+  // le planning de référence.
+  if(eid){
+    try{
+      var _data=plLoad();
+      var _evt=(_data.events||[]).filter(function(x){return x.id===eid;})[0];
+      if(_evt){
+        _evt.detail=peGet('pe-pl-detail');
+        var _nomEl=document.getElementById('ov-pl-detail-nom');
+        if(_nomEl) _evt.nomTenue=_nomEl.value.trim();
+        plSave(_data);
+      }
+    }catch(_e){}
+  }
   document.getElementById('ov-pl-detail').style.display = 'none';
   _plDetailTenueId = null;
   if(eid){ plRender(); setTimeout(function(){ var r=document.getElementById('pl-detail-row-'+eid); if(r){r.style.display='table-row'; var b=document.getElementById('pl-detail-btn-'+eid); if(b)b.innerHTML='&#9660;';} },120); }
@@ -23999,7 +24014,7 @@ try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(_e) {}
     </div>
     <div style="flex-shrink:0;display:flex;gap:8px;padding:12px 20px;border-top:2px solid var(--gold);background:#1E3660;border-radius:0 0 10px 10px;">
       <button onclick="plSauvegarderDetailTenue()" class="btn btn-gold">✓ Enregistrer</button>
-      <button onclick="plFermerDetailTenue()" class="btn btn-outline">Annuler</button>
+      <button onclick="plFermerDetailTenue()" class="btn btn-outline">Fermer</button>
     </div>
   </div>
 </div>
