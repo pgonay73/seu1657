@@ -476,6 +476,15 @@ input, select, textarea { color: #1E3660; }
     // données de démonstration figées dans le fichier, dès la réouverture du
     // logiciel. Cette donnée embarquée ne doit servir qu'à la toute première
     // ouverture, quand rien n'a encore été enregistré.
+    // ── PURGE DÉFINITIVE (v323) ─────────────────────────────────────────────
+    // La tenue "INSTALLATION COLLEGE + VM + DEPUTE" du 2026-09-04 (19:30) était
+    // figée dans les données embarquées ci-dessus. Elle alimentait à la fois
+    // D.tenues (planningTenues) ET le seed du planning, et réapparaissait sans
+    // cesse dès que le planning devenait vide (nouveau planning de référence,
+    // etc.). On la supprime de la SOURCE embarquée pour qu'elle ne puisse plus
+    // jamais être réinjectée nulle part.
+    var _estFantome=function(t){return !!(t && t.date==='2026-09-04' && (t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);};
+    if(embedded && embedded.tenues){ embedded.tenues=embedded.tenues.filter(function(t){return !_estFantome(t);}); }
     if (!localStorage.getItem('planningTenues')) {
       localStorage.setItem('planningTenues', JSON.stringify(embedded));
     }
@@ -484,10 +493,22 @@ input, select, textarea { color: #1E3660; }
     window._seedTenues=_seedReal;
     try{
       var _plNow=null;try{_plNow=JSON.parse(localStorage.getItem('planning_libre_data'));}catch(e){}
+      if(!_plNow||typeof _plNow!=='object') _plNow={events:[]};
+      if(!_plNow.events) _plNow.events=[];
+      if(!_plNow.deletedIds) _plNow.deletedIds=[];
+      // Retirer le fantôme des données déjà enregistrées et mémoriser sa suppression.
+      var _fant=_plNow.events.filter(_estFantome);
+      if(_fant.length){
+        _fant.forEach(function(t){ if(t.id && _plNow.deletedIds.indexOf(t.id)<0) _plNow.deletedIds.push(t.id); });
+        _plNow.events=_plNow.events.filter(function(t){return !_estFantome(t);});
+        localStorage.setItem('planning_libre_data',JSON.stringify(_plNow));
+      }
       // v167 : inclure les gen_* dans le test — un planning avec uniquement des gen_* est valide
-      var _plNowAny=(_plNow&&_plNow.events?_plNow.events:[]);
+      var _plNowAny=_plNow.events;
       if(_seedReal.length>0&&_plNowAny.length===0){
-        localStorage.setItem('planning_libre_data',JSON.stringify({events:_seedReal}));
+        var _delSet={}; _plNow.deletedIds.forEach(function(id){_delSet[id]=true;});
+        _plNow.events=_seedReal.filter(function(t){return !_delSet[t.id];});
+        localStorage.setItem('planning_libre_data',JSON.stringify(_plNow)); // conserve deletedIds
       }
     }catch(e){}
     var tr2 ={"tarifs": {"visiteur": 0, "honoraire": 50, "actif": 350, "affilie": 265}, "cotisations": {"1778246676878_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglementsAchats": [], "reglements": []}, "1778243062084_2026": {"reglements": [], "reglementsAchats": [], "reglementsCotis": [], "achatsAttribues": []}, "1778243943805_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglements": [], "reglementsAchats": []}, "1778246565012_": {"achatsAttribues": [], "reglements": [], "reglementsAchats": [], "reglementsCotis": []}, "1778247141820_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778244696264_": {"achatsAttribues": [], "reglementsCotis": [], "reglementsAchats": [], "reglements": []}, "1778187647014_2026": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778247074029_2026": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778246210477_2026": {"reglementsCotis": [], "reglementsAchats": [], "reglements": [], "achatsAttribues": []}, "1778245567402_": {"achatsAttribues": [], "reglementsCotis": [], "reglementsAchats": [], "reglements": []}, "1778187647014_": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778245123232_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778244895910_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778245975489_": {"reglementsCotis": [], "reglementsAchats": [], "reglements": [], "achatsAttribues": []}, "1778244254091_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglementsAchats": [], "reglements": []}, "1778243943805_": {"reglementsCotis": [], "reglements": [], "reglementsAchats": [], "achatsAttribues": []}, "1778184785255_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [{"montant": 265, "date": "2026-05-23", "valide": false, "mode": "especes"}], "reglementsCotis": [{"valide": false, "mode": "especes", "montant": 50, "date": "2026-05-23"}]}, "1778245431813_": {"reglementsCotis": [], "reglementsAchats": [], "reglements": [], "achatsAttribues": []}, "1778246782393_": {"reglements": [], "reglementsAchats": [], "reglementsCotis": [], "achatsAttribues": []}, "1778190652597_2026": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778247141820_2026": {"reglementsCotis": [], "reglementsAchats": [], "reglements": [], "achatsAttribues": []}, "1778244464496_2026": {"reglements": [], "reglementsAchats": [], "reglementsCotis": [], "achatsAttribues": []}, "1778243660622_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778184785255_2026": {"reglementsAchats": [{"mode": "especes", "valide": true, "montant": 30, "date": "2026-05-23"}, {"mode": "especes", "valide": true, "montant": 40, "date": "2026-05-29"}], "reglements": [], "reglementsCotis": [{"date": "2026-05-23", "montant": 50, "valide": true, "mode": "especes"}, {"mode": "cheque", "valide": true, "date": "2026-05-29", "montant": 100}, {"date": "2026-05-29", "montant": 20, "mode": "virement", "valide": true}], "achatsAttribues": [{"_degreFiltre": "3°", "_catFiltre": "Droits", "date": "2026-05-23", "achatId": "a1780084709697"}, {"_degreFiltre": "3°", "_catFiltre": "Accessoires/matériel", "achatId": "a1780084928040", "date": "2026-05-23"}, {"date": "2026-05-29", "achatId": "a1780084855492", "_catFiltre": "Abonnement PVI", "_degreFiltre": "Tous"}]}, "1778245019459_": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778246084434_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglementsAchats": [], "reglements": []}, "1778242279859_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglements": [], "reglementsAchats": []}, "1778243062084_": {"reglementsCotis": [], "reglements": [], "reglementsAchats": [], "achatsAttribues": []}, "1778190630508_2026": {"reglementsCotis": [], "reglementsAchats": [], "reglements": [], "achatsAttribues": []}, "1778245567402_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglements": [], "reglementsAchats": []}, "1778244464496_": {"reglementsCotis": [], "reglements": [], "reglementsAchats": [], "achatsAttribues": []}, "1778242279859_": {"achatsAttribues": [], "reglementsCotis": [], "reglementsAchats": [], "reglements": []}, "1778244696264_2026": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778246676878_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778190630508_": {"achatsAttribues": [], "reglements": [], "reglementsAchats": [], "reglementsCotis": []}, "1778244254091_": {"achatsAttribues": [], "reglements": [], "reglementsAchats": [], "reglementsCotis": []}, "1778246084434_": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778246210477_": {"achatsAttribues": [], "reglementsCotis": [], "reglements": [], "reglementsAchats": []}, "1778244798046_": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778246963670_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778245431813_2026": {"reglementsCotis": [], "reglements": [], "reglementsAchats": [], "achatsAttribues": []}, "1778244798046_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglements": [], "reglementsAchats": []}, "1778246882000_": {"reglementsCotis": [], "reglementsAchats": [], "reglements": [], "achatsAttribues": []}, "1778245019459_2026": {"reglementsCotis": [], "reglements": [], "reglementsAchats": [], "achatsAttribues": []}, "1778246963670_2026": {"reglements": [], "reglementsAchats": [], "reglementsCotis": [], "achatsAttribues": []}, "1778246882000_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglements": [], "reglementsAchats": []}, "1778246565012_2026": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778245123232_2026": {"reglementsCotis": [], "reglementsAchats": [], "reglements": [], "achatsAttribues": []}, "1778246782393_2026": {"achatsAttribues": [], "reglements": [], "reglementsAchats": [], "reglementsCotis": []}, "1778190652597_": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778247074029_": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778244895910_2026": {"reglementsAchats": [], "reglements": [], "reglementsCotis": [], "achatsAttribues": []}, "1778245975489_2026": {"achatsAttribues": [], "reglementsAchats": [], "reglements": [], "reglementsCotis": []}, "1778243660622_2026": {"achatsAttribues": [], "reglementsCotis": [], "reglementsAchats": [], "reglements": []}}};
@@ -729,7 +750,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.322</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.323</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -1511,6 +1532,23 @@ try {
       _fbLoaded++;
       if(val !== null && val !== undefined) {
         try { localStorage.setItem(key, typeof val==='string'?val:JSON.stringify(val)); } catch(e) {}
+        // v323 — purge du fantôme 2026-09-04 s'il revient depuis Firebase (vrai évènement stocké)
+        if(key==='planning_libre_data'){
+          try{
+            var _pv=(typeof val==='string')?JSON.parse(val):val;
+            if(_pv&&_pv.events){
+              var _isF=function(t){return !!(t&&t.date==='2026-09-04'&&(t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);};
+              var _fF=_pv.events.filter(_isF);
+              if(_fF.length){
+                if(!_pv.deletedIds)_pv.deletedIds=[];
+                _fF.forEach(function(t){if(t.id&&_pv.deletedIds.indexOf(t.id)<0)_pv.deletedIds.push(t.id);});
+                _pv.events=_pv.events.filter(function(t){return !_isF(t);});
+                localStorage.setItem('planning_libre_data',JSON.stringify(_pv));
+                if(window.fbSet) window.fbSet('planning_libre_data',_pv);
+              }
+            }
+          }catch(e){}
+        }
         if(key==='planningTenues' && val && typeof val==='object' && val.freres) {
           window.D = val;
           // Mêmes garanties que load() au démarrage : une sauvegarde Firebase
@@ -1690,7 +1728,7 @@ var TR2 = {tarifs:{actif:0,affilie:0,honoraire:0,visiteur:0}, cotisations:{}};
 // Bridge Planning Libre — défini ici pour être disponible dès le démarrage
 // (le bloc PL plus bas redéfinit les mêmes fonctions, ce qui est sans effet)
 var PL_KEY='planning_libre_data';
-function plLoad(){try{var s=localStorage.getItem(PL_KEY);return s?JSON.parse(s):{events:[]};}catch(e){return{events:[]};}}
+function plLoad(){try{var s=localStorage.getItem(PL_KEY);var d=s?JSON.parse(s):{events:[]};if(d&&d.events&&d.events.length)d.events=d.events.filter(function(t){return !(t&&t.date==='2026-09-04'&&(t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);});return d;}catch(e){return{events:[]};}}
 function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_KEY,d);}
 function getTenues(){return(plLoad().events||[]);}
 function plTenueUpdate(id,fields){var d=plLoad();for(var i=0;i<d.events.length;i++){if(d.events[i].id===id){Object.assign(d.events[i],fields);break;}}plSave(d);}
@@ -18978,7 +19016,7 @@ function plDureeGenereeMaj(valeur){
   plRender();
 }
 
-function plLoad(){try{var s=localStorage.getItem(PL_KEY);return s?JSON.parse(s):{events:[]};}catch(e){return{events:[]};}}
+function plLoad(){try{var s=localStorage.getItem(PL_KEY);var d=s?JSON.parse(s):{events:[]};if(d&&d.events&&d.events.length)d.events=d.events.filter(function(t){return !(t&&t.date==='2026-09-04'&&(t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);});return d;}catch(e){return{events:[]};}}
 function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_KEY,d);}
 function plNomSave(){var el=document.getElementById('pl-planning-nom');if(!el)return;var d=plLoad();d.nom=el.value;plSave(d);}
 function plNomLoad(){var el=document.getElementById('pl-planning-nom');if(!el)return;el.value=plLoad().nom||'';}
