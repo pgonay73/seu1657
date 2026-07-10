@@ -750,7 +750,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.328</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.329</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20771,6 +20771,7 @@ function plRenderPlanning(targetId){
     // Les sujets legacy + assignations de frères (suivi) sont placés à la position
     // de la première planche/symbolisme du détail.
     var _chipS='font-size:10px;border-radius:3px;padding:1px 6px;white-space:nowrap;border:1px solid ';
+    var _box=function(inner,bc){ return inner?'<div style="display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;border:1px solid '+bc+';border-radius:6px;padding:3px 7px;background:rgba(255,255,255,.03);">'+inner+'</div>':''; };
     var _assignHTML=function(){
       var s='';
       if(e.sujetPlanche) s+='<span style="'+_chipS+'rgba(184,146,42,.3);background:rgba(184,146,42,.12);color:rgba(220,185,70,.9);" title="Sujet planche">P&#160;: '+e.sujetPlanche+'</span>';
@@ -20797,27 +20798,58 @@ function plRenderPlanning(targetId){
       var _isCA3=isConseil(dp.nom);
       var _isCerCard3=isCeremCard(dp.nom);
       var _isReunHT3=isReunHTCard(dp.nom);
+      var _pc='';   // infos de CET élément (regroupées dans un même cadre)
+      var _bc='rgba(255,255,255,.18)';
       if(_isPl3){
-        if(!_assignPlaced){ _assignPlaced=true; _orderedChips+=_assignHTML(); }
-        if(dp.titre&&!_assign.length) _orderedChips+='<span style="'+_chipS+'rgba(184,146,42,.4);background:rgba(184,146,42,.08);color:rgba(220,185,70,.95);">&#x2605; '+dp.titre+'</span>';
-        if(dp.conf&&!_assign.length) _orderedChips+='<span style="'+_chipS+'rgba(120,185,255,.35);background:rgba(120,185,255,.07);color:rgba(160,210,255,.9);">Conf&#160;: '+dp.conf+'</span>';
+        if(!_assignPlaced){ _assignPlaced=true; _pc+=_assignHTML(); }
+        if(dp.titre&&!_assign.length) _pc+='<span style="'+_chipS+'rgba(184,146,42,.4);background:rgba(184,146,42,.08);color:rgba(220,185,70,.95);">&#x2605; '+dp.titre+'</span>';
+        if(dp.conf&&!_assign.length) _pc+='<span style="'+_chipS+'rgba(120,185,255,.35);background:rgba(120,185,255,.07);color:rgba(160,210,255,.9);">Conf&#160;: '+dp.conf+'</span>';
+        _bc='rgba(184,146,42,.5)';
       }
-      if(_isInter3&&(dp.interSteps||[]).length) _orderedChips+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Int&#160;: '+(dp.interSteps||[]).join(' · ')+'</span>';
-      if(_isInter3&&(dp.interIntervenant||'').trim()) _orderedChips+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Interv.&#160;: '+(dp.interIntervenant||'').replace(/</g,'&lt;')+'</span>';
-      if(_isInter3&&(dp.interSujet||'').trim()) _orderedChips+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Sujet&#160;: '+(dp.interSujet||'').replace(/</g,'&lt;')+'</span>';
-      if(_isElec3&&(dp.elecSteps||[]).length) _orderedChips+='<span style="'+_chipS+'rgba(100,200,100,.35);background:rgba(100,200,100,.07);color:rgba(130,230,130,.9);">Élec&#160;: '+(dp.elecSteps||[]).join(' · ')+'</span>';
-      if(_isInst3&&(dp.instSteps||[]).length) _orderedChips+='<span style="'+_chipS+'rgba(100,200,100,.35);background:rgba(100,200,100,.07);color:rgba(130,230,130,.9);">Inst&#160;: '+(dp.instSteps||[]).join(' · ')+'</span>';
-      if(_isInit3&&dp.initNom) _orderedChips+='<span style="'+_chipS+'rgba(180,120,255,.35);background:rgba(180,120,255,.07);color:rgba(200,160,255,.9);">Init&#160;: '+dp.initNom+(dp.initDegre?' ('+dp.initDegre+')':"")+'</span>';
-      if(_isPr3&&dp.nomProfane) _orderedChips+='<span style="'+_chipS+'rgba(180,120,255,.35);background:rgba(180,120,255,.07);color:rgba(200,160,255,.9);">Cand&#160;: '+dp.nomProfane+'</span>';
-      if(_isAff3&&dp.nomAffilie) _orderedChips+='<span style="'+_chipS+'rgba(255,160,80,.35);background:rgba(255,160,80,.07);color:rgba(255,190,120,.9);">Aff&#160;: '+dp.nomAffilie+'</span>';
-      if(_isCA3&&dp.caOdj) _orderedChips+='<span style="'+_chipS+'rgba(180,180,255,.35);background:rgba(180,180,255,.07);color:rgba(200,200,255,.9);">OdJ&#160;: '+dp.caOdj+'</span>';
-      if(_isCerCard3&&(dp.cerCardSteps||[]).length) _orderedChips+='<span style="'+_chipS+'rgba(255,120,120,.35);background:rgba(255,120,120,.07);color:rgba(255,160,160,.9);">Cér&#160;: '+(dp.cerCardSteps||[]).join(' · ')+'</span>';
-      if(_isReunHT3&&(dp.reunSteps||[]).length) _orderedChips+='<span style="'+_chipS+'rgba(180,180,180,.35);background:rgba(180,180,180,.07);color:rgba(220,220,220,.9);">Réun&#160;: '+(dp.reunSteps||[]).join(' · ')+'</span>';
+      if(_isInter3){
+        if((dp.interSteps||[]).length) _pc+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Int&#160;: '+(dp.interSteps||[]).join(' · ')+'</span>';
+        if((dp.interIntervenant||'').trim()) _pc+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Interv.&#160;: '+(dp.interIntervenant||'').replace(/</g,'&lt;')+'</span>';
+        if((dp.interSujet||'').trim()) _pc+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Sujet&#160;: '+(dp.interSujet||'').replace(/</g,'&lt;')+'</span>';
+        _bc='rgba(255,180,60,.5)';
+      }
+      if(_isElec3){
+        if((dp.elecSteps||[]).length) _pc+='<span style="'+_chipS+'rgba(100,200,100,.35);background:rgba(100,200,100,.07);color:rgba(130,230,130,.9);">Élec&#160;: '+(dp.elecSteps||[]).join(' · ')+'</span>';
+        _bc='rgba(100,200,100,.5)';
+      }
+      if(_isInst3){
+        if((dp.instSteps||[]).length) _pc+='<span style="'+_chipS+'rgba(100,200,100,.35);background:rgba(100,200,100,.07);color:rgba(130,230,130,.9);">Inst&#160;: '+(dp.instSteps||[]).join(' · ')+'</span>';
+        _bc='rgba(100,200,100,.5)';
+      }
+      if(_isInit3){
+        if(dp.initNom) _pc+='<span style="'+_chipS+'rgba(180,120,255,.35);background:rgba(180,120,255,.07);color:rgba(200,160,255,.9);">Init&#160;: '+dp.initNom+(dp.initDegre?' ('+dp.initDegre+')':"")+'</span>';
+        _bc='rgba(180,120,255,.5)';
+      }
+      if(_isPr3){
+        if(dp.nomProfane) _pc+='<span style="'+_chipS+'rgba(180,120,255,.35);background:rgba(180,120,255,.07);color:rgba(200,160,255,.9);">Cand&#160;: '+dp.nomProfane+'</span>';
+        _bc='rgba(180,120,255,.5)';
+      }
+      if(_isAff3){
+        if(dp.nomAffilie) _pc+='<span style="'+_chipS+'rgba(255,160,80,.35);background:rgba(255,160,80,.07);color:rgba(255,190,120,.9);">Aff&#160;: '+dp.nomAffilie+'</span>';
+        _bc='rgba(255,160,80,.5)';
+      }
+      if(_isCA3){
+        if(dp.caOdj) _pc+='<span style="'+_chipS+'rgba(180,180,255,.35);background:rgba(180,180,255,.07);color:rgba(200,200,255,.9);">OdJ&#160;: '+dp.caOdj+'</span>';
+        _bc='rgba(180,180,255,.5)';
+      }
+      if(_isCerCard3){
+        if((dp.cerCardSteps||[]).length) _pc+='<span style="'+_chipS+'rgba(255,120,120,.35);background:rgba(255,120,120,.07);color:rgba(255,160,160,.9);">Cér&#160;: '+(dp.cerCardSteps||[]).join(' · ')+'</span>';
+        _bc='rgba(255,120,120,.5)';
+      }
+      if(_isReunHT3){
+        if((dp.reunSteps||[]).length) _pc+='<span style="'+_chipS+'rgba(180,180,180,.35);background:rgba(180,180,180,.07);color:rgba(220,220,220,.9);">Réun&#160;: '+(dp.reunSteps||[]).join(' · ')+'</span>';
+        _bc='rgba(180,180,180,.5)';
+      }
+      if(_pc) _orderedChips+=_box(_pc,_bc);
     });
-    if(!_assignPlaced){ _orderedChips=_assignHTML()+_orderedChips; }
+    if(!_assignPlaced){ var _pre=_assignHTML(); if(_pre) _orderedChips=_box(_pre,'rgba(184,146,42,.5)')+_orderedChips; }
     var _inlineInfo='';
     if(_orderedChips){
-      _inlineInfo='<div class="pl-col-freres" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:15cm;">'+_orderedChips+'</div>';
+      _inlineInfo='<div class="pl-col-freres" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;min-width:15cm;">'+_orderedChips+'</div>';
     }
     var _tdToggle='<td style="text-align:center;"><button onclick="plToggleDetailModules(&quot;'+eid+'&quot;,this)" id="pl-detail-btn-'+eid+'" title="Voir le découpage par module" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;padding:2px;">'+(plAllDetailsExpanded?'&#9660;':'&#9654;')+'</button></td>';
     var _tdDate='<td class="pl-col-date" style="white-space:nowrap;color:'+cd+';font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠</span>':'')+'</td>';
