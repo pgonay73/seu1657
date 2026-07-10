@@ -571,6 +571,9 @@ input, select, textarea { color: #1E3660; }
     width:100%;box-sizing:border-box;
   }
 #v-planning-libre select:focus,#v-planning-libre input:focus {outline:none;border-color:var(--gold);}
+/* Tenue dépliée : trait de démarcation au-dessus (ligne principale) et en dessous (ligne de détail) */
+tr.pl-open-top > td { border-top: 2px solid var(--gold2) !important; }
+tr.pl-open-bottom > td { border-bottom: 2px solid var(--gold2) !important; }
 /* label = cfg-group label global */
 #v-planning-libre label {display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-bottom:6px;font-weight:600;}
 /* pl-cfg-row / pl-cfg-group = cfg-row / cfg-group global */
@@ -750,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.336</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.337</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20873,13 +20876,15 @@ function plRenderPlanning(targetId){
       +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;,this)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
     var _actBtns=_actBtnsBase
       +(isAdmin?'<div class="pl-col-modele" style="width:120px;flex-shrink:0;display:flex;align-items:center;">'+modeleAff+'</div>'+_dureeAdmInput:'');
+    var _expTopCls=plAllDetailsExpanded?' class="pl-open-top"':'';
+    var _expBotCls=plAllDetailsExpanded?' class="pl-open-bottom"':'';
     if(isAdmin){
-      h+='<tr style="'+traitJournee+bgFerie+'">'
+      h+='<tr'+_expTopCls+' style="'+traitJournee+bgFerie+'">'
         +_tdToggle+_tdDate+_tdDeg+_tdPAdm+_tdSAdm
         +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;overflow:hidden;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+(marqueur?'<span style="color:'+cd+';flex-shrink:0;">'+marqueur+'</span>':'')+'<input class="pl-col-titre" type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="'+((_modRef&&_modRef.nom)?_modRef.nom.replace(/"/g,'&quot;'):'(sans titre)')+'" onblur="plTitreChanger(&quot;'+eid+'&quot;,this.value)" style="background:transparent;border:none;border-bottom:1px dashed rgba(255,255,255,.2);color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;flex:1;min-width:80px;padding:0 2px;outline:none;"></div>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
         +'</tr>';
     } else {
-      h+='<tr style="'+traitJournee+bgFerie+'">'
+      h+='<tr'+_expTopCls+' style="'+traitJournee+bgFerie+'">'
         +_tdToggle+_tdDate+_tdDeg+_tdP+_tdS
         +'<td style="font-family:Georgia,serif;font-size:13px;font-weight:600;"><div style="display:flex;align-items:center;gap:8px;"><div style="flex:1;min-width:0;overflow:hidden;"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="pl-col-titre" style="color:'+cd+';">'+titreAffiche+'</span>'+nomTenueAff+modeleAffLecture+dureeEffAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;font-style:italic;">'+ferie+'</span>':'')+'</div>'+_inlineInfo+'</div>'+(window._plVmMode?'<div style="margin-left:auto;display:flex;gap:4px;flex-shrink:0;">'+_actBtnsBase+'</div>':'')+'</div></td>'
         +'</tr>';
@@ -20887,7 +20892,7 @@ function plRenderPlanning(targetId){
     // Ligne dépliable : détail du découpage par module de cette tenue,
     // Ligne dépliable : détail de la tenue (parties avec nom et durée)
     var detailParties=e.detail&&e.detail.length?e.detail:(_modRefParties||(D.parDefaut||[]));
-    h+='<tr id="pl-detail-row-'+eid+'" style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
+    h+='<tr id="pl-detail-row-'+eid+'"'+_expBotCls+' style="display:'+(plAllDetailsExpanded?'table-row':'none')+';">';
     h+='<td></td>';
     h+='<td colspan="'+(isAdmin?5:5)+'" style="padding:6px 14px 10px 14px;background:rgba(255,255,255,.03);">';
     // Sélecteur de modèle
@@ -21145,6 +21150,15 @@ function plToggleDetailModules(eventId,btn){
   var ouvert=row.style.display!=='none';
   row.style.display=ouvert?'none':'table-row';
   if(btn) btn.innerHTML=ouvert?'&#9654;':'&#9660;';
+  // Trait de démarcation de la tenue dépliée (au-dessus de la ligne principale, sous le détail)
+  var _mainRow=row.previousElementSibling;
+  if(ouvert){
+    row.classList.remove('pl-open-bottom');
+    if(_mainRow) _mainRow.classList.remove('pl-open-top');
+  } else {
+    row.classList.add('pl-open-bottom');
+    if(_mainRow) _mainRow.classList.add('pl-open-top');
+  }
   if(!ouvert){
     setTimeout(function(){
       var main=document.querySelector('.main');
