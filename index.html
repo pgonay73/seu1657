@@ -750,7 +750,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.325</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.326</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -2972,7 +2972,7 @@ function peRender(cid,parties){
     var isElec=isElections(p.nom);
     var elecSteps=p.elecSteps||[];
     var isInst=isInstallCard(p.nom); var instSteps=p.instSteps||[];
-    var isInter=isInterventCard(p.nom); var interSteps=p.interSteps||[];
+    var isInter=isInterventCard(p.nom); var interSteps=p.interSteps||[]; var interSujet=p.interSujet||'';
     var isCerCard=isCeremCard(p.nom); var cerCardSteps=p.cerCardSteps||[];
     var isReunHT=isReunHTCard(p.nom); var reunSteps=p.reunSteps||[];
     var caOdj=(p.caOdj||'').replace(/"/g,'&quot;');
@@ -3059,6 +3059,8 @@ function peRender(cid,parties){
         h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-inter-cb" value="'+interData[intIdx].v+'" data-dur="'+interData[intIdx].dur+'"'+intSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peInterChange(this)">'+interData[intIdx].v+' ('+interData[intIdx].dur+' min)</label>';
       }
       h+='</div>';
+      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;">Sujet</div>';
+      h+='<input class="pe-inter-sujet" type="text" value="'+(interSujet||'').replace(/"/g,'&quot;')+'" placeholder="Sujet de l\'intervention..." style="width:100%;box-sizing:border-box;padding:5px 10px;border:1px solid var(--gold);border-radius:3px;font-family:Raleway,sans-serif;font-size:12px;color:var(--text);">';
       h+='</div>';
     } else if(isCerCard){
       h+='<div class="pe-pl-extra" style="display:none;"></div>';
@@ -3521,6 +3523,8 @@ function peGet(cid){
     rs[i].querySelectorAll('.pe-inst-cb:checked').forEach(function(cb){instSteps.push(cb.value);});
     var interSteps=[];
     rs[i].querySelectorAll('.pe-inter-cb:checked').forEach(function(cb){interSteps.push(cb.value);});
+    var _interSujetEl=rs[i].querySelector('.pe-inter-sujet');
+    var interSujet=_interSujetEl?_interSujetEl.value:'';
     var cerCardSteps=[];
     rs[i].querySelectorAll('.pe-cer-card-cb:checked').forEach(function(cb){cerCardSteps.push(cb.value);});
     var reunSteps=[];
@@ -3550,7 +3554,7 @@ function peGet(cid){
       cerVals.push(cb.value);
       if(cerStd.indexOf(cb.value)<0) cerCust.push(cb.value);
     });
-    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets,elecSteps:elecSteps,instSteps:instSteps,interSteps:interSteps,cerCardSteps:cerCardSteps,reunSteps:reunSteps});
+    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets,elecSteps:elecSteps,instSteps:instSteps,interSteps:interSteps,interSujet:interSujet,cerCardSteps:cerCardSteps,reunSteps:reunSteps});
   }
   return r;
 }
@@ -20774,6 +20778,7 @@ function plRenderPlanning(targetId){
       if(_isPl3&&dp.titre&&!_assign.length) _detailChips+='<span style="'+_chipS+'rgba(184,146,42,.4);background:rgba(184,146,42,.08);color:rgba(220,185,70,.95);">&#x2605; '+dp.titre+'</span>';
       if(_isPl3&&dp.conf&&!_assign.length) _detailChips+='<span style="'+_chipS+'rgba(120,185,255,.35);background:rgba(120,185,255,.07);color:rgba(160,210,255,.9);">Conf&#160;: '+dp.conf+'</span>';
       if(_isInter3&&(dp.interSteps||[]).length) _detailChips+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Int&#160;: '+(dp.interSteps||[]).join(' · ')+'</span>';
+      if(_isInter3&&(dp.interSujet||'').trim()) _detailChips+='<span style="'+_chipS+'rgba(255,180,60,.35);background:rgba(255,180,60,.07);color:rgba(255,200,90,.9);">Sujet&#160;: '+(dp.interSujet||'').replace(/</g,'&lt;')+'</span>';
       if(_isElec3&&(dp.elecSteps||[]).length) _detailChips+='<span style="'+_chipS+'rgba(100,200,100,.35);background:rgba(100,200,100,.07);color:rgba(130,230,130,.9);">Élec&#160;: '+(dp.elecSteps||[]).join(' · ')+'</span>';
       if(_isInst3&&(dp.instSteps||[]).length) _detailChips+='<span style="'+_chipS+'rgba(100,200,100,.35);background:rgba(100,200,100,.07);color:rgba(130,230,130,.9);">Inst&#160;: '+(dp.instSteps||[]).join(' · ')+'</span>';
       if(_isInit3&&dp.initNom) _detailChips+='<span style="'+_chipS+'rgba(180,120,255,.35);background:rgba(180,120,255,.07);color:rgba(200,160,255,.9);">Init&#160;: '+dp.initNom+(dp.initDegre?' ('+dp.initDegre+')':"")+'</span>';
@@ -20893,6 +20898,7 @@ function plRenderPlanning(targetId){
         if(p.elecSteps&&p.elecSteps.length) det.push(p.elecSteps.join(' · '));
         if(p.instSteps&&p.instSteps.length) det.push(p.instSteps.join(' · '));
         if(p.interSteps&&p.interSteps.length) det.push(p.interSteps.join(' · '));
+        if((p.interSujet||'').trim()) det.push('Sujet : '+p.interSujet);
         if(p.cerCardSteps&&p.cerCardSteps.length) det.push(p.cerCardSteps.join(' · '));
         if(p.choixCeremonie&&p.choixCeremonie.length) det.push(p.choixCeremonie.join(' · '));
         if(p.caOdj) det.push('OdJ : '+p.caOdj);
