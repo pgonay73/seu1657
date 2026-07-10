@@ -729,7 +729,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.320</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.321</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -814,7 +814,7 @@ function loginVerif(){
         <div id="accueil-carte-ora"  style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #7D3C98;padding:14px 18px;margin-bottom:12px;"></div>
         <div id="accueil-carte-exp"  style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #2471A3;padding:14px 18px;margin-bottom:12px;"></div>
         <div id="accueil-carte-tres" style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #00BCD4;padding:14px 18px;margin-bottom:12px;"></div>
-        <div id="accueil-carte-dep"  style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #5D6D7E;padding:14px 18px;margin-bottom:12px;"></div>
+        <div id="accueil-carte-dep"  style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #7986CB;padding:14px 18px;margin-bottom:12px;"></div>
       </div>
 
     </div>
@@ -6397,7 +6397,7 @@ var _ACCUEIL_CARTES_DEF=[
    hint:'Ex : Patte de l\'Expert mise à jour — voir document joint\nPrécisions : ...'},
   {key:'tres', color:'#00BCD4', titre:'Trésorier',
    hint:'Ex : Capitations 2025 — rappel de paiement\nSolde disponible : ...'},
-  {key:'dep',  color:'#5D6D7E', titre:'Député',
+  {key:'dep',  color:'#7986CB', titre:'Député',
    hint:'Ex : Retour de la GL — séance du 15 mars\nPoints à l\'ordre du jour : ...'}
 ];
 
@@ -14310,7 +14310,7 @@ function renderOffice(n){
     'off-ora':  {key:'ora',     idPfx:'oraacc',  color:'#7D3C98',fn:'oraAccueilAutoSave',  hint:'Ex : Prochaine planche — F∴ Dupont sur la fraternité'},
     'off-exp':  {key:'exp',     idPfx:'expacc',  color:'#2471A3',fn:'expAccueilAutoSave',  hint:'Ex : Patte de l\'Expert mise à jour — voir document joint'},
     'off-tres': {key:'tres',    idPfx:'tresacc', color:'#00BCD4',fn:'tresAccueilAutoSave', hint:'Ex : Capitations 2025 — rappel de paiement avant le 31 mars'},
-    'off-dep':  {key:'dep',     idPfx:'depacc',  color:'#5D6D7E',fn:'depAccueilAutoSave',  hint:'Ex : Retour de la GL — séance du 15 mars\nPoints à l\'ordre du jour : ...'}
+    'off-dep':  {key:'dep',     idPfx:'depacc',  color:'#7986CB',fn:'depAccueilAutoSave',  hint:'Ex : Retour de la GL — séance du 15 mars\nPoints à l\'ordre du jour : ...'}
   };
   if(_offAccMap[n]){
     var _oa=_offAccMap[n];
