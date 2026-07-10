@@ -750,7 +750,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.324</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.325</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20978,6 +20978,16 @@ function plRenderPlanning(targetId){
           _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
           [{v:'CA',d:60},{v:'Compagnons',d:120},{v:'Apprentis',d:120}].forEach(function(x){var chk=(p.reunSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'reunSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
           _exH+='</div>';
+        }
+        // v325 — Informations complémentaires (cases à cocher / champs) : la saisie
+        // n'est plus possible en inline, uniquement via la carte complète. On remplace
+        // les contrôles inline par un avertissement + le bouton d'ouverture. L'état déjà
+        // saisi reste visible dans le résumé de la ligne (chips / détail).
+        if(_isInter2||_isElec2||_isInst2||_isInit2||_isPr2||_isAff2||_isCA2||_isCerCard2||_isReunHT2){
+          _exH='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;">'
+            +'<span style="font-size:10.5px;color:rgba(184,146,42,.8);font-style:italic;">&#9888; Informations complémentaires à renseigner obligatoirement via la carte complète</span>'
+            +'<button onclick="plOuvrirDetailTenueFromInline(\''+eid+'\')" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.5);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;padding:3px 10px;font-weight:600;white-space:nowrap;">&#128203; Ouvrir la carte complète</button>'
+            +'</div>';
         }
         if(_exH){
           h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">'
