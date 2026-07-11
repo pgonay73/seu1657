@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.342</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.343</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20768,7 +20768,7 @@ function plRenderPlanning(targetId){
     var _modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
     var _modEffectif=_modRef||(typeof getModeleParDegre==='function'?getModeleParDegre(deg):null);
     var modeleAff='';
-    if(_modRef)modeleAff='<span class="pl-col-modele" onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Cliquer pour modifier le modèle" style="cursor:pointer;font-size:10px;color:rgba(184,146,42,.85);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.35);border-radius:3px;padding:1px 5px;">'+_modRef.nom+' ✎</span>';
+    if(_modRef)modeleAff='<span class="pl-col-modele" onclick="plOuvrirDetailTenueFromInline(&quot;'+eid+'&quot;)" title="Cliquer pour ouvrir la carte complète" style="cursor:pointer;font-size:10px;color:rgba(184,146,42,.85);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.35);border-radius:3px;padding:1px 5px;">'+_modRef.nom+' ✎</span>';
     else if(_modEffectif)modeleAff='<span class="pl-col-modele" style="font-size:10px;color:rgba(184,146,42,.55);font-style:italic;background:rgba(184,146,42,.05);border:1px solid rgba(184,146,42,.2);border-radius:3px;padding:1px 5px;">'+_modEffectif.nom+'</span>';
     var modeleAffLecture='';
     if(_modRef)modeleAffLecture='<span class="pl-col-modele" style="font-size:10px;color:rgba(184,146,42,.85);font-weight:600;background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.35);border-radius:3px;padding:1px 5px;">'+_modRef.nom+'</span>';
@@ -20904,7 +20904,7 @@ function plRenderPlanning(targetId){
     var _tdSAdm='<td class="pl-col-ss" style="text-align:center;"><input type="number" min="0" value="'+_sVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'S\',+this.value)" style="'+_inpPs+'color:#C080D0;">'+'</td>';
     var _dureeManVal=_dureeEff>0?_dureeEff:(e.duree!=null&&e.duree>0?e.duree:'');
     var _dureeAdmInput='<span class="pl-col-duree"><input type="number" min="0" value="'+_dureeManVal+'" placeholder="—" onblur="plDureeChanger(&quot;'+eid+'&quot;,+this.value)" style="width:48px;background:transparent;border:none;border-bottom:1px dashed rgba(184,146,42,.4);color:var(--gold2);font-weight:600;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"><span style="font-size:10px;color:rgba(184,146,42,.6);"> min</span></span>';
-    var _actBtnsBase='<button onclick="plDetailOuvrir(&quot;'+eid+'&quot;,this)" title="Déplier le détail de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
+    var _actBtnsBase='<button onclick="plOuvrirDetailTenueFromInline(&quot;'+eid+'&quot;)" title="Ouvrir la carte complète de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
       +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;,this)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
     var _actBtns=_actBtnsBase
       +(isAdmin?'<div class="pl-col-modele" style="width:120px;flex-shrink:0;display:flex;align-items:center;">'+modeleAff+'</div>'+_dureeAdmInput:'');
@@ -21881,6 +21881,13 @@ function plOuvrirDetailTenue(eid){
   var _titreFallback0=_modEff0?_modEff0.nom:(_deg0==='3°'?'Tenue au 3°':_deg0==='2°'?'Tenue au 2°':'—');
   var titreInpEl=document.getElementById('ov-pl-detail-titre-input');
   if(titreInpEl){ titreInpEl.value=evt.titre||''; titreInpEl.placeholder=_titreFallback0; }
+  // Sélecteur de modèle
+  var modeleSelEl=document.getElementById('ov-pl-detail-modele-sel');
+  if(modeleSelEl){
+    var _mOpts='<option value=""'+(!evt.modeleId?' selected':'')+'>— Défaut (parDefaut) —</option>';
+    (D.modeles||[]).forEach(function(m){_mOpts+='<option value="'+m.id+'"'+(evt.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
+    modeleSelEl.innerHTML=_mOpts;
+  }
   // Charger le nom personnalisé
   var nomEl=document.getElementById('ov-pl-detail-nom');
   if(nomEl) nomEl.value=evt.nomTenue||evt.titre||'';
@@ -21994,6 +22001,35 @@ function plSauvegarderTitreTenue(){
     var ds=d.getDate()+' '+mois[d.getMonth()]+' '+d.getFullYear();
     var _lbl=evt.titre||(titreEl?titreEl.placeholder:'')||'Tenue';
     headEl.textContent=ds+' — '+_lbl;
+  }
+  plRender();
+}
+// Changement de modèle depuis la carte complète : recharge les éléments par défaut
+// du nouveau modèle (avec confirmation si des éléments avaient déjà été personnalisés).
+function plModaleModeleChanger(newModeleId){
+  if(!_plDetailTenueId) return;
+  var data=plLoad();
+  var evt=(data.events||[]).filter(function(e){return e.id===_plDetailTenueId;})[0];
+  if(!evt) return;
+  if(evt.detail&&evt.detail.length){
+    if(!confirm('Changer de modèle va remplacer les éléments actuels de cette tenue par ceux du nouveau modèle. Continuer ?')){
+      var selEl=document.getElementById('ov-pl-detail-modele-sel');
+      if(selEl) selEl.value=evt.modeleId||'';
+      return;
+    }
+  }
+  evt.modeleId=newModeleId||'';
+  evt.detail=[];
+  var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
+  var _deg=(typeof _degreDepuisModele==='function')?_degreDepuisModele(_mRef):null;
+  if(_deg) evt.degre=_deg;
+  _plDetailEnsure(evt);
+  plSave(data);
+  peRender('pe-pl-detail', evt.detail);
+  var titreInpEl=document.getElementById('ov-pl-detail-titre-input');
+  if(titreInpEl){
+    var _tf=_mRef?_mRef.nom:(evt.degre==='3°'?'Tenue au 3°':evt.degre==='2°'?'Tenue au 2°':'—');
+    titreInpEl.placeholder=_tf;
   }
   plRender();
 }
@@ -24116,6 +24152,10 @@ try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(_e) {}
       <button onclick="plFermerDetailTenue()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
     </div>
     <div style="padding:16px 20px;overflow-y:auto;flex:1 1 auto;">
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Modèle de tenue</label>
+        <select id="ov-pl-detail-modele-sel" onchange="plModaleModeleChanger(this.value)" style="width:100%;box-sizing:border-box;background:#1E3660;border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;"></select>
+      </div>
       <div style="margin-bottom:12px;">
         <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Titre <span style="text-transform:none;font-weight:400;font-style:italic;color:rgba(255,255,255,.4);">(par défaut : nom du modèle — vide = laisser le modèle)</span></label>
         <input type="text" id="ov-pl-detail-titre-input" placeholder="" onchange="plSauvegarderTitreTenue()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
