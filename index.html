@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.346</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.347</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21896,6 +21896,13 @@ function plOuvrirDetailTenue(eid){
     (D.modeles||[]).forEach(function(m){_mOpts+='<option value="'+m.id+'"'+(evt.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
     modeleSelEl.innerHTML=_mOpts;
   }
+  // Sélecteur "+ Ajouter" : liste des détails de tenue configurés (Configuration → Détail tenue)
+  var addSelEl=document.getElementById('ov-pl-detail-add-sel');
+  if(addSelEl){
+    var _addOpts0='<option value="">— Ajouter un détail de tenue —</option>';
+    (D.parDefaut||[]).forEach(function(pd,pdi){_addOpts0+='<option value="'+pdi+'">'+pd.nom+(parseInt(pd.dur)?' ('+pd.dur+' min)':'')+'</option>';});
+    addSelEl.innerHTML=_addOpts0;
+  }
   // Afficher
   peRender('pe-pl-detail', parties);
   document.getElementById('ov-pl-detail').style.display = 'block';
@@ -21945,10 +21952,12 @@ function plValiderLigneTenue(btn){
   setTimeout(function(){ btn.textContent = orig; btn.style.background = 'var(--gold)'; }, 1200);
 }
 
-function plDetailAjouterPartie(nom){
-  if(!nom) return;
+function plDetailAjouterPartie(idx){
+  if(idx===''||idx===null||idx===undefined) return;
+  var pd=(D.parDefaut||[])[parseInt(idx,10)];
+  if(!pd) return;
   var p = peGet('pe-pl-detail');
-  p.push({nom:nom, dur:30});
+  p.push({nom:pd.nom, dur:parseInt(pd.dur)||0});
   peRender('pe-pl-detail', p);
 }
 
@@ -24188,20 +24197,8 @@ try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(_e) {}
       </div>
       <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
         <span style="font-size:12px;color:rgba(255,255,255,.6);">+ Ajouter :</span>
-        <select onchange="plDetailAjouterPartie(this.value);this.selectedIndex=0;" style="padding:5px 8px;border:1px solid rgba(184,146,42,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:12px;cursor:pointer;">
-          <option value="">— Choisir un type —</option>
-          <option value="RITUEL OUVERTURE">Rituel ouverture</option>
-          <option value="RITUEL FERMETURE">Rituel fermeture</option>
-          <option value="MORCEAU D'ARCHITECTURE">Morceau d'architecture</option>
-          <option value="COLLEGE">Collège</option>
-          <option value="DEPUTE">Député</option>
-          <option value="INITIATION">Initiation</option>
-          <option value="PROFANE">Profane / Candidature</option>
-          <option value="CEREMONIE">Cérémonie</option>
-          <option value="INSPECTEUR">Inspecteur</option>
-          <option value="CONSEIL D'ADMINISTRATION">Conseil d'administration</option>
-          <option value="REUNION APPRENTI">Réunion apprentis</option>
-          <option value="REUNION COMPAGNON">Réunion compagnons</option>
+        <select id="ov-pl-detail-add-sel" onchange="plDetailAjouterPartie(this.value);this.selectedIndex=0;" style="padding:5px 8px;border:1px solid rgba(184,146,42,.5);border-radius:4px;background:#1E3660;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:12px;cursor:pointer;">
+          <option value="">— Ajouter un détail de tenue —</option>
         </select>
       </div>
     </div>
