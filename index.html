@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.345</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.346</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21957,6 +21957,7 @@ function plFermerDetailTenue(){
   // Auto-enregistrement à la SORTIE : toutes les infos saisies dans la carte sont
   // persistées dès qu'on ferme (croix, Fermer ou Enregistrer), puis affichées sur
   // le planning de référence.
+  var _finalDetail=null, _finalTitre=null, _hadTitreField=false;
   if(eid){
     try{
       var _data=plLoad();
@@ -21964,8 +21965,9 @@ function plFermerDetailTenue(){
       if(_evt){
         _evt.detail=peGet('pe-pl-detail');
         var _titreEl2=document.getElementById('ov-pl-detail-titre-input');
-        if(_titreEl2) _evt.titre=_titreEl2.value.trim();
+        if(_titreEl2){ _evt.titre=_titreEl2.value.trim(); _hadTitreField=true; }
         plSave(_data);
+        _finalDetail=_evt.detail; _finalTitre=_evt.titre;
       }
     }catch(_e){}
   }
@@ -21974,6 +21976,24 @@ function plFermerDetailTenue(){
   if(eid) plRender();
   // Synchroniser les planches/symbolismes (titre + conférencier) vers le suivi.
   if(eid) _plRefSyncPlanches(eid);
+  // Réaffirmation différée (v345) : un echo Firebase en retard peut arriver juste
+  // après la fermeture et écraser localStorage avec un instantané plus ancien. On
+  // réapplique les valeurs finales de titre/détail 2 s plus tard pour corriger
+  // automatiquement toute réapparition de l'ancien état, sans action de l'utilisateur.
+  if(eid){
+    setTimeout(function(){
+      try{
+        var _d2=plLoad();
+        var _e2=(_d2.events||[]).filter(function(x){return x.id===eid;})[0];
+        if(_e2){
+          var _needSave=false;
+          if(_hadTitreField && _e2.titre!==_finalTitre){ _e2.titre=_finalTitre; _needSave=true; }
+          if(_finalDetail && JSON.stringify(_e2.detail)!==JSON.stringify(_finalDetail)){ _e2.detail=_finalDetail; _needSave=true; }
+          if(_needSave){ plSave(_d2); plRender(); }
+        }
+      }catch(_e){}
+    },2000);
+  }
 }
 function plOuvrirDetailTenueFromInline(eid){
   plValiderLigneTenueAuto(eid);
