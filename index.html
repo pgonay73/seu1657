@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.341</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.342</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -20889,7 +20889,7 @@ function plRenderPlanning(targetId){
     if(_orderedChips){
       _inlineInfo='<div class="pl-col-freres" style="margin-top:4px;display:flex;flex-wrap:wrap;gap:5px;align-items:flex-start;min-width:15cm;">'+_orderedChips+'</div>';
     }
-    var _tdToggle='<td style="text-align:center;"><button onclick="plToggleDetailModules(&quot;'+eid+'&quot;,this)" id="pl-detail-btn-'+eid+'" title="Voir le découpage par module" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:11px;padding:2px;">'+(plAllDetailsExpanded?'&#9660;':'&#9654;')+'</button></td>';
+    var _tdToggle='<td style="text-align:center;"><button onclick="plOuvrirDetailTenueFromInline(&quot;'+eid+'&quot;)" title="Ouvrir la carte complète de la tenue" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:12px;padding:2px;">&#9654;</button></td>';
     var _tdDate='<td class="pl-col-date" style="white-space:nowrap;color:'+cd+';font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠</span>':'')+'</td>';
     var _tdDeg='<td class="pl-col-dg" style="text-align:center;color:'+cd+';font-weight:700;">'+deg+'</td>';
     var _tdP='<td class="pl-col-pp" style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>';
@@ -21874,6 +21874,13 @@ function plOuvrirDetailTenue(eid){
   if(titreEl) titreEl.textContent = ds + ' — ' + (evt.titre||'Tenue');
   // Charger les parties du détail (stockées dans evt.detail)
   var parties = evt.detail && evt.detail.length ? evt.detail : cpP(D.parDefaut||[]);
+  // Charger le titre personnalisé (par défaut : nom du modèle assigné à la tenue)
+  var _deg0=evt.degre||'1°';
+  var _modRef0=evt.modeleId?(D.modeles||[]).filter(function(m){return m.id===evt.modeleId;})[0]:null;
+  var _modEff0=_modRef0||(typeof getModeleParDegre==='function'?getModeleParDegre(_deg0):null);
+  var _titreFallback0=_modEff0?_modEff0.nom:(_deg0==='3°'?'Tenue au 3°':_deg0==='2°'?'Tenue au 2°':'—');
+  var titreInpEl=document.getElementById('ov-pl-detail-titre-input');
+  if(titreInpEl){ titreInpEl.value=evt.titre||''; titreInpEl.placeholder=_titreFallback0; }
   // Charger le nom personnalisé
   var nomEl=document.getElementById('ov-pl-detail-nom');
   if(nomEl) nomEl.value=evt.nomTenue||evt.titre||'';
@@ -21941,13 +21948,15 @@ function plFermerDetailTenue(){
         _evt.detail=peGet('pe-pl-detail');
         var _nomEl=document.getElementById('ov-pl-detail-nom');
         if(_nomEl) _evt.nomTenue=_nomEl.value.trim();
+        var _titreEl2=document.getElementById('ov-pl-detail-titre-input');
+        if(_titreEl2) _evt.titre=_titreEl2.value.trim();
         plSave(_data);
       }
     }catch(_e){}
   }
   document.getElementById('ov-pl-detail').style.display = 'none';
   _plDetailTenueId = null;
-  if(eid){ plRender(); setTimeout(function(){ var r=document.getElementById('pl-detail-row-'+eid); if(r){r.style.display='table-row'; var b=document.getElementById('pl-detail-btn-'+eid); if(b)b.innerHTML='&#9660;';} },120); }
+  if(eid) plRender();
   // Synchroniser les planches/symbolismes (titre + conférencier) vers le suivi.
   if(eid) _plRefSyncPlanches(eid);
 }
@@ -21968,6 +21977,24 @@ function plSauvegarderNomTenue(){
   var nomEl=document.getElementById('ov-pl-detail-nom');
   if(nomEl) evt.nomTenue=nomEl.value.trim();
   plSave(data);
+  plRender();
+}
+function plSauvegarderTitreTenue(){
+  if(!_plDetailTenueId) return;
+  var data=plLoad();
+  var evt=(data.events||[]).filter(function(e){return e.id===_plDetailTenueId;})[0];
+  if(!evt) return;
+  var titreEl=document.getElementById('ov-pl-detail-titre-input');
+  if(titreEl) evt.titre=titreEl.value.trim();
+  plSave(data);
+  var headEl=document.getElementById('ov-pl-detail-titre');
+  if(headEl){
+    var mois=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+    var d=new Date((evt.date||'')+'T12:00:00');
+    var ds=d.getDate()+' '+mois[d.getMonth()]+' '+d.getFullYear();
+    var _lbl=evt.titre||(titreEl?titreEl.placeholder:'')||'Tenue';
+    headEl.textContent=ds+' — '+_lbl;
+  }
   plRender();
 }
 
@@ -24089,6 +24116,10 @@ try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(_e) {}
       <button onclick="plFermerDetailTenue()" style="background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
     </div>
     <div style="padding:16px 20px;overflow-y:auto;flex:1 1 auto;">
+      <div style="margin-bottom:12px;">
+        <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Titre <span style="text-transform:none;font-weight:400;font-style:italic;color:rgba(255,255,255,.4);">(par défaut : nom du modèle — vide = laisser le modèle)</span></label>
+        <input type="text" id="ov-pl-detail-titre-input" placeholder="" onchange="plSauvegarderTitreTenue()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
+      </div>
       <div style="margin-bottom:12px;">
         <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Nom de la tenue</label>
         <input type="text" id="ov-pl-detail-nom" placeholder="Ex : Tenue au 1° — Planche sur le silence…" onchange="plSauvegarderNomTenue()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
