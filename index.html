@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.339</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.340</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14741,7 +14741,10 @@ function surv2RowHTML(idx, date, heure, odj, par, not, inpS){
   h+='<td style="padding:6px;"><textarea id="surv2-odj-r-'+idx+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+(odj||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv2-par-r-'+idx+'" rows="3" placeholder="Noms des participants..." style="'+inpS+'">'+(par||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv2-not-r-'+idx+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS+'">'+(not||'').replace(/"/g,'&quot;')+'</textarea></td>';
-  h+='<td style="padding:8px;text-align:center;vertical-align:middle;"><button onclick="surv2Supprimer('+idx+')" title="Supprimer cette réunion" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
+  h+='<td style="padding:8px;text-align:center;vertical-align:middle;white-space:nowrap;">'
+    +'<button onclick="survReunMove(\'off-2surv\','+idx+',-1)" title="Monter" style="background:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;color:rgba(255,255,255,.55);cursor:pointer;font-size:10px;padding:1px 5px;margin-right:2px;">▲</button>'
+    +'<button onclick="survReunMove(\'off-2surv\','+idx+',1)" title="Descendre" style="background:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;color:rgba(255,255,255,.55);cursor:pointer;font-size:10px;padding:1px 5px;margin-right:6px;">▼</button>'
+    +'<button onclick="surv2Supprimer('+idx+')" title="Supprimer cette réunion" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
   h+='</tr>';
   return h;
 }
@@ -14777,7 +14780,7 @@ function surv2Supprimer(idx){
   renderOffice('off-2surv');
 }
 
-function surv2Save(){
+function surv2Save(silent){
   var d={}; try{var s=localStorage.getItem('surv2_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
   var tenues=getTenues();
@@ -14807,7 +14810,7 @@ function surv2Save(){
   try{localStorage.setItem('surv2_reunions',JSON.stringify(d));}catch(e){}
   if(window.fbSet) window.fbSet('surv2_reunions', d);
   var vOffVm=document.getElementById('v-off-vm');
-  toast('✓ Réunions enregistrées.');
+  if(!silent) toast('✓ Réunions enregistrées.');
 }
 
 function surv1RowHTML(idx, date, heure, odj, par, not, inpS){
@@ -14823,7 +14826,10 @@ function surv1RowHTML(idx, date, heure, odj, par, not, inpS){
   h+='<td style="padding:6px;"><textarea id="surv1-odj-r-'+idx+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+(odj||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv1-par-r-'+idx+'" rows="3" placeholder="Noms des participants..." style="'+inpS+'">'+(par||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="surv1-not-r-'+idx+'" rows="3" placeholder="Compte-rendu, remarques..." style="'+inpS+'">'+(not||'').replace(/"/g,'&quot;')+'</textarea></td>';
-  h+='<td style="padding:8px;text-align:center;vertical-align:middle;"><button onclick="surv1Supprimer('+idx+')" title="Supprimer cette réunion" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
+  h+='<td style="padding:8px;text-align:center;vertical-align:middle;white-space:nowrap;">'
+    +'<button onclick="survReunMove(\'off-1surv\','+idx+',-1)" title="Monter" style="background:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;color:rgba(255,255,255,.55);cursor:pointer;font-size:10px;padding:1px 5px;margin-right:2px;">▲</button>'
+    +'<button onclick="survReunMove(\'off-1surv\','+idx+',1)" title="Descendre" style="background:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;color:rgba(255,255,255,.55);cursor:pointer;font-size:10px;padding:1px 5px;margin-right:6px;">▼</button>'
+    +'<button onclick="surv1Supprimer('+idx+')" title="Supprimer cette réunion" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
   h+='</tr>';
   return h;
 }
@@ -14864,6 +14870,18 @@ function surv1Supprimer(idx){
 // issues du planning. office = 'off-1surv' ou 'off-2surv'.
 function _survKeyFor(office){ return office==='off-2surv'?'surv2_reunions':'surv1_reunions'; }
 function _survPfxFor(office){ return office==='off-2surv'?'surv2':'surv1'; }
+// Déplacer une réunion ajoutée manuellement vers le haut (dir=-1) ou le bas (dir=1).
+function survReunMove(office, idx, dir){
+  if(office==='off-2surv'){try{surv2Save(true);}catch(e){}} else {try{surv1Save(true);}catch(e){}}
+  var key=_survKeyFor(office);
+  var d={}; try{var s=localStorage.getItem(key);if(s)d=JSON.parse(s);}catch(e){}
+  if(!d.reunions) return;
+  var j=idx+dir; if(j<0||j>=d.reunions.length) return;
+  var t=d.reunions[idx]; d.reunions[idx]=d.reunions[j]; d.reunions[j]=t;
+  try{localStorage.setItem(key,JSON.stringify(d));}catch(e){}
+  if(window.fbSet) window.fbSet(key,d);
+  renderOffice(office);
+}
 function editSurvRowDateHeure(office, idx){
   var pfx=_survPfxFor(office);
   var cell=document.getElementById(pfx+'-rowcell-'+idx);
@@ -14951,7 +14969,10 @@ function caReunRowHTML(idx,date,heure,odj,par,not,inpS){
   h+='<td style="padding:6px;"><textarea id="ca-reun-odj-r-'+idx+'" rows="3" placeholder="Points à aborder..." style="'+inpS+'">'+(odj||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="ca-reun-par-r-'+idx+'" rows="3" placeholder="Membres présents..." style="'+inpS+'">'+(par||'').replace(/"/g,'&quot;')+'</textarea></td>';
   h+='<td style="padding:6px;"><textarea id="ca-reun-not-r-'+idx+'" rows="3" placeholder="Décisions, PV..." style="'+inpS+'">'+(not||'').replace(/"/g,'&quot;')+'</textarea></td>';
-  h+='<td style="padding:8px;text-align:center;vertical-align:middle;"><button onclick="caReunSupprimerManuel('+idx+')" title="Supprimer cette réunion" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
+  h+='<td style="padding:8px;text-align:center;vertical-align:middle;white-space:nowrap;">'
+    +'<button onclick="caReunMove('+idx+',-1)" title="Monter" style="background:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;color:rgba(255,255,255,.55);cursor:pointer;font-size:10px;padding:1px 5px;margin-right:2px;">▲</button>'
+    +'<button onclick="caReunMove('+idx+',1)" title="Descendre" style="background:none;border:1px solid rgba(255,255,255,.2);border-radius:3px;color:rgba(255,255,255,.55);cursor:pointer;font-size:10px;padding:1px 5px;margin-right:6px;">▼</button>'
+    +'<button onclick="caReunSupprimerManuel('+idx+')" title="Supprimer cette réunion" style="background:none;border:none;color:rgba(220,80,80,.5);cursor:pointer;font-size:14px;" onmouseover="this.style.color=\'#E74C3C\'" onmouseout="this.style.color=\'rgba(220,80,80,.5)\'">🗑</button></td>';
   h+='</tr>';
   return h;
 }
@@ -14998,6 +15019,16 @@ function caReunSupprimerManuel(idx){
   caReunSaveAll(true);
   var d=caReunLoad();
   d.reunions.splice(idx,1);
+  caReunSave(d);
+  secCAReunRender();
+}
+// Déplacer une réunion CA ajoutée manuellement vers le haut (dir=-1) ou le bas (dir=1).
+function caReunMove(idx, dir){
+  caReunSaveAll(true);
+  var d=caReunLoad();
+  if(!d.reunions) return;
+  var j=idx+dir; if(j<0||j>=d.reunions.length) return;
+  var t=d.reunions[idx]; d.reunions[idx]=d.reunions[j]; d.reunions[j]=t;
   caReunSave(d);
   secCAReunRender();
 }
@@ -15123,7 +15154,7 @@ function imprimerCA(){
   _printHtml(h,'CA — '+loge);
 }
 
-function surv1Save(){
+function surv1Save(silent){
   var d={}; try{var s=localStorage.getItem('surv1_reunions');if(s)d=JSON.parse(s);}catch(e){}
   if(!d.reunions)d.reunions=[];
   var tenues=getTenues();
@@ -15152,7 +15183,7 @@ function surv1Save(){
   }
   try{localStorage.setItem('surv1_reunions',JSON.stringify(d));}catch(e){}
   if(window.fbSet) window.fbSet('surv1_reunions', d);
-  toast('✓ Réunions enregistrées.');
+  if(!silent) toast('✓ Réunions enregistrées.');
 }
 
 // ── Député : Planches ────────────────────────────────────────────────
