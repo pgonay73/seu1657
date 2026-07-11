@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.343</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.344</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21888,9 +21888,6 @@ function plOuvrirDetailTenue(eid){
     (D.modeles||[]).forEach(function(m){_mOpts+='<option value="'+m.id+'"'+(evt.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>';});
     modeleSelEl.innerHTML=_mOpts;
   }
-  // Charger le nom personnalisé
-  var nomEl=document.getElementById('ov-pl-detail-nom');
-  if(nomEl) nomEl.value=evt.nomTenue||evt.titre||'';
   // Afficher
   peRender('pe-pl-detail', parties);
   document.getElementById('ov-pl-detail').style.display = 'block';
@@ -21953,8 +21950,6 @@ function plFermerDetailTenue(){
       var _evt=(_data.events||[]).filter(function(x){return x.id===eid;})[0];
       if(_evt){
         _evt.detail=peGet('pe-pl-detail');
-        var _nomEl=document.getElementById('ov-pl-detail-nom');
-        if(_nomEl) _evt.nomTenue=_nomEl.value.trim();
         var _titreEl2=document.getElementById('ov-pl-detail-titre-input');
         if(_titreEl2) _evt.titre=_titreEl2.value.trim();
         plSave(_data);
@@ -21976,16 +21971,6 @@ function plValiderLigneTenueAuto(eid){
   // rien à faire ici : les edits inline sauvegardent déjà via _plPartieRefreshCont
 }
 
-function plSauvegarderNomTenue(){
-  if(!_plDetailTenueId) return;
-  var data=plLoad();
-  var evt=(data.events||[]).filter(function(e){return e.id===_plDetailTenueId;})[0];
-  if(!evt) return;
-  var nomEl=document.getElementById('ov-pl-detail-nom');
-  if(nomEl) evt.nomTenue=nomEl.value.trim();
-  plSave(data);
-  plRender();
-}
 function plSauvegarderTitreTenue(){
   if(!_plDetailTenueId) return;
   var data=plLoad();
@@ -24159,10 +24144,6 @@ try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(_e) {}
       <div style="margin-bottom:12px;">
         <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Titre <span style="text-transform:none;font-weight:400;font-style:italic;color:rgba(255,255,255,.4);">(par défaut : nom du modèle — vide = laisser le modèle)</span></label>
         <input type="text" id="ov-pl-detail-titre-input" placeholder="" onchange="plSauvegarderTitreTenue()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
-      </div>
-      <div style="margin-bottom:12px;">
-        <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Nom de la tenue</label>
-        <input type="text" id="ov-pl-detail-nom" placeholder="Ex : Tenue au 1° — Planche sur le silence…" onchange="plSauvegarderNomTenue()" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
       </div>
       <div class="pe-list" id="pe-pl-detail"></div>
       <div id="pe-pl-detail-total" style="display:none;align-items:center;gap:10px;margin-top:8px;padding:6px 10px;background:rgba(184,146,42,.15);border:1px solid rgba(184,146,42,.4);border-radius:5px;">
