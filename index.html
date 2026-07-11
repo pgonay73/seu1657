@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.344</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.345</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -1534,9 +1534,17 @@ try {
     window.fbGet(key, function(val) {
       _fbLoaded++;
       if(val !== null && val !== undefined) {
+        // v344 — anti-clobber : un echo Firebase reçu juste après une sauvegarde locale du
+        // planning peut refléter un instantané légèrement antérieur (aller-retour réseau) et
+        // écraserait silencieusement une édition qu'on vient de faire (ex. le titre d'une
+        // tenue). On ignore ces echos pendant une courte fenêtre de grâce après toute
+        // écriture locale — la version locale, plus fraîche, est conservée.
+        var _skipPlEcho = (key==='planning_libre_data' && window._plLocalSaveTs && (Date.now()-window._plLocalSaveTs)<5000);
+        if(!_skipPlEcho){
         try { localStorage.setItem(key, typeof val==='string'?val:JSON.stringify(val)); } catch(e) {}
+        }
         // v323 — purge du fantôme 2026-09-04 s'il revient depuis Firebase (vrai évènement stocké)
-        if(key==='planning_libre_data'){
+        if(key==='planning_libre_data' && !_skipPlEcho){
           try{
             var _pv=(typeof val==='string')?JSON.parse(val):val;
             if(_pv&&_pv.events){
@@ -1732,7 +1740,7 @@ var TR2 = {tarifs:{actif:0,affilie:0,honoraire:0,visiteur:0}, cotisations:{}};
 // (le bloc PL plus bas redéfinit les mêmes fonctions, ce qui est sans effet)
 var PL_KEY='planning_libre_data';
 function plLoad(){try{var s=localStorage.getItem(PL_KEY);var d=s?JSON.parse(s):{events:[]};if(d&&d.events&&d.events.length)d.events=d.events.filter(function(t){return !(t&&t.date==='2026-09-04'&&(t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);});return d;}catch(e){return{events:[]};}}
-function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_KEY,d);}
+function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}window._plLocalSaveTs=Date.now();if(window.fbSet)window.fbSet(PL_KEY,d);}
 function getTenues(){return(plLoad().events||[]);}
 function plTenueUpdate(id,fields){var d=plLoad();for(var i=0;i<d.events.length;i++){if(d.events[i].id===id){Object.assign(d.events[i],fields);break;}}plSave(d);}
 function plTenueAdd(t){var d=plLoad();d.events.push(t);plSave(d);}
@@ -19072,7 +19080,7 @@ function plDureeGenereeMaj(valeur){
 }
 
 function plLoad(){try{var s=localStorage.getItem(PL_KEY);var d=s?JSON.parse(s):{events:[]};if(d&&d.events&&d.events.length)d.events=d.events.filter(function(t){return !(t&&t.date==='2026-09-04'&&(t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);});return d;}catch(e){return{events:[]};}}
-function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}if(window.fbSet)window.fbSet(PL_KEY,d);}
+function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}window._plLocalSaveTs=Date.now();if(window.fbSet)window.fbSet(PL_KEY,d);}
 function plNomSave(){var el=document.getElementById('pl-planning-nom');if(!el)return;var d=plLoad();d.nom=el.value;plSave(d);}
 function plNomLoad(){var el=document.getElementById('pl-planning-nom');if(!el)return;el.value=plLoad().nom||'';}
 // ── Bridge D.tenues → Planning Libre ─────────────────────────────────────
@@ -21905,7 +21913,12 @@ function plOuvrirDetailTenue(eid){
         try{
           var _d=plLoad();
           var _ev=(_d.events||[]).filter(function(x){return x.id===_plDetailTenueId;})[0];
-          if(_ev){ _ev.detail=peGet('pe-pl-detail'); plSave(_d); }
+          if(_ev){
+            _ev.detail=peGet('pe-pl-detail');
+            var _tEl=document.getElementById('ov-pl-detail-titre-input');
+            if(_tEl) _ev.titre=_tEl.value.trim();
+            plSave(_d);
+          }
         }catch(_e){}
       },500);
     };
@@ -21978,6 +21991,8 @@ function plSauvegarderTitreTenue(){
   if(!evt) return;
   var titreEl=document.getElementById('ov-pl-detail-titre-input');
   if(titreEl) evt.titre=titreEl.value.trim();
+  var _peListT=document.getElementById('pe-pl-detail');
+  if(_peListT) evt.detail=peGet('pe-pl-detail');
   plSave(data);
   var headEl=document.getElementById('ov-pl-detail-titre');
   if(headEl){
