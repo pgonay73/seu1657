@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.348</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.349</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -16032,10 +16032,10 @@ function adminTab(name, btn){
   if(name==='titulaires') setTimeout(adminRenderTitulaires,0);
   if(name==='navigation') setTimeout(adminRenderNavVisib,0);
   if(name==='planning'){
-    ['prog','planches','avec'].forEach(function(x){var xe=document.getElementById('admin-pl-l1-'+x);if(xe)xe.style.display='none';});
-    var _sEl=document.getElementById('admin-pl-l1-sans');if(_sEl)_sEl.style.display='block';
+    // v349 — atterrissage par défaut sur "Planning de référence" (au lieu de
+    // "Planning des tenues sans planches") en cliquant sur "Planning / Tenues".
     plRenderAdminNav('pl-admin-nav-container-admin');
-    adminPlRenderSans('admin-pl-sans-list');
+    adminPlL1Tab('ref', document.getElementById('admin-pl-l1-btn-ref'));
   }
   if(name==='freres') setTimeout(function(){ adminFreresTab('liste',document.getElementById('admin-freres-tab-liste')); },0);
   // Zone Observations
@@ -20374,17 +20374,27 @@ function plRenderInto(container){
 }
 
 function plRender(){
-  plRenderPlanning();
-  plRenderPlanchesRecap();
-  // v348 — plRenderPlanning() (ci-dessus) ne rafraîchit QUE le conteneur par défaut
-  // 'pl-list' (menu "Planning"). Les deux autres écrans partageant le même rendu de
-  // tableau (crayon/carte complète compris) — "Planning des tenues sans planches" et
+  // v349 — chaque rafraîchissement est isolé dans son propre try/catch : sans cette
+  // isolation, une exception survenant dans UN SEUL des écrans (ex. une donnée
+  // particulière dans 'pl-list', l'écran "Planning" principal) interrompait TOUTE la
+  // fonction, empêchant même les écrans SUIVANTS (sans planches, planning de référence)
+  // de se rafraîchir — alors qu'ils sont eux-mêmes rendus correctement quand on y
+  // navigue directement (ce qui appelle leur fonction de rendu isolément).
+  try{ plRenderPlanning(); }catch(_e1){ console.error('plRender: échec rafraîchissement pl-list —', _e1); }
+  try{ plRenderPlanchesRecap(); }catch(_e2){ console.error('plRender: échec rafraîchissement planches-recap —', _e2); }
+  // plRenderPlanning() (ci-dessus) ne rafraîchit QUE le conteneur par défaut 'pl-list'
+  // (menu "Planning"). Les deux autres écrans partageant le même rendu de tableau
+  // (crayon/carte complète compris) — "Planning des tenues sans planches" et
   // "Planning de référence" — doivent être rafraîchis explicitement, sinon une édition
   // faite depuis l'un d'eux n'apparaît pas tant qu'on ne re-navigue pas dessus.
-  var _sansEl=document.getElementById('admin-pl-sans-list');
-  if(_sansEl) plRenderPlanning('admin-pl-sans-list');
-  var _refEl=document.getElementById('admin-pl-ref-list');
-  if(_refEl) adminPlRenderRef('admin-pl-ref-list');
+  try{
+    var _sansEl=document.getElementById('admin-pl-sans-list');
+    if(_sansEl) plRenderPlanning('admin-pl-sans-list');
+  }catch(_e3){ console.error('plRender: échec rafraîchissement admin-pl-sans-list —', _e3); }
+  try{
+    var _refEl=document.getElementById('admin-pl-ref-list');
+    if(_refEl) adminPlRenderRef('admin-pl-ref-list');
+  }catch(_e4){ console.error('plRender: échec rafraîchissement admin-pl-ref-list —', _e4); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -23409,7 +23419,7 @@ function plRenderAdminNav(containerId){
     var ha='<div style="display:flex;gap:2px;border-bottom:3px solid rgba(184,146,42,.4);margin-bottom:0;flex-wrap:wrap;">';
     for(var k=0;k<l1TabsA.length;k++){
       var pa=l1TabsA[k];
-      ha+='<button id="pl-adm-l1-nav-'+pa.id+'" style="'+(pa.id==='prog'?_nA:_nI)+'" onclick="plNavToAdminL1(\''+pa.id+'\')">'+pa.label+'</button>';
+      ha+='<button id="pl-adm-l1-nav-'+pa.id+'" style="'+(pa.id==='ref'?_nA:_nI)+'" onclick="plNavToAdminL1(\''+pa.id+'\')">'+pa.label+'</button>';
     }
     ha+='</div>';
     ha+='<div id="pl-adm-l2-nav" style="display:flex;gap:2px;border-bottom:3px solid rgba(184,146,42,.4);margin-bottom:0;flex-wrap:wrap;">';
