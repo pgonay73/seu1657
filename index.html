@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.388</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.389</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -23707,8 +23707,9 @@ function plImprimerBornesConfirmer(){
   var deb=(document.getElementById('pl-print-bornes-debut')||{}).value||'';
   var fin=(document.getElementById('pl-print-bornes-fin')||{}).value||'';
   var detailComplet=(document.getElementById('pl-print-bornes-detail')||{}).checked||false;
+  var sansOF=(document.getElementById('pl-print-bornes-sans-of')||{}).checked||false;
   plImprimerBornesAnnuler();
-  plImprimerSans({debut:deb,fin:fin,detailComplet:detailComplet});
+  plImprimerSans({debut:deb,fin:fin,detailComplet:detailComplet,sansOuvertureFermeture:sansOF});
 }
 function plImprimerSans(bornes){
   var _pImpCP=_plColPrefsLoad('planning');
@@ -23796,6 +23797,12 @@ function plImprimerSans(bornes){
       '</tr>';
     if(!(bornes&&bornes.detailComplet)) return mainRow;
     var detailParties=_det.length?_det:((modEff&&(modEff.parties||[]).length)?modEff.parties:(D.parDefaut||[]));
+    if(bornes.sansOuvertureFermeture){
+      detailParties=detailParties.filter(function(p){
+        var nL=(p.nom||'').toLowerCase();
+        return nL.indexOf('ouverture')<0&&nL.indexOf('fermeture')<0;
+      });
+    }
     if(!detailParties.length) return mainRow;
     var nbCols=1+(_pImpCP.degre!==false?1:0)+1+(_pImpCP.p!==false?1:0)+(_pImpCP.s!==false?1:0)+1+1;
     var detailLignes=detailParties.map(function(p){
@@ -24447,10 +24454,16 @@ try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(_e) {}
       <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Date de fin</label>
       <input type="date" id="pl-print-bornes-fin" style="width:100%;box-sizing:border-box;background:#1E3660;border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
     </div>
-    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:16px;">
-      <input type="checkbox" id="pl-print-bornes-detail" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:10px;">
+      <input type="checkbox" id="pl-print-bornes-detail" onchange="document.getElementById('pl-print-bornes-sans-of-wrap').style.display=this.checked?'block':'none';" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
       <span style="font-size:12.5px;color:rgba(255,255,255,.85);">Inclure le détail complet des tenues (comme sur Planning de référence)</span>
     </label>
+    <div id="pl-print-bornes-sans-of-wrap" style="display:none;margin:0 0 16px 24px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="pl-print-bornes-sans-of" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
+        <span style="font-size:12.5px;color:rgba(255,255,255,.85);">Masquer les éléments "ouverture" / "fermeture"</span>
+      </label>
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;">
       <button onclick="plImprimerBornesAnnuler()" class="btn btn-outline">Annuler</button>
       <button onclick="plImprimerBornesConfirmer()" style="background:#B8922A;border:none;border-radius:5px;color:#1E2D45;cursor:pointer;font-size:13px;font-weight:700;padding:8px 16px;">🖨 Imprimer</button>
