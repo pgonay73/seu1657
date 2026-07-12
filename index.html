@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.365</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.366</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21094,7 +21094,7 @@ function plRenderPlanning(targetId){
     if(isAdmin){
       h+='<tr'+_expTopCls+' style="'+traitJournee+bgFerie+'">'
         +_tdToggle+_tdDate+_tdDeg+_tdPAdm+_tdSAdm
-        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;overflow:hidden;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+(marqueur?'<span style="color:'+cd+';flex-shrink:0;">'+marqueur+'</span>':'')+'<span class="pl-col-titre" style="display:inline-flex;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:4px;padding:3px 8px;flex:1;min-width:280px;"><input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="'+_titreFallback.replace(/"/g,'&quot;')+'" onblur="plTitreChanger(&quot;'+eid+'&quot;,this.value)" style="background:transparent;border:none;color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;width:100%;padding:0 2px;outline:none;"></span></div>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
+        +'<td style="font-family:Georgia,serif;font-size:12px;font-weight:600;"><div style="display:flex;align-items:flex-start;gap:6px;"><div style="flex:1;min-width:0;overflow:hidden;"><div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">'+(marqueur?'<span style="color:'+cd+';flex-shrink:0;">'+marqueur+'</span>':'')+'<span class="pl-col-titre" id="pl-titre-cell-'+eid+'" onclick="plTitreEditStart(&quot;'+eid+'&quot;,&quot;pl-titre-cell-'+eid+'&quot;,&quot;'+(targetId||'pl-list')+'&quot;)" title="Cliquer pour modifier le titre" style="cursor:pointer;display:inline-flex;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:4px;padding:3px 8px;flex:1;min-width:280px;color:'+cd+';font-family:Georgia,serif;font-size:12px;font-weight:600;">'+(e.titre?e.titre.replace(/</g,'&lt;'):'<span style="opacity:.5;font-style:italic;">'+_titreFallback.replace(/</g,'&lt;')+'</span>')+'</span></div>'+nomTenueAff+(ferie?' <span style="font-size:10px;color:#FF6B6B;">'+ferie+'</span>':'')+_inlineInfo+'</div><div style="display:flex;gap:3px;flex-shrink:0;margin-left:auto;">'+_actBtns+'</div></div></td>'
         +'</tr>';
     } else {
       h+='<tr'+_expTopCls+' style="'+traitJournee+bgFerie+'">'
@@ -21620,6 +21620,25 @@ function plTitreChanger(eid,val){
   var data=plLoad();
   for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();break;}}
   plSave(data);
+}
+// v366 — Le titre (écrans admin) était un <input>, dont la valeur n'est pas
+// incluse dans un copier-coller de texte, contrairement à un <span>. Passage
+// en "cliquer pour éditer" : affichage en texte normal (copiable), un clic
+// bascule vers un champ de saisie le temps de la modification.
+function plTitreEditStart(eid,cellId,containerId){
+  var cell=document.getElementById(cellId);
+  if(!cell) return;
+  var data=plLoad();
+  var ev=(data.events||[]).filter(function(e){return e.id===eid;})[0]||{};
+  cell.innerHTML='<input type="text" id="pl-titre-inp-'+eid+'" value="'+(ev.titre||'').replace(/"/g,'&quot;')+'" style="background:#1E3660;color:#FFFFFF;border:1px solid rgba(184,146,42,.6);border-radius:4px;padding:3px 8px;font-family:Georgia,serif;font-size:12px;font-weight:600;width:100%;min-width:280px;box-sizing:border-box;outline:none;" onblur="plTitreEditSave(&quot;'+eid+'&quot;,&quot;'+containerId+'&quot;)" onkeydown="if(event.key===\'Enter\')this.blur();">';
+  var inp=document.getElementById('pl-titre-inp-'+eid);
+  if(inp){ inp.focus(); inp.select(); }
+}
+function plTitreEditSave(eid,containerId){
+  var inp=document.getElementById('pl-titre-inp-'+eid);
+  if(!inp) return;
+  plTitreChanger(eid,inp.value);
+  if(containerId) plRenderPlanning(containerId); else plRenderPlanning();
 }
 function plPSChanger(eid,col,val){
   var data=plLoad();
