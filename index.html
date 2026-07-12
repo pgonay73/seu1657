@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.376</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.377</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21021,7 +21021,7 @@ function plRenderPlanning(targetId){
       if(_isInter3){
         if((dp.interSteps||[]).length) _pc+='<span style="'+_chipS+'rgba(255,200,90,.9);">'+(dp.interSteps||[]).join(' · ')+'</span>';
         if((dp.interIntervenant||'').trim()) _pc+='<span style="'+_chipS+'rgba(255,200,90,.9);">'+(dp.interIntervenant||'').replace(/</g,'&lt;')+'</span>';
-        if((dp.interSujet||'').trim()) _pc+='<span style="'+_chipS+'rgba(255,200,90,.9);">'+(dp.interSujet||'').replace(/</g,'&lt;')+'</span>';
+        if((dp.interSujet||'').trim()) _pc+='<span style="'+_chipS+'rgba(255,200,90,.9);text-transform:lowercase;">'+(dp.interSujet||'').replace(/</g,'&lt;')+'</span>';
         _bc='rgba(255,180,60,.5)';
       }
       if(_isElec3){
@@ -21045,7 +21045,7 @@ function plRenderPlanning(targetId){
         _bc='rgba(255,160,80,.5)';
       }
       if(_isCA3){
-        if(dp.caOdj) _pc+='<span style="'+_chipS+'rgba(200,200,255,.9);">'+dp.caOdj+'</span>';
+        if(dp.caOdj) _pc+='<span style="'+_chipS+'rgba(200,200,255,.9);text-transform:lowercase;">'+dp.caOdj+'</span>';
         _bc='rgba(180,180,255,.5)';
       }
       if(_isCerCard3){
@@ -21060,9 +21060,9 @@ function plRenderPlanning(targetId){
     });
     // Sujets legacy + assignations non rattachées à un morceau : cadre placé au début.
     var _orphan='';
-    if(e.sujetPlanche) _orphan+='<span style="'+_chipS+'rgba(220,185,70,.9);" title="Sujet planche">'+e.sujetPlanche+'</span>';
-    if(e.sujetSymbolisme) _orphan+='<span style="'+_chipS+'rgba(220,185,70,.9);" title="Sujet symbolisme">'+e.sujetSymbolisme+'</span>';
-    if(e.sujetConferencier) _orphan+='<span style="'+_chipS+'rgba(220,185,70,.9);" title="Sujet conférencier">'+e.sujetConferencier+'</span>';
+    if(e.sujetPlanche) _orphan+='<span style="'+_chipS+'rgba(220,185,70,.9);text-transform:lowercase;" title="Sujet planche">'+e.sujetPlanche+'</span>';
+    if(e.sujetSymbolisme) _orphan+='<span style="'+_chipS+'rgba(220,185,70,.9);text-transform:lowercase;" title="Sujet symbolisme">'+e.sujetSymbolisme+'</span>';
+    if(e.sujetConferencier) _orphan+='<span style="'+_chipS+'rgba(220,185,70,.9);text-transform:lowercase;" title="Sujet conférencier">'+e.sujetConferencier+'</span>';
     _assign.forEach(function(a,ai){ if(!_assignUsed[ai]) _orphan+=_assignChip(a); });
     if(_orphan) _orderedChips=_box(_orphan,'rgba(184,146,42,.5)')+_orderedChips;
     var _inlineInfo='';
