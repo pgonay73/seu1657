@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.413</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.414</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -23334,11 +23334,9 @@ function plSuiviRender(containerId){
 // stocké ne correspondant plus à aucun frère enregistré — cf. tableau
 // "Entrées non rattachées" affiché plus bas), (2) libère les entrées dont
 // la tenue référencée (tenueId) n'existe plus dans le planning (tenue
-// supprimée depuis), sans supprimer la ligne du frère, et (3) fusionne les
-// lignes portant exactement le même sujet+type pour un même frère (séquelles
-// d'un ancien bug de resynchronisation aujourd'hui corrigé) puis retasse les
-// lignes restantes sur A/B/C sans trou, en ramenant le nombre de lignes au
-// nombre réel de planches distinctes de ce frère.
+// supprimée depuis), sans supprimer la ligne du frère, et (3) ne conserve
+// qu'une seule ligne par frère (choix de l'utilisateur), en gardant la
+// meilleure (tenue réelle en priorité, sinon sujet renseigné, sinon A).
 function plSuiviNettoyer(){
   var suivi=plSuiviLoad();
   var data=plLoad();
@@ -23346,7 +23344,7 @@ function plSuiviNettoyer(){
   (data.events||[]).forEach(function(ev){ if(ev.id) tenueIds[ev.id]=true; });
   var nomsFreres={};
   D.freres.forEach(function(f){ nomsFreres[((f.prenom||'')+' '+(f.nom||'')).trim()]=true; });
-  var orphelins=0, tenuesObsoletes=0, doublonsFantomes=0;
+  var orphelins=0, tenuesObsoletes=0;
   Object.keys(suivi).forEach(function(cle){
     if(cle.indexOf('#nb')>=0) return;
     var val=suivi[cle];
@@ -23358,38 +23356,33 @@ function plSuiviNettoyer(){
     if(!nomsFreres[nm]){ delete suivi[cle]; orphelins++; return; }
     if(val.tenueId && !tenueIds[val.tenueId]){ val.tenueId=''; tenuesObsoletes++; }
   });
-  // Compaction par frère : déduplique les lignes qui portent exactement le
-  // même sujet+type (l'ancien bug pouvait recopier le même sujet sur 2 ou 3
-  // lignes, avec ou sans tenue valide selon le cas) et retasse les lignes
-  // restantes sur A/B/C sans trou, en ramenant #nb au nombre réel de
-  // planches distinctes — jamais plus qu'avant, jamais moins que 1.
-  var doublonsFantomes=0, freresCorriges=0;
+  // Une seule ligne conservée par frère (choix explicite de l'utilisateur,
+  // les sujets quasi identiques avec fautes de frappe ou les lignes de test
+  // n'étant pas fiables à fusionner automatiquement) : priorité à la ligne
+  // qui référence encore une tenue existante, sinon à celle qui a un sujet
+  // renseigné, sinon la première (A avant B avant C). Le nombre de lignes
+  // (1 à 3) reste réglable manuellement ensuite si un frère a réellement
+  // plusieurs planches à suivre.
+  var lignesRetirees=0, freresCorriges=0;
   D.freres.forEach(function(f){
     var full=((f.prenom||'')+' '+(f.nom||'')).trim();
     if(!full) return;
     var cles=PL_SUIVI_LIGNES.map(function(l){return full+'#'+l;});
-    var avant=cles.map(function(c){return suivi[c]?JSON.stringify(suivi[c]):'';}).join('|');
-    var entrees=cles.map(function(c){return suivi[c];}).filter(function(v){return v&&(v.tenueId||v.sujet||v.degre);});
-    if(!entrees.length) return;
-    var retenues=[], indexParSignature={};
-    entrees.forEach(function(v){
-      if(v.sujet){
-        var sig=(v.type||'Planche')+'||'+v.sujet;
-        if(indexParSignature.hasOwnProperty(sig)){
-          var i0=indexParSignature[sig], existante=retenues[i0];
-          var celleCiValide=!!(v.tenueId&&tenueIds[v.tenueId]);
-          var existanteValide=!!(existante.tenueId&&tenueIds[existante.tenueId]);
-          if(celleCiValide&&!existanteValide) retenues[i0]=v;
-          doublonsFantomes++;
-          return;
-        }
-        indexParSignature[sig]=retenues.length;
-      }
-      retenues.push(v);
+    var avant=cles.map(function(c){return suivi[c]?JSON.stringify(suivi[c]):'';}).join('|')+'|'+(suivi[full+'#nb']||1);
+    var candidats=cles.filter(function(c){var v=suivi[c];return v&&(v.tenueId||v.sujet||v.degre);});
+    if(candidats.length<1){ return; }
+    var meilleur=candidats.reduce(function(best,c){
+      var o=suivi[c], b=suivi[best];
+      var oValide=!!(o.tenueId&&tenueIds[o.tenueId]), bValide=!!(b.tenueId&&tenueIds[b.tenueId]);
+      if(oValide&&!bValide) return c;
+      if(!oValide&&bValide) return best;
+      if(o.sujet&&!b.sujet) return c;
+      return best;
     });
-    cles.forEach(function(c,i){ if(retenues[i]) suivi[c]=retenues[i]; else delete suivi[c]; });
-    suivi[full+'#nb']=Math.max(1,retenues.length);
-    var apres=cles.map(function(c){return suivi[c]?JSON.stringify(suivi[c]):'';}).join('|');
+    lignesRetirees+=candidats.length-1;
+    cles.forEach(function(c){ if(c!==meilleur) delete suivi[c]; });
+    suivi[full+'#nb']=1;
+    var apres=cles.map(function(c){return suivi[c]?JSON.stringify(suivi[c]):'';}).join('|')+'|1';
     if(avant!==apres) freresCorriges++;
   });
   if(!orphelins && !tenuesObsoletes && !freresCorriges){
@@ -23399,7 +23392,7 @@ function plSuiviNettoyer(){
   var msg=[];
   if(orphelins) msg.push(orphelins+' entrée(s) orpheline(s) (frère non reconnu) à supprimer');
   if(tenuesObsoletes) msg.push(tenuesObsoletes+' référence(s) à une tenue supprimée à libérer');
-  if(freresCorriges) msg.push(freresCorriges+' frère(s) à corriger ('+doublonsFantomes+' doublon(s) fusionné(s))');
+  if(freresCorriges) msg.push(freresCorriges+' frère(s) ramené(s) à une seule ligne ('+lignesRetirees+' ligne(s) supplémentaire(s) retirée(s))');
   if(!confirm('Nettoyer le suivi ?\n\n— '+msg.join('\n— '))) return;
   plSuiviSave(suivi);
   plSuiviRender();
