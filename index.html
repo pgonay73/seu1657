@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.415</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.416</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24384,22 +24384,45 @@ function plNettoyerDoublonsDate(date){
 function plRecupererConferenciersPerdus(){
   var data=plLoad();
   var archives=data.doublonsArchives||[];
-  if(!archives.length){ if(typeof toast==='function') toast('Aucun doublon archivé à examiner.'); return; }
+  if(!archives.length){ alert('Aucun doublon archivé à examiner : le planning n\'a jamais eu de tenues en double supprimées via "🧹 Nettoyer les doublons" sur cet appareil.'); return; }
   var evtsParDate={};
   (data.events||[]).forEach(function(e){ if(e.date&&!evtsParDate[e.date]) evtsParDate[e.date]=e; });
   var candidats=[];
+  var archivesAvecConf=0, datesSansTenueActuelle=0;
   archives.forEach(function(arch){
+    var confsArchive=(arch.detail||[]).filter(function(p){return p&&isPlancheOuSym(p.nom)&&p.conf&&p.conf.trim();});
+    if(!confsArchive.length) return;
+    archivesAvecConf++;
     var live=evtsParDate[arch.date];
-    if(!live||!live.detail||!arch.detail) return;
-    arch.detail.forEach(function(ap,api){
-      if(!ap||!isPlancheOuSym(ap.nom)||!ap.conf||!ap.conf.trim()) return;
+    if(!live||!live.detail){ datesSansTenueActuelle++; return; }
+    var utilises={};
+    confsArchive.forEach(function(ap){
+      var api=arch.detail.indexOf(ap);
+      // 1) Même position dans le détail (cas le plus courant : même modèle).
       var lp=live.detail[api];
-      if(lp&&isPlancheOuSym(lp.nom)&&(!lp.conf||!lp.conf.trim())){
-        candidats.push({date:arch.date,liveId:live.id,idx:api,conf:ap.conf.trim(),titre:(ap.titre||'').trim()});
+      var lidx=api;
+      // 2) Sinon, première rubrique planche/symbolisme encore vide, non
+      // déjà utilisée par un autre conférencier de ce même lot.
+      if(!lp||!isPlancheOuSym(lp.nom)||(lp.conf&&lp.conf.trim())){
+        lidx=-1;
+        for(var i=0;i<live.detail.length;i++){
+          var cand=live.detail[i];
+          if(cand&&isPlancheOuSym(cand.nom)&&(!cand.conf||!cand.conf.trim())&&!utilises[i]){ lidx=i; break; }
+        }
+      }
+      if(lidx>=0){
+        utilises[lidx]=true;
+        candidats.push({date:arch.date,liveId:live.id,idx:lidx,conf:ap.conf.trim(),titre:(ap.titre||'').trim()});
       }
     });
   });
-  if(!candidats.length){ if(typeof toast==='function') toast('Aucun conférencier manquant retrouvé dans les doublons archivés.'); return; }
+  if(!candidats.length){
+    alert('Aucun conférencier à récupérer.\n\n'
+      +archives.length+' tenue(s) archivée(s) au total, dont '+archivesAvecConf+' avec au moins un conférencier renseigné sur une rubrique planche/symbolisme.'
+      +(datesSansTenueActuelle?'\n'+datesSansTenueActuelle+' de ces dates n\'ont plus de tenue actuelle à cette date (peut-être aussi supprimée depuis).':'\nPour chacune, la tenue actuellement conservée à la même date a déjà un conférencier sur toutes ses rubriques planche/symbolisme — rien à restaurer.')
+      +'\n\nSi vous attendiez un résultat pour un frère précis, le problème vient probablement d\'ailleurs (jamais lié à une tenue depuis le planning).');
+    return;
+  }
   var liste=candidats.map(function(c){return '— '+c.date+' : '+c.conf+(c.titre?' ('+c.titre+')':'');}).join('\n');
   if(!confirm('Conférencier(s) manquant(s) sur la tenue actuelle, retrouvé(s) dans un doublon archivé :\n\n'+liste+'\n\nLes restaurer sur le planning ?')) return;
   candidats.forEach(function(c){
