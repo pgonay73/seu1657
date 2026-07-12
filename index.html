@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.405</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.406</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22891,7 +22891,7 @@ function plImporterSujetsDuPlanning(){
       if(!isPlancheOuSym(p.nom)) return;
       var titre=(p.titre||'').trim();
       if(!titre) return;
-      if(isSymbolisme(p.nom)){
+      if(_plDetailTypeEstSym(p)){
         var ds=plSymLoad();
         if(!ds.some(function(s){return s.sujet===titre;})){ds.push({sujet:titre,degre:deg,actif:true});plSymSave(ds);addedS++;}
       } else {
@@ -22919,9 +22919,9 @@ function _plSuiviToRef(nomAttr,ligne){
   _plDetailEnsure(ev);
   var isSym=s.type==='Symbolisme';
   var idx=-1;
-  for(var j=0;j<ev.detail.length;j++){var p=ev.detail[j];if(isPlancheOuSym(p.nom)&&isSymbolisme(p.nom)===isSym&&(p.conf||'')===(nomAttr)){idx=j;break;}}
-  if(idx<0){for(var k=0;k<ev.detail.length;k++){var p2=ev.detail[k];if(isPlancheOuSym(p2.nom)&&isSymbolisme(p2.nom)===isSym&&!p2.conf){idx=k;break;}}}
-  if(idx<0){for(var m=0;m<ev.detail.length;m++){var p3=ev.detail[m];if(isPlancheOuSym(p3.nom)&&isSymbolisme(p3.nom)===isSym){idx=m;break;}}}
+  for(var j=0;j<ev.detail.length;j++){var p=ev.detail[j];if(isPlancheOuSym(p.nom)&&_plDetailTypeEstSym(p)===isSym&&(p.conf||'')===(nomAttr)){idx=j;break;}}
+  if(idx<0){for(var k=0;k<ev.detail.length;k++){var p2=ev.detail[k];if(isPlancheOuSym(p2.nom)&&_plDetailTypeEstSym(p2)===isSym&&!p2.conf){idx=k;break;}}}
+  if(idx<0){for(var m=0;m<ev.detail.length;m++){var p3=ev.detail[m];if(isPlancheOuSym(p3.nom)&&_plDetailTypeEstSym(p3)===isSym){idx=m;break;}}}
   if(idx<0) return;
   ev.detail[idx].conf=nomAttr;
   if(s.sujet) ev.detail[idx].titre=s.sujet;
@@ -22932,6 +22932,15 @@ function _plSuiviToRef(nomAttr,ligne){
     plRenderPlanning();
   },60);
 }
+// Détermine si une partie de détail (morceau d'architecture inclus) doit être
+// classée Planche ou Symbolisme : priorité aux cases cochées (plancheSteps /
+// symDegres) — seules fiables pour un "Morceau d'architecture" générique dont
+// le nom ne permet pas de trancher — puis repli sur le nom si rien n'est coché.
+function _plDetailTypeEstSym(p){
+  if(p.plancheSteps&&p.plancheSteps.length) return p.plancheSteps.indexOf('symbolisme')>=0;
+  if(p.symDegres&&p.symDegres.length) return true;
+  return isSymbolisme(p.nom);
+}
 function _plRefToSuivi(eid,pi){
   var data=plLoad();
   var ev=null;
@@ -22939,7 +22948,7 @@ function _plRefToSuivi(eid,pi){
   if(!ev||!ev.detail||!ev.detail[pi]) return;
   var p=ev.detail[pi];
   if(!isPlancheOuSym(p.nom)) return;
-  var isSym=isSymbolisme(p.nom);
+  var isSym=_plDetailTypeEstSym(p);
   var pConf=(p.conf||'').trim();
   var pTitre=(p.titre||'').trim();
   var sd=plSuiviLoad();
