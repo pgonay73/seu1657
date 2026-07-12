@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.409</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.410</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -23346,6 +23346,7 @@ function plSuiviNettoyer(){
     if(!nomsFreres[nm]){ delete suivi[cle]; orphelins++; return; }
     if(val.tenueId && !tenueIds[val.tenueId]){ val.tenueId=''; tenuesObsoletes++; }
   });
+  var freresAvecGhost={};
   D.freres.forEach(function(f){
     var full=((f.prenom||'')+' '+(f.nom||'')).trim();
     if(!full) return;
@@ -23358,10 +23359,27 @@ function plSuiviNettoyer(){
         var vAutre=suivi[kAutre];
         return vAutre.tenueId&&vAutre.sujet===vGhost.sujet&&(vAutre.type||'Planche')===(vGhost.type||'Planche');
       });
-      if(doublonTrouve){ delete suivi[kGhost]; doublonsFantomes++; }
+      if(doublonTrouve){ delete suivi[kGhost]; doublonsFantomes++; freresAvecGhost[full]=true; }
     });
   });
-  if(!orphelins && !tenuesObsoletes && !doublonsFantomes){
+  // Rabaisser le "nombre de lignes" (#nb) des frères dont un doublon fantôme
+  // vient d'être retiré : l'ancien bug gonflait ce compteur à chaque doublon
+  // créé (ex. 3 planches affichées pour 1 seule réellement saisie). On ne
+  // touche PAS aux frères non concernés par un doublon, pour ne jamais écraser
+  // un nombre de lignes volontairement choisi par l'utilisateur.
+  var nbReduits=0;
+  Object.keys(freresAvecGhost).forEach(function(full){
+    var maxOccupe=0;
+    PL_SUIVI_LIGNES.forEach(function(l,li){
+      var v=suivi[full+'#'+l];
+      if(v&&(v.tenueId||v.sujet||v.degre)) maxOccupe=li+1;
+    });
+    var cible=Math.max(1,maxOccupe);
+    var cleNb=full+'#nb';
+    var actuel=parseInt(suivi[cleNb],10)||1;
+    if(actuel>cible){ suivi[cleNb]=cible; nbReduits++; }
+  });
+  if(!orphelins && !tenuesObsoletes && !doublonsFantomes && !nbReduits){
     if(typeof toast==='function') toast('Rien à nettoyer : le suivi est déjà propre.');
     return;
   }
@@ -23369,6 +23387,7 @@ function plSuiviNettoyer(){
   if(orphelins) msg.push(orphelins+' entrée(s) orpheline(s) (frère non reconnu) à supprimer');
   if(tenuesObsoletes) msg.push(tenuesObsoletes+' référence(s) à une tenue supprimée à libérer');
   if(doublonsFantomes) msg.push(doublonsFantomes+' doublon(s) fantôme(s) à supprimer');
+  if(nbReduits) msg.push(nbReduits+' nombre(s) de ligne(s) à corriger');
   if(!confirm('Nettoyer le suivi ?\n\n— '+msg.join('\n— '))) return;
   plSuiviSave(suivi);
   plSuiviRender();
