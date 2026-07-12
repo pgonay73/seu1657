@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.386</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.387</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13880,7 +13880,7 @@ function renderOffice(n){
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0;">Planning des tenues sans planches</h3>';
     c+='<div style="display:flex;gap:8px;align-items:center;">';
     c+='<button id="adm-pl-btn-toggle-details" onclick="plToggleTousDetails(this)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:rgba(255,255,255,.75);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">&#9654; Déplier tout</button>';
-    c+='<button onclick="plImprimerSans()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
+    c+='<button onclick="plImprimerAvecBornes()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
     c+='<button onclick="plConsoliderPlanning()" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Consolide ce planning : exporte une sauvegarde, ne conserve que les tenues filtrées, efface les doublons et entrées hors période.">🔒 Valider ce planning</button>';
     c+='</div>';
     c+='</div>';
@@ -13957,7 +13957,7 @@ function renderOffice(n){
     c+='<button onclick="plGenererPlanningReference()" style="background:#4472C4;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Génère automatiquement le planning depuis les tenues impératives, les règles conseillées et les critères.">🔄 Générer</button>';
     c+='<button onclick="plNettoyerDoublonsManuel()" style="background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.5);border-radius:5px;color:#FF9900;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Supprime les tenues en double sur une même date (signalées par ⚠×N), en gardant la plus complète.">🧹 Nettoyer les doublons</button>';
     c+='<button id="adm-pl-ref-btn-toggle" onclick="plToggleTousDetails(this)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:rgba(255,255,255,.75);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">&#9654; Déplier tout</button>';
-    c+='<button onclick="plImprimerSans()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
+    c+='<button onclick="plImprimerAvecBornes()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
     c+='<button onclick="plConsoliderPlanning()" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Consolide et fige ce planning.">🔒 Valider</button>';
     c+='</div>';
     c+='</div>';
@@ -18541,7 +18541,7 @@ var PA_SUGGESTIONS_MOIS={
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
           <button class="pl-btn pl-btn-outline pl-btn-sm" id="pl-btn-toggle-tous-details" onclick="plToggleTousDetails(this)">&#9654; Déplier tout</button>
-          <button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plImprimerSans()" title="Imprimer le planning">🖨️ Imprimer</button>
+          <button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plImprimerAvecBornes()" title="Imprimer le planning">🖨️ Imprimer</button>
         </div>
       </div>
       <div id="pl-list"></div>
@@ -23689,12 +23689,32 @@ function plGenererPlanningReference(){
   }
   setTimeout(function(){ adminPlRenderRef('admin-pl-ref-list'); toast('✓ Planning de référence généré — vérifiez et ajustez si nécessaire.'); },200);
 }
-function plImprimerSans(){
+// v387 — Permet de borner l'impression à une période choisie au moment de
+// l'impression (modale pl-print-bornes-overlay), plutôt que de dépendre
+// uniquement de la période configurée par ailleurs.
+function plImprimerAvecBornes(){
+  var _critImp=(typeof plCriteresLoad==='function'?plCriteresLoad():{})||{};
+  var deb=(D&&D.loge&&D.loge.periodeDebut)||_critImp.dateDebut||'';
+  var fin=(D&&D.loge&&D.loge.periodeFin)||_critImp.dateFin||'';
+  var elD=document.getElementById('pl-print-bornes-debut'); if(elD) elD.value=deb;
+  var elF=document.getElementById('pl-print-bornes-fin'); if(elF) elF.value=fin;
+  var ov=document.getElementById('pl-print-bornes-overlay'); if(ov) ov.style.display='block';
+}
+function plImprimerBornesAnnuler(){
+  var ov=document.getElementById('pl-print-bornes-overlay'); if(ov) ov.style.display='none';
+}
+function plImprimerBornesConfirmer(){
+  var deb=(document.getElementById('pl-print-bornes-debut')||{}).value||'';
+  var fin=(document.getElementById('pl-print-bornes-fin')||{}).value||'';
+  plImprimerBornesAnnuler();
+  plImprimerSans({debut:deb,fin:fin});
+}
+function plImprimerSans(bornes){
   var _pImpCP=_plColPrefsLoad('planning');
   var data=plLoad();
   var _critImp=(typeof plCriteresLoad==='function'?plCriteresLoad():{})||{};
-  var perDeb=(D&&D.loge&&D.loge.periodeDebut)||_critImp.dateDebut||'';
-  var perFin=(D&&D.loge&&D.loge.periodeFin)||_critImp.dateFin||'';
+  var perDeb=bornes?(bornes.debut||''):((D&&D.loge&&D.loge.periodeDebut)||_critImp.dateDebut||'');
+  var perFin=bornes?(bornes.fin||''):((D&&D.loge&&D.loge.periodeFin)||_critImp.dateFin||'');
   var evts=(data.events||[]).filter(function(e){
     if(!e.date) return false;
     if(perDeb && e.date < perDeb) return false;
@@ -24397,6 +24417,25 @@ function imprimerPageActive(){
 
 try { if(typeof applyNavVisib==='function') applyNavVisib(); } catch(_e) {}
 </script>
+<!-- ── Overlay : Bornes d'impression du planning ── -->
+<div id="pl-print-bornes-overlay" class="ov" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.65);">
+  <div style="background:#1E3660;border:1px solid var(--gold);border-radius:10px;max-width:360px;margin:15vh auto;padding:20px;">
+    <h3 style="margin:0 0 14px;font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;color:var(--gold2);">Imprimer le planning</h3>
+    <p style="font-size:12px;color:rgba(255,255,255,.6);margin:0 0 14px;">Bornez la période à imprimer (laisser vide pour ne pas borner).</p>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Date de début</label>
+      <input type="date" id="pl-print-bornes-debut" style="width:100%;box-sizing:border-box;background:#1E3660;border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px;">Date de fin</label>
+      <input type="date" id="pl-print-bornes-fin" style="width:100%;box-sizing:border-box;background:#1E3660;border:1px solid rgba(184,146,42,.5);border-radius:4px;padding:7px 10px;color:#FFFFFF;font-family:Raleway,sans-serif;font-size:13px;">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="plImprimerBornesAnnuler()" class="btn btn-outline">Annuler</button>
+      <button onclick="plImprimerBornesConfirmer()" style="background:#B8922A;border:none;border-radius:5px;color:#1E2D45;cursor:pointer;font-size:13px;font-weight:700;padding:8px 16px;">🖨 Imprimer</button>
+    </div>
+  </div>
+</div>
 <!-- ── Overlay : Détail tenue Planning ── -->
 <div id="ov-pl-detail" class="ov" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.65);overflow-y:auto;">
   <div style="background:#1E3660;border:1px solid var(--gold);border-radius:10px;max-width:700px;margin:32px auto;padding:0;max-height:calc(100vh - 64px);display:flex;flex-direction:column;overflow:hidden;">
