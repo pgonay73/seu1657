@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.401</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.402</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22127,6 +22127,39 @@ function plSujetsChanger(idx,champ,val){
   d[idx][champ]=val;
   plSujetsSave(d);
 }
+// ── Vue unifiée Planche + Symbolisme : chaque ligne mémorise son type d'origine
+// (_type) et son index dans le tableau source (_idx) pour router les actions.
+function _plSujetsMerged(){
+  var dp=plSujetsLoad(), ds=plSymLoad();
+  var all=[];
+  dp.forEach(function(p,i){ all.push({sujet:p.sujet,degre:p.degre,actif:p.actif,_type:'planche',_idx:i}); });
+  ds.forEach(function(p,i){ all.push({sujet:p.sujet,degre:p.degre,actif:p.actif,_type:'symbolisme',_idx:i}); });
+  return all;
+}
+function plSujetsChangerType(oldType,idx,newType){
+  if(oldType===newType) return;
+  var srcArr=(oldType==='symbolisme')?plSymLoad():plSujetsLoad();
+  if(!srcArr[idx]) return;
+  var item=srcArr[idx];
+  srcArr.splice(idx,1);
+  if(oldType==='symbolisme') plSymSave(srcArr); else plSujetsSave(srcArr);
+  var dstArr=(newType==='symbolisme')?plSymLoad():plSujetsLoad();
+  dstArr.push(item);
+  if(newType==='symbolisme') plSymSave(dstArr); else plSujetsSave(dstArr);
+  _plSujetsRefreshAll(); _plSymRefreshAll();
+}
+function plSujetsToggleActifU(type,idx,checked){
+  if(type==='symbolisme') plSymToggleActifSel(idx,checked); else plSujetsToggleActifSel(idx,checked);
+  _plSujetsRefreshAll(); _plSymRefreshAll();
+}
+function plSujetsChangerU(type,idx,champ,val){
+  if(type==='symbolisme') plSymChanger(idx,champ,val); else plSujetsChanger(idx,champ,val);
+  _plSujetsRefreshAll(); _plSymRefreshAll();
+}
+function plSujetsSupprimerU(type,idx){
+  if(type==='symbolisme') plSymSupprimer(idx); else plSujetsSupprimer(idx);
+  _plSujetsRefreshAll(); _plSymRefreshAll();
+}
 function vmTab(name, btn){
   // Pour l'instant un seul onglet — structure prête pour en ajouter d'autres
   var tabs=document.querySelectorAll('#vm-tab-bar .cfg-tab');
@@ -22358,7 +22391,7 @@ function plSauvegarderDetailTenue(){
 
 function plSujetsRenderInto(el){
   if(!el) return;
-  var d=plSujetsLoad();
+  var d=_plSujetsMerged();
   var h='';
   if(!d||!d.length){
     h+='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun sujet pour le moment.</p>';
@@ -22395,20 +22428,22 @@ function plSujetsRenderInto(el){
   var cs={};
   try{Object.keys(suivi).forEach(function(k){if(k.indexOf('#nb')<0&&suivi[k]&&suivi[k].sujet)cs[suivi[k].sujet]=(cs[suivi[k].sujet]||0)+1;});}catch(e){}
   h+='<table class="pl-table-compact" style="width:100%;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
+    +'<th style="text-align:center;width:90px;">Type</th>'
     +'<th style="text-align:center;width:44px;" title="Coché = sujet actif dans le menu du suivi">✓ Suivi</th><th>Sujet</th>'
     +'<th style="text-align:center;width:60px;">Degré</th>'
     +'<th style="text-align:center;width:50px;">Assigné</th>'
     +'<th style="width:36px;"></th></tr></thead><tbody>';
   dFiltres.forEach(function(p){
-    var idx=d.indexOf(p);
+    var typ=p._type, idx=p._idx;
     var ea=(p.actif!==false);
     var nb=cs[p.sujet]||0;
     h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(ea?'background:rgba(184,146,42,.08);':'opacity:.45;')+'">'
-      +'<td style="text-align:center;"><input type="checkbox"'+(ea?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSujetsToggleActifSel('+idx+',this.checked);setTimeout(function(){var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);},100)"></td>'
-      +'<td style="border-left:5mm solid '+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':'rgba(255,255,255,.15)')+';padding-left:6px;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSujetsChanger('+idx+',&quot;sujet&quot;,this.value)" style="min-width:300px;width:100%;color:'+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':'inherit')+'"></td>'
-      +'<td style="text-align:center;">'+'<select onchange="plSujetsChanger('+idx+',&quot;degre&quot;,this.value);setTimeout(function(){var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);},100)" style="width:48px;font-size:11px;">'+'<option value=""'+((!p.degre)?' selected':'')+'>—</option>'+'<option value="1°"'+(p.degre==='1°'?' selected':'')+'>1°</option>'+'<option value="2°"'+(p.degre==='2°'?' selected':'')+'>2°</option>'+'<option value="3°"'+(p.degre==='3°'?' selected':'')+'>3°</option>'+'</select></td>'
+      +'<td style="text-align:center;"><select onchange="plSujetsChangerType(&quot;'+typ+'&quot;,'+idx+',this.value)" style="font-size:11px;padding:2px 4px;border-radius:3px;background:rgba(255,255,255,.08);color:'+(typ==='symbolisme'?'#C080D0':'#66AAFF')+';border:1px solid rgba(255,255,255,.25);"><option value="planche"'+(typ==='planche'?' selected':'')+'>Planche</option><option value="symbolisme"'+(typ==='symbolisme'?' selected':'')+'>Symbolisme</option></select></td>'
+      +'<td style="text-align:center;"><input type="checkbox"'+(ea?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSujetsToggleActifU(&quot;'+typ+'&quot;,'+idx+',this.checked)"></td>'
+      +'<td style="border-left:5mm solid '+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':(typ==='symbolisme'?'#C080D0':'rgba(255,255,255,.15)'))+';padding-left:6px;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSujetsChangerU(&quot;'+typ+'&quot;,'+idx+',&quot;sujet&quot;,this.value)" style="min-width:300px;width:100%;color:'+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':'inherit')+'"></td>'
+      +'<td style="text-align:center;">'+'<select onchange="plSujetsChangerU(&quot;'+typ+'&quot;,'+idx+',&quot;degre&quot;,this.value)" style="width:48px;font-size:11px;">'+'<option value=""'+((!p.degre)?' selected':'')+'>—</option>'+'<option value="1°"'+(p.degre==='1°'?' selected':'')+'>1°</option>'+'<option value="2°"'+(p.degre==='2°'?' selected':'')+'>2°</option>'+'<option value="3°"'+(p.degre==='3°'?' selected':'')+'>3°</option>'+'</select></td>'
       +'<td style="text-align:center;">'+(nb>0?'<span style="font-weight:700;color:var(--gold2);">'+nb+'</span>':'<span style="color:rgba(255,255,255,.25);">—</span>')+'</td>'
-      +'<td style="text-align:center;"><button onclick="plSujetsSupprimer('+idx+');setTimeout(function(){var e=document.getElementById(\''+_elId+'\');if(e)plSujetsRenderInto(e);},100)" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
+      +'<td style="text-align:center;"><button onclick="plSujetsSupprimerU(&quot;'+typ+'&quot;,'+idx+')" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
       +'</tr>';
   });
   h+='</tbody></table>';
@@ -22418,7 +22453,7 @@ function plSujetsRenderInto(el){
 function plSujetsRender(){
   var el=document.getElementById('pl-sujets-list');
   if(!el) return;
-  var d=plSujetsLoad();
+  var d=_plSujetsMerged();
   if(!d.length){
     el.innerHTML='<p style="font-size:13px;color:rgba(255,255,255,.45);font-style:italic;padding:16px 0;">Aucun sujet pour le moment. Utilisez "Ajouter un sujet".</p>';
     return;
@@ -22462,20 +22497,22 @@ function plSujetsRender(){
     }
   });
   h+='<table class="pl-table-compact" style="width:auto;"><thead><tr style="border-bottom:1px solid rgba(255,255,255,.15);">'
+    +'<th style="text-align:center;width:90px;">Type</th>'
     +'<th style="text-align:center;width:44px;" title="Coché = apparaît dans le menu déroulant du suivi des frères">✓ Suivi</th>'
     +'<th>Sujet</th><th style="text-align:center;width:60px;">Degré</th>'
     +'<th style="text-align:center;width:50px;" title="Nombre de frères ayant ce sujet sélectionné dans le suivi">Assigné</th>'
     +'<th style="width:36px;"></th></tr></thead><tbody>';
   dFiltres.forEach(function(p){
-    var idx=d.indexOf(p);
+    var typ=p._type, idx=p._idx;
     var estActif=(p.actif!==false);
     var nb=compteSujets[p.sujet]||0;
     h+='<tr style="border-bottom:1px solid rgba(255,255,255,.06);'+(estActif?'background:rgba(184,146,42,.08);':'opacity:.45;')+'">'
-      +'<td style="text-align:center;"><input type="checkbox"'+(estActif?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSujetsToggleActifSel('+idx+',this.checked);plSujetsRender()"></td>'
-      +'<td style="width:100%;border-left:5mm solid '+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':'rgba(255,255,255,.15)')+';padding-left:6px;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSujetsChanger('+idx+',&quot;sujet&quot;,this.value)" style="min-width:480px;width:100%;color:'+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':'inherit')+'"></td>'
-      +'<td style="text-align:center;">'+'<select onchange="plSujetsChanger('+idx+',&quot;degre&quot;,this.value);plSujetsRender()" style="width:48px;font-size:11px;">'+'<option value=""'+((!p.degre)?' selected':'')+'>—</option>'+'<option value="1°"'+(p.degre==='1°'?' selected':'')+'>1°</option>'+'<option value="2°"'+(p.degre==='2°'?' selected':'')+'>2°</option>'+'<option value="3°"'+(p.degre==='3°'?' selected':'')+'>3°</option>'+'</select></td>'
+      +'<td style="text-align:center;"><select onchange="plSujetsChangerType(&quot;'+typ+'&quot;,'+idx+',this.value)" style="font-size:11px;padding:2px 4px;border-radius:3px;background:rgba(255,255,255,.08);color:'+(typ==='symbolisme'?'#C080D0':'#66AAFF')+';border:1px solid rgba(255,255,255,.25);"><option value="planche"'+(typ==='planche'?' selected':'')+'>Planche</option><option value="symbolisme"'+(typ==='symbolisme'?' selected':'')+'>Symbolisme</option></select></td>'
+      +'<td style="text-align:center;"><input type="checkbox"'+(estActif?' checked':'')+' title="Inclure dans le menu du suivi" onchange="plSujetsToggleActifU(&quot;'+typ+'&quot;,'+idx+',this.checked)"></td>'
+      +'<td style="width:100%;border-left:5mm solid '+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':(typ==='symbolisme'?'#C080D0':'rgba(255,255,255,.15)'))+';padding-left:6px;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" onchange="plSujetsChangerU(&quot;'+typ+'&quot;,'+idx+',&quot;sujet&quot;,this.value)" style="min-width:480px;width:100%;color:'+(p.degre==='3°'?'#FF4444':p.degre==='2°'?'#FF9900':p.degre==='1°'?'#33DD66':'inherit')+'"></td>'
+      +'<td style="text-align:center;">'+'<select onchange="plSujetsChangerU(&quot;'+typ+'&quot;,'+idx+',&quot;degre&quot;,this.value)" style="width:48px;font-size:11px;">'+'<option value=""'+((!p.degre)?' selected':'')+'>—</option>'+'<option value="1°"'+(p.degre==='1°'?' selected':'')+'>1°</option>'+'<option value="2°"'+(p.degre==='2°'?' selected':'')+'>2°</option>'+'<option value="3°"'+(p.degre==='3°'?' selected':'')+'>3°</option>'+'</select></td>'
       +'<td style="text-align:center;">'+(nb>0?'<span style="font-weight:700;color:var(--gold2);">'+nb+'</span>':'<span style="color:rgba(255,255,255,.25);">—</span>')+'</td>'
-      +'<td style="text-align:center;"><button onclick="plSujetsSupprimer('+idx+');plSujetsRender()" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
+      +'<td style="text-align:center;"><button onclick="plSujetsSupprimerU(&quot;'+typ+'&quot;,'+idx+')" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:var(--red);cursor:pointer;font-size:12px;padding:2px 7px;">✕</button></td>'
       +'</tr>';
   });
   h+='</tbody></table>';
