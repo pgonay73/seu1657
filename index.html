@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.360</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.361</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -21056,7 +21056,7 @@ function plRenderPlanning(targetId){
     }
     var _tdToggle='<td style="text-align:center;"><button onclick="plOuvrirDetailTenueFromInline(&quot;'+eid+'&quot;)" title="Ouvrir la carte complète de la tenue" style="background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:12px;padding:2px;">&#9654;</button></td>';
     var _dupN=(window._plDupDates||{})[e.date];
-    var _dupBadge=_dupN?' <span title="'+_dupN+' entrées existent pour cette date en interne (une seule affichée) — cause possible de mise à jour incohérente" style="font-size:10px;color:#FF9900;font-weight:700;cursor:help;">⚠×'+_dupN+'</span>':'';
+    var _dupBadge=_dupN?' <button onclick="plNettoyerDoublonsDate(&quot;'+e.date+'&quot;)" title="'+_dupN+' entrées existent pour cette date en interne (une seule affichée) — cliquer pour nettoyer, en gardant la plus complète" style="font-size:10px;background:rgba(255,153,0,.15);border:1px solid rgba(255,153,0,.5);border-radius:8px;color:#FF9900;font-weight:700;cursor:pointer;padding:1px 6px;">🧹×'+_dupN+'</button>':'';
     var _tdDate='<td class="pl-col-date" style="white-space:nowrap;color:'+cd+';font-weight:600;">'+ds2+(ferie?' <span title="'+ferie+'" style="font-size:11px;color:#FF6B6B;font-weight:700;">⚠</span>':'')+_dupBadge+'</td>';
     var _tdDeg='<td class="pl-col-dg" style="text-align:center;color:'+cd+';font-weight:700;">'+deg+'</td>';
     var _tdP='<td class="pl-col-pp" style="text-align:center;font-weight:700;color:'+cd+';">'+(nbP>0?nbP:'')+'</td>';
@@ -24012,7 +24012,7 @@ function plInitPage(){
 // détail), ce qui pouvait supprimer silencieusement la tenue la plus
 // complète en gardant la plus vide. Les entrées écartées sont archivées
 // dans data.doublonsArchives (non affiché, conservé pour récupération).
-function plDeduplicaterParDate(silent){
+function plDeduplicaterParDate(silent,onlyDate){
   var data=plLoad();
   if(!data.events||data.events.length<2) return 0;
   function _plScore(e){
@@ -24027,7 +24027,7 @@ function plDeduplicaterParDate(silent){
   var clean=[],removed=0,archives=[];
   Object.keys(byDate).forEach(function(d){
     var arr=byDate[d];
-    if(arr.length===1){clean.push(arr[0]);return;}
+    if(arr.length===1||(onlyDate&&d!==onlyDate)){clean.push.apply(clean,arr);return;}
     arr.sort(function(a,b){return _plScore(b)-_plScore(a);});
     clean.push(arr[0]);
     for(var i=1;i<arr.length;i++) archives.push(arr[i]);
@@ -24046,6 +24046,10 @@ function plDeduplicaterParDate(silent){
 }
 function plNettoyerDoublonsManuel(){
   plDeduplicaterParDate(false);
+  plRender();
+}
+function plNettoyerDoublonsDate(date){
+  plDeduplicaterParDate(false,date);
   plRender();
 }
 
