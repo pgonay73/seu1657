@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.417</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.418</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22980,11 +22980,23 @@ function _plRefToSuivi(eid,pi){
   var pTitre=(p.titre||'').trim();
   var sd=plSuiviLoad();
   var changed=false;
+  // N'associer existingKey qu'à une entrée appartenant DÉJÀ à ce même
+  // conférencier (pConf) — une tenue peut avoir plusieurs rubriques
+  // planche/symbolisme du même type assignées à des frères différents ;
+  // sans ce filtre par nom, traiter la rubrique de l'un effaçait la tenue
+  // (tenueId) déjà correctement enregistrée pour l'autre, alors même que
+  // celui-ci n'était pas en train d'être resynchronisé.
   var existingKey=null;
   Object.keys(sd).forEach(function(k){
     if(k.indexOf('#nb')>=0||k.indexOf('#')<0) return;
     var e=sd[k];
-    if(e&&e.tenueId===eid&&(e.type==='Symbolisme')===isSym) existingKey=k;
+    if(!e||e.tenueId!==eid||(e.type==='Symbolisme')!==isSym) return;
+    if(!pConf) return;
+    var kNom=k.slice(0,k.lastIndexOf('#')).toLowerCase();
+    var pc=pConf.toLowerCase();
+    if(kNom===pc||(kNom.length>pc.length&&kNom.slice(-(pc.length+1))===' '+pc)||(pc.length>kNom.length&&pc.slice(-(kNom.length+1))===' '+kNom)){
+      existingKey=k;
+    }
   });
   if(pConf){
     var newKey=null;
@@ -23020,8 +23032,22 @@ function _plRefToSuivi(eid,pi){
     }
     changed=true;
   } else {
-    if(existingKey){sd[existingKey].tenueId='';changed=true;}
-    if(pTitre&&existingKey){sd[existingKey].sujet=pTitre;changed=true;}
+    // Conférencier vidé sur cette rubrique : on ne peut pas savoir par le nom
+    // à qui appartenait l'ancienne assignation, donc on ne libère l'entrée
+    // que si elle est SANS AMBIGUÏTÉ la seule pour cette tenue+type (sinon on
+    // risquerait de vider la tenue d'un autre conférencier assigné sur une
+    // autre rubrique de même type dans la même tenue).
+    var _seulesPourTenueType=[];
+    Object.keys(sd).forEach(function(k){
+      if(k.indexOf('#nb')>=0||k.indexOf('#')<0) return;
+      var e=sd[k];
+      if(e&&e.tenueId===eid&&(e.type==='Symbolisme')===isSym) _seulesPourTenueType.push(k);
+    });
+    if(_seulesPourTenueType.length===1){
+      var _seuleKey=_seulesPourTenueType[0];
+      sd[_seuleKey].tenueId='';changed=true;
+      if(pTitre){sd[_seuleKey].sujet=pTitre;changed=true;}
+    }
   }
   if(pTitre){if(isSym)_plSymAddIfNew(pTitre,ev.degre||'');else _plSujetsAddIfNew(pTitre,ev.degre||'');}
   if(changed){
