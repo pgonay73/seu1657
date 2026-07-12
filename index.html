@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.414</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.415</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14007,6 +14007,7 @@ function renderOffice(n){
     c+='<div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px;">';
     c+='<button onclick="plGenererPlanningReference()" style="background:#4472C4;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Génère automatiquement le planning depuis les tenues impératives, les règles conseillées et les critères.">🔄 Générer</button>';
     c+='<button onclick="plNettoyerDoublonsManuel()" style="background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.5);border-radius:5px;color:#FF9900;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Supprime les tenues en double sur une même date (signalées par ⚠×N), en gardant la plus complète.">🧹 Nettoyer les doublons</button>';
+    c+='<button onclick="plRecupererConferenciersPerdus()" style="background:rgba(68,114,196,.12);border:1px solid rgba(68,114,196,.5);border-radius:5px;color:#82AAFF;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Recherche dans les doublons déjà nettoyés un conférencier absent de la tenue actuelle, et le restaure.">♻️ Récupérer conférenciers perdus</button>';
     c+='<button onclick="plSynchroniserSuiviDepuisPlanning()" style="background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:5px;color:#3ECF8E;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Relit tout le planning et met à jour le suivi par frère et par tenue en conséquence.">🔄 Synchroniser le suivi</button>';
     c+='<button id="adm-pl-ref-btn-toggle" onclick="plToggleTousDetails(this)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:rgba(255,255,255,.75);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">&#9654; Déplier tout</button>';
     c+='<button onclick="plImprimerAvecBornes()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
@@ -20276,6 +20277,12 @@ function plConsoliderPlanning(){
 // contre celle où il l'avait justement saisi. Des bonus (<1, ne changeant
 // jamais le palier principal) départagent maintenant ces égalités en faveur
 // du titre personnalisé rempli, puis du détail le plus riche.
+// v414 — Bonus supplémentaire (plus fort que les précédents) pour les
+// conférenciers déjà renseignés sur les rubriques planche/symbolisme : sans
+// ça, un doublon vide pouvait l'emporter sur celui où un frère avait été
+// assigné, faisant disparaître silencieusement cette assignation lors du
+// nettoyage des doublons (ex. Suivi par frère sans date pour ce frère alors
+// que la tenue existait bien avec sa date, côté doublon supprimé).
 function _plDupScore(e){
   var s;
   if(e.modeleId&&e.detail&&e.detail.length) s=4;
@@ -20283,6 +20290,10 @@ function _plDupScore(e){
   else if(e.titre||e.notes) s=2;
   else if(e.id&&e.id.indexOf('gen_')===0) s=1;
   else s=0;
+  if(e.detail&&e.detail.length){
+    var nbConf=e.detail.filter(function(p){return p&&p.conf&&p.conf.trim();}).length;
+    if(nbConf) s+=Math.min(nbConf,3)*0.6;
+  }
   if(e.titre&&e.titre.trim()) s+=0.5;
   if(e.detail&&e.detail.length) s+=Math.min(e.detail.length,10)*0.01;
   return s;
@@ -24362,6 +24373,47 @@ function plNettoyerDoublonsManuel(){
 function plNettoyerDoublonsDate(date){
   plDeduplicaterParDate(false,date);
   plRender();
+}
+// Récupère les conférenciers perdus lors d'anciens nettoyages de doublons
+// (avant que _plDupScore ne tienne compte des conférenciers déjà renseignés) :
+// pour chaque tenue archivée dans data.doublonsArchives, si une de ses
+// rubriques planche/symbolisme a un conférencier alors que la rubrique
+// correspondante (même position) sur la tenue actuellement conservée à cette
+// date est vide, propose de la restaurer — sans jamais écraser une valeur
+// déjà présente sur la tenue actuelle.
+function plRecupererConferenciersPerdus(){
+  var data=plLoad();
+  var archives=data.doublonsArchives||[];
+  if(!archives.length){ if(typeof toast==='function') toast('Aucun doublon archivé à examiner.'); return; }
+  var evtsParDate={};
+  (data.events||[]).forEach(function(e){ if(e.date&&!evtsParDate[e.date]) evtsParDate[e.date]=e; });
+  var candidats=[];
+  archives.forEach(function(arch){
+    var live=evtsParDate[arch.date];
+    if(!live||!live.detail||!arch.detail) return;
+    arch.detail.forEach(function(ap,api){
+      if(!ap||!isPlancheOuSym(ap.nom)||!ap.conf||!ap.conf.trim()) return;
+      var lp=live.detail[api];
+      if(lp&&isPlancheOuSym(lp.nom)&&(!lp.conf||!lp.conf.trim())){
+        candidats.push({date:arch.date,liveId:live.id,idx:api,conf:ap.conf.trim(),titre:(ap.titre||'').trim()});
+      }
+    });
+  });
+  if(!candidats.length){ if(typeof toast==='function') toast('Aucun conférencier manquant retrouvé dans les doublons archivés.'); return; }
+  var liste=candidats.map(function(c){return '— '+c.date+' : '+c.conf+(c.titre?' ('+c.titre+')':'');}).join('\n');
+  if(!confirm('Conférencier(s) manquant(s) sur la tenue actuelle, retrouvé(s) dans un doublon archivé :\n\n'+liste+'\n\nLes restaurer sur le planning ?')) return;
+  candidats.forEach(function(c){
+    var live=(data.events||[]).filter(function(e){return e.id===c.liveId;})[0];
+    if(live&&live.detail&&live.detail[c.idx]){
+      live.detail[c.idx].conf=c.conf;
+      if(c.titre) live.detail[c.idx].titre=c.titre;
+    }
+  });
+  plSave(data);
+  candidats.forEach(function(c){ _plRefToSuivi(c.liveId,c.idx); });
+  plRender();
+  setTimeout(function(){ try{plSuiviRender();}catch(e){} try{_plSuiviTenueRefreshAll();}catch(e){} },250);
+  if(typeof toast==='function') toast('✓ '+candidats.length+' conférencier(s) restauré(s) depuis les doublons archivés.');
 }
 
 // Génère automatiquement les tenues manquantes selon les règles de Config et la période.
