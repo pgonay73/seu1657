@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.355</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.356</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -1556,7 +1556,12 @@ try {
         // tenue). On ignore ces echos pendant une courte fenêtre de grâce après toute
         // écriture locale — la version locale, plus fraîche, est conservée.
         var _skipPlEcho = (key==='planning_libre_data' && window._plLocalSaveTs && (Date.now()-window._plLocalSaveTs)<5000);
-        if(!_skipPlEcho){
+        // v356 — même protection anti-clobber que planning_libre_data (v344/345), mais pour
+        // 'planningTenues' (D) : un echo Firebase encore en vol après une sauvegarde locale
+        // (ex. ajout/édition d'une tenue impérative ou conseillée) écrasait silencieusement
+        // l'édition qui venait d'être faite.
+        var _skipDEcho = (key==='planningTenues' && window._dLocalSaveTs && (Date.now()-window._dLocalSaveTs)<5000);
+        if(!_skipPlEcho && !_skipDEcho){
         try { localStorage.setItem(key, typeof val==='string'?val:JSON.stringify(val)); } catch(e) {}
         }
         // v323 — purge du fantôme 2026-09-04 s'il revient depuis Firebase (vrai évènement stocké)
@@ -1576,7 +1581,7 @@ try {
             }
           }catch(e){}
         }
-        if(key==='planningTenues' && val && typeof val==='object' && val.freres) {
+        if(key==='planningTenues' && val && typeof val==='object' && val.freres && !_skipDEcho) {
           window.D = val;
           // Mêmes garanties que load() au démarrage : une sauvegarde Firebase
           // plus ancienne (créée avant l'ajout d'un champ comme "parDefaut",
@@ -1848,6 +1853,7 @@ function save(){
     localStorage.setItem('planningTenues',JSON.stringify(D));
     localStorage.setItem('planningTenues_localTs', String(Date.now()));
   }catch(e){toast('Erreur sauvegarde locale : '+e.message);}
+  window._dLocalSaveTs=Date.now();
   // Sync Firebase
   if(window.fbSet) window.fbSet('planningTenues', D);
   scheduleAutoSave();
@@ -18192,7 +18198,7 @@ function tiPlanifierToutes(){
     plData.events=plData.events.filter(function(e){return e.date!==dateFin;});
     var _tiMdef=ti.modeleId?getModele(ti.modeleId):getModeleDefaut();
     var _tiP=_tiMdef?cpP(_tiMdef.parties||[]):cpP(D.parDefaut||[]);
-    plData.events.push({id:'pl'+Date.now()+'_'+dateFin,date:dateFin,titre:ti.theme||'Tenue impérative',heure:'',categorie:'tenue',degre:'1°',duree:0,notes:'',imperative:true,parties:_tiP,modeleId:_tiMdef?_tiMdef.id:''});
+    plData.events.push({id:'pl'+Date.now()+'_'+dateFin,date:dateFin,titre:ti.theme||'Tenue impérative',heure:'',categorie:'tenue',degre:'1°',duree:0,notes:'',imperative:true,detail:_tiP,modeleId:_tiMdef?_tiMdef.id:''});
     ti.planifiedDate=dateFin;
     ok++;
   });
