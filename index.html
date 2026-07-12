@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.361</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.362</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -2976,7 +2976,7 @@ function peRender(cid,parties){
     var fn=sorted[fi].nom+(sorted[fi].prenom?' '+sorted[fi].prenom:'');
     frOpts+='<option value="'+sorted[fi].nom+'">'+fn+'</option>';
   }
-  var elecData=[{v:'Collège+VM',dur:120},{v:'Renouvellement',dur:105},{v:'VM',dur:15},{v:'Député',dur:15},{v:'Délégués judiciaires',dur:10}];
+  var elecData=[{v:'Collège+VM',dur:60},{v:'Renouvellement',dur:45},{v:'VM',dur:10},{v:'Député',dur:10},{v:'Délégués judiciaires',dur:10}];
   var instData=[{v:'Collège+VM',dur:60},{v:'VM',dur:10},{v:'Député',dur:10},{v:'Inspecteur+Installation',dur:75}];
   var interData=[{v:'VM',dur:15},{v:'Député',dur:15},{v:'Autre',dur:15}];
   var cerCardData=[{v:'St Jean',dur:120},{v:'Jubilé',dur:120},{v:'Tenue funèbre',dur:120},{v:'Autre',dur:120}];
@@ -3171,8 +3171,8 @@ function peRender(cid,parties){
         // Ligne 1 : Planche (15) et Minute de symbolisme (10)
         h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="symbolisme" data-dur="10" '+(plancheSteps.indexOf('symbolisme')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Symbolisme (10 min)</label>';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="planche" data-dur="15" '+(plancheSteps.indexOf('planche')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Planche (15 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="symbolisme" data-dur="5" '+(plancheSteps.indexOf('symbolisme')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Symbolisme (5 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="planche" data-dur="10" '+(plancheSteps.indexOf('planche')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Planche (10 min)</label>';
         h+='</div>';
         // Ligne 2 : Impressions et Passage+vote
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
@@ -3181,7 +3181,7 @@ function peRender(cid,parties){
         h+='</div>';
         // Ligne 3 : Parole
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-circul-cb" data-dur="15" '+(p.circulParole?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Parole (15 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-circul-cb" data-dur="20" '+(p.circulParole?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Parole (20 min)</label>';
         h+='</div>';
         // Titre et conférencier
         h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">';
@@ -21199,7 +21199,7 @@ function plRenderPlanning(targetId){
         }
         if(_isElec2){
           _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
-          [{v:'Collège+VM',d:120},{v:'Renouvellement',d:105},{v:'VM',d:15},{v:'Député',d:15},{v:'Délégués judiciaires',d:10}].forEach(function(x){var chk=(p.elecSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'elecSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
+          [{v:'Collège+VM',d:60},{v:'Renouvellement',d:45},{v:'VM',d:10},{v:'Député',d:10},{v:'Délégués judiciaires',d:10}].forEach(function(x){var chk=(p.elecSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'elecSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
           _exH+='</div>';
         }
         if(_isInst2){
