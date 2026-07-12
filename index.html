@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.407</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.408</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -13968,6 +13968,7 @@ function renderOffice(n){
     c+='<button onclick="plNavVers(\'suivi-tenue\')" style="background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.3);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Suivi par tenue →</button>';
     c+='<button onclick="plNavVers(\'ref\')" style="background:rgba(68,114,196,.1);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Planning de référence →</button>';
     c+='<button onclick="plSynchroniserSuiviDepuisPlanning()" style="background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:4px;color:#3ECF8E;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;margin-left:auto;" title="Relit tout le planning et met à jour le suivi par frère et par tenue en conséquence.">🔄 Synchroniser depuis le planning</button>';
+    c+='<button onclick="plSuiviNettoyer()" style="background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.5);border-radius:4px;color:#FF9900;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;" title="Supprime les entrées orphelines (frère non reconnu) et libère les références à des tenues supprimées.">🧹 Nettoyer</button>';
     c+='</div>';
     c+='<div id="admin-pl-suivi-list"></div>';
     c+='</div></div>';
@@ -13979,6 +13980,7 @@ function renderOffice(n){
     c+='<button onclick="plNavVers(\'suivi\')" style="background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.3);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Suivi par frère →</button>';
     c+='<button onclick="plNavVers(\'ref\')" style="background:rgba(68,114,196,.1);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Planning de référence →</button>';
     c+='<button onclick="plSynchroniserSuiviDepuisPlanning()" style="background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:4px;color:#3ECF8E;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;margin-left:auto;" title="Relit tout le planning et met à jour le suivi par frère et par tenue en conséquence.">🔄 Synchroniser depuis le planning</button>';
+    c+='<button onclick="plSuiviNettoyer()" style="background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.5);border-radius:4px;color:#FF9900;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;" title="Supprime les entrées orphelines (frère non reconnu) et libère les références à des tenues supprimées.">🧹 Nettoyer</button>';
     c+='</div>';
     c+='<div id="admin-pl-suivi-tenue-list"></div>';
     c+='</div></div>';
@@ -23305,6 +23307,40 @@ function plSuiviRender(containerId){
   }
   h+='<p style="font-size:11px;color:rgba(255,255,255,.3);margin-top:6px;">'+freresTries.length+' frère'+(freresTries.length>1?'s':'')+' &bull; nombre de planches réglable par frère (1 à 3).</p>';
   el.innerHTML=h;
+}
+// Nettoyage groupé du suivi : (1) supprime les entrées orphelines (frère
+// stocké ne correspondant plus à aucun frère enregistré — cf. tableau
+// "Entrées non rattachées" affiché plus bas) et (2) libère les entrées dont
+// la tenue référencée (tenueId) n'existe plus dans le planning (tenue
+// supprimée depuis), sans supprimer la ligne du frère.
+function plSuiviNettoyer(){
+  var suivi=plSuiviLoad();
+  var data=plLoad();
+  var tenueIds={};
+  (data.events||[]).forEach(function(ev){ if(ev.id) tenueIds[ev.id]=true; });
+  var nomsFreres={};
+  D.freres.forEach(function(f){ nomsFreres[((f.prenom||'')+' '+(f.nom||'')).trim()]=true; });
+  var orphelins=0, tenuesObsoletes=0;
+  Object.keys(suivi).forEach(function(cle){
+    if(cle.indexOf('#nb')>=0) return;
+    var val=suivi[cle];
+    if(!val||typeof val!=='object') return;
+    var parts=cle.split('#');
+    var lig=parts[parts.length-1];
+    if(['A','B','C'].indexOf(lig)<0) return;
+    var nm=parts.slice(0,-1).join('#');
+    if(!nomsFreres[nm]){ delete suivi[cle]; orphelins++; return; }
+    if(val.tenueId && !tenueIds[val.tenueId]){ val.tenueId=''; tenuesObsoletes++; }
+  });
+  if(!orphelins && !tenuesObsoletes){
+    if(typeof toast==='function') toast('Rien à nettoyer : le suivi est déjà propre.');
+    return;
+  }
+  if(!confirm('Nettoyer le suivi ?\n\n— '+orphelins+' entrée(s) orpheline(s) (frère non reconnu) à supprimer\n— '+tenuesObsoletes+' référence(s) à une tenue supprimée à libérer')) return;
+  plSuiviSave(suivi);
+  plSuiviRender();
+  _plSuiviTenueRefreshAll();
+  if(typeof toast==='function') toast('✓ Suivi nettoyé : '+orphelins+' entrée(s) orpheline(s) supprimée(s), '+tenuesObsoletes+' référence(s) de tenue obsolète(s) libérée(s).');
 }
 function plSuiviSupprimerCleRaw(cle){
   if(!confirm('Supprimer cette entrée suivi ?\n\nNom stocké : '+cle)) return;
