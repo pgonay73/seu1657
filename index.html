@@ -16,6 +16,8 @@
   --muted:rgba(255,255,255,.45);--muted2:rgba(255,255,255,.25);
   --accent-warm:#C97B63;--accent-blue:#7FB3D5;--slate:#44546A;
 }
+@keyframes plDureeClignote{0%,100%{opacity:1;}50%{opacity:.25;}}
+.pl-duree-alerte{animation:plDureeClignote 1s infinite;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Raleway',sans-serif;background:#1E3660;color:var(--text);height:100vh;overflow:hidden;}
 textarea{resize:none;overflow:hidden;box-sizing:border-box;}
@@ -753,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.357</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.358</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -3498,7 +3500,14 @@ function peTotalUpdate(){
   var valDetEl=document.getElementById('pe-pl-detail-total-val');
   var hmDetEl=document.getElementById('pe-pl-detail-total-hm');
   if(totDetDiv) totDetDiv.style.display=rowsDet.length>0?'flex':'none';
-  if(valDetEl) valDetEl.textContent=totalDet+' min';
+  if(valDetEl){
+    valDetEl.textContent=totalDet+' min';
+    if(typeof _plDureeStyle==='function'){
+      var _dsDet=_plDureeStyle(totalDet);
+      valDetEl.style.color=_dsDet.color;
+      valDetEl.className=_dsDet.cls.trim();
+    }
+  }
   if(hmDetEl){if(totalDet>=60){var hd=Math.floor(totalDet/60),md=totalDet%60;hmDetEl.textContent='('+hd+'h'+(md>0?String(md).padStart(2,'0'):'')+')'}else{hmDetEl.textContent='';}}
   // Total modèle
   var rowsMod=document.querySelectorAll('#pe-modele .pe-row');
@@ -20681,6 +20690,12 @@ function _plColPickerHTML(t){
     +'<span style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(184,146,42,.8);font-weight:700;white-space:nowrap;flex-shrink:0;">Colonnes :</span>'
     +items+'</div>';
 }
+// Code couleur de la durée d'une tenue : vert jusqu'à 135 min, rouge clignotant au-delà.
+var PL_DUREE_SEUIL_ALERTE=135;
+function _plDureeStyle(min){
+  if(min>PL_DUREE_SEUIL_ALERTE) return {color:'#E74C3C',cls:' pl-duree-alerte'};
+  return {color:'#27AE60',cls:''};
+}
 function plRenderPlanning(targetId){
   var el=document.getElementById(targetId||'pl-list');if(!el)return;
   var isAdmin=(targetId||'')==='admin-pl-sans-list'||(targetId||'')==='admin-pl-ref-list';
@@ -20921,7 +20936,11 @@ function plRenderPlanning(targetId){
     var _detDur=e.detail&&e.detail.length?e.detail:(_modRefParties||(D.parDefaut||[]));
     var _dureeEff=_detDur.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0);
     var dureeEffAff='';
-    if(_dureeEff>0){var _hE=Math.floor(_dureeEff/60),_mE=_dureeEff%60;dureeEffAff='<span class="pl-col-duree" style="font-size:10px;color:rgba(255,255,255,.45);white-space:nowrap;">⏱ '+(_hE>0?_hE+'h'+(_mE>0?String(_mE).padStart(2,'0'):''):_dureeEff+' min')+'</span>';}
+    if(_dureeEff>0){
+      var _hE=Math.floor(_dureeEff/60),_mE=_dureeEff%60;
+      var _dsE=_plDureeStyle(_dureeEff);
+      dureeEffAff='<span class="pl-col-duree'+_dsE.cls+'" style="font-size:10px;color:'+_dsE.color+';font-weight:700;white-space:nowrap;">⏱ '+(_hE>0?_hE+'h'+(_mE>0?String(_mE).padStart(2,'0'):''):_dureeEff+' min')+'</span>';
+    }
     var _det=e.detail||[];
     var nbP=_det.filter(function(p){
       var nL=(p.nom||'').toLowerCase(),isMo=nL.indexOf('morceau')>=0||nL.indexOf('architecture')>=0;
@@ -21038,7 +21057,9 @@ function plRenderPlanning(targetId){
     var _tdPAdm='<td class="pl-col-pp" style="text-align:center;"><input type="number" min="0" value="'+_pVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'P\',+this.value)" style="'+_inpPs+'color:'+cd+';">'+'</td>';
     var _tdSAdm='<td class="pl-col-ss" style="text-align:center;"><input type="number" min="0" value="'+_sVal+'" placeholder="0" onblur="plPSChanger(&quot;'+eid+'&quot;,\'S\',+this.value)" style="'+_inpPs+'color:#C080D0;">'+'</td>';
     var _dureeManVal=_dureeEff>0?_dureeEff:(e.duree!=null&&e.duree>0?e.duree:'');
-    var _dureeAdmInput='<span class="pl-col-duree"><input type="number" min="0" value="'+_dureeManVal+'" placeholder="—" onblur="plDureeChanger(&quot;'+eid+'&quot;,+this.value)" style="width:48px;background:transparent;border:none;border-bottom:1px dashed rgba(184,146,42,.4);color:var(--gold2);font-weight:600;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"><span style="font-size:10px;color:rgba(184,146,42,.6);"> min</span></span>';
+    var _dureeColorVal=_dureeEff>0?_dureeEff:(e.duree!=null&&e.duree>0?e.duree:0);
+    var _dsA=_plDureeStyle(_dureeColorVal);
+    var _dureeAdmInput='<span class="pl-col-duree'+_dsA.cls+'"><input type="number" min="0" value="'+_dureeManVal+'" placeholder="—" onblur="plDureeChanger(&quot;'+eid+'&quot;,+this.value)" style="width:48px;background:transparent;border:none;border-bottom:1px dashed rgba(184,146,42,.4);color:'+_dsA.color+';font-weight:700;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"><span style="font-size:10px;color:'+_dsA.color+';"> min</span></span>';
     var _actBtnsBase='<button onclick="plOuvrirDetailTenueFromInline(&quot;'+eid+'&quot;)" title="Ouvrir la carte complète de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
       +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;,this)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
     var _actBtns=_actBtnsBase
