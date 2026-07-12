@@ -755,7 +755,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.358</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.359</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -2977,7 +2977,7 @@ function peRender(cid,parties){
     frOpts+='<option value="'+sorted[fi].nom+'">'+fn+'</option>';
   }
   var elecData=[{v:'Collège+VM',dur:120},{v:'Renouvellement',dur:105},{v:'VM',dur:15},{v:'Député',dur:15},{v:'Délégués judiciaires',dur:10}];
-  var instData=[{v:'Collège+VM',dur:120},{v:'VM',dur:15},{v:'Député',dur:15}];
+  var instData=[{v:'Collège+VM',dur:60},{v:'VM',dur:10},{v:'Député',dur:10},{v:'Inspecteur+Installation',dur:75}];
   var interData=[{v:'VM',dur:15},{v:'Député',dur:15},{v:'Autre',dur:15}];
   var cerCardData=[{v:'St Jean',dur:120},{v:'Jubilé',dur:120},{v:'Tenue funèbre',dur:120},{v:'Autre',dur:120}];
   var reunData=[{v:'CA',dur:60},{v:'Compagnons',dur:120},{v:'Apprentis',dur:120}];
@@ -3212,10 +3212,11 @@ function peRender(cid,parties){
       h+='<div class="pe-pr-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
       h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Candidature — Type</div>';
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="profane" data-dur="15" '+(profSteps.indexOf('profane')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Profane (15 min)</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="affiliation" data-dur="15" '+(profSteps.indexOf('affiliation')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Affiliation (15 min)</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="integration" data-dur="15" '+(profSteps.indexOf('integration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Intégration (15 min)</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="reintegration" data-dur="15" '+(profSteps.indexOf('reintegration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Réintégration (15 min)</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="profane" data-dur="15" '+(profSteps.indexOf('profane')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Profane</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="affiliation" data-dur="15" '+(profSteps.indexOf('affiliation')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Affiliation</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="integration" data-dur="15" '+(profSteps.indexOf('integration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Intégration</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="reintegration" data-dur="15" '+(profSteps.indexOf('reintegration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Réintégration</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="regularisation" data-dur="15" '+(profSteps.indexOf('regularisation')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Régularisation</label>';
       h+='</div>';
       h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Étape</div>';
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
@@ -3505,6 +3506,9 @@ function peTotalUpdate(){
     if(typeof _plDureeStyle==='function'){
       var _dsDet=_plDureeStyle(totalDet);
       valDetEl.style.color=_dsDet.color;
+      valDetEl.style.background=_dsDet.bg;
+      valDetEl.style.borderRadius='8px';
+      valDetEl.style.padding='2px 10px';
       valDetEl.className=_dsDet.cls.trim();
     }
   }
@@ -20690,11 +20694,14 @@ function _plColPickerHTML(t){
     +'<span style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:rgba(184,146,42,.8);font-weight:700;white-space:nowrap;flex-shrink:0;">Colonnes :</span>'
     +items+'</div>';
 }
-// Code couleur de la durée d'une tenue : vert jusqu'à 135 min, rouge clignotant au-delà.
+// Code couleur (fond) de la durée d'une tenue : vert jusqu'à 120 min, orange
+// de 121 à 135 min, rouge clignotant au-delà de 135 min.
+var PL_DUREE_SEUIL_ORANGE=120;
 var PL_DUREE_SEUIL_ALERTE=135;
 function _plDureeStyle(min){
-  if(min>PL_DUREE_SEUIL_ALERTE) return {color:'#E74C3C',cls:' pl-duree-alerte'};
-  return {color:'#27AE60',cls:''};
+  if(min>PL_DUREE_SEUIL_ALERTE) return {bg:'#E74C3C',color:'#FFFFFF',cls:' pl-duree-alerte'};
+  if(min>PL_DUREE_SEUIL_ORANGE) return {bg:'#E67E22',color:'#FFFFFF',cls:''};
+  return {bg:'#27AE60',color:'#FFFFFF',cls:''};
 }
 function plRenderPlanning(targetId){
   var el=document.getElementById(targetId||'pl-list');if(!el)return;
@@ -20939,7 +20946,7 @@ function plRenderPlanning(targetId){
     if(_dureeEff>0){
       var _hE=Math.floor(_dureeEff/60),_mE=_dureeEff%60;
       var _dsE=_plDureeStyle(_dureeEff);
-      dureeEffAff='<span class="pl-col-duree'+_dsE.cls+'" style="font-size:10px;color:'+_dsE.color+';font-weight:700;white-space:nowrap;">⏱ '+(_hE>0?_hE+'h'+(_mE>0?String(_mE).padStart(2,'0'):''):_dureeEff+' min')+'</span>';
+      dureeEffAff='<span class="pl-col-duree'+_dsE.cls+'" style="font-size:10px;background:'+_dsE.bg+';color:'+_dsE.color+';font-weight:700;white-space:nowrap;border-radius:8px;padding:1px 7px;">⏱ '+(_hE>0?_hE+'h'+(_mE>0?String(_mE).padStart(2,'0'):''):_dureeEff+' min')+'</span>';
     }
     var _det=e.detail||[];
     var nbP=_det.filter(function(p){
@@ -21059,7 +21066,7 @@ function plRenderPlanning(targetId){
     var _dureeManVal=_dureeEff>0?_dureeEff:(e.duree!=null&&e.duree>0?e.duree:'');
     var _dureeColorVal=_dureeEff>0?_dureeEff:(e.duree!=null&&e.duree>0?e.duree:0);
     var _dsA=_plDureeStyle(_dureeColorVal);
-    var _dureeAdmInput='<span class="pl-col-duree'+_dsA.cls+'"><input type="number" min="0" value="'+_dureeManVal+'" placeholder="—" onblur="plDureeChanger(&quot;'+eid+'&quot;,+this.value)" style="width:48px;background:transparent;border:none;border-bottom:1px dashed rgba(184,146,42,.4);color:'+_dsA.color+';font-weight:700;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"><span style="font-size:10px;color:'+_dsA.color+';"> min</span></span>';
+    var _dureeAdmInput='<span class="pl-col-duree'+_dsA.cls+'" style="display:inline-flex;align-items:center;background:'+_dsA.bg+';border-radius:8px;padding:1px 6px;"><input type="number" min="0" value="'+_dureeManVal+'" placeholder="—" onblur="plDureeChanger(&quot;'+eid+'&quot;,+this.value)" style="width:32px;background:transparent;border:none;color:'+_dsA.color+';font-weight:700;text-align:center;font-size:12px;outline:none;padding:0;font-family:Raleway,sans-serif;"><span style="font-size:10px;color:'+_dsA.color+';"> min</span></span>';
     var _actBtnsBase='<button onclick="plOuvrirDetailTenueFromInline(&quot;'+eid+'&quot;)" title="Ouvrir la carte complète de la tenue" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">✏️</button>'
       +'<button onclick="plDeleteDirect(&quot;'+eid+'&quot;,this)" title="Supprimer cette tenue" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:2px 6px;">🗑</button>';
     var _actBtns=_actBtnsBase
@@ -21191,7 +21198,7 @@ function plRenderPlanning(targetId){
         }
         if(_isInst2){
           _exH+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:2px;">';
-          [{v:'Collège+VM',d:120},{v:'VM',d:15},{v:'Député',d:15}].forEach(function(x){var chk=(p.instSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'instSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
+          [{v:'Collège+VM',d:60},{v:'VM',d:10},{v:'Député',d:10},{v:'Inspecteur+Installation',d:75}].forEach(function(x){var chk=(p.instSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'instSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+' ('+x.d+' min)</label>';});
           _exH+='</div>';
         }
         if(_isInit2){
@@ -21204,7 +21211,7 @@ function plRenderPlanning(targetId){
         }
         if(_isPr2){
           _exH+='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:2px;">';
-          [{v:'profane',d:15},{v:'candidature',d:15},{v:'enquete',d:15},{v:'bandeau',d:30}].forEach(function(x){var chk=(p.profSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'profSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+'</label>';});
+          [{v:'profane',d:15},{v:'regularisation',d:15},{v:'candidature',d:15},{v:'enquete',d:15},{v:'bandeau',d:30}].forEach(function(x){var chk=(p.profSteps||[]).indexOf(x.v)>=0?'checked':'';_exH+='<label style="'+_lbS+'"><input type="checkbox" '+chk+' onchange="plPIToggle(\''+_eeid+'\','+_epi+',\'profSteps\',\''+x.v+'\',this.checked)" style="'+_cbS+'"> '+x.v+'</label>';});
           _exH+='</div>';
           _exH+='<div style="margin-top:4px;"><input type="text" value="'+(p.nomProfane||'').replace(/"/g,'&quot;')+'" placeholder="Prénom Nom du profane..." onblur="plPISet(\''+_eeid+'\','+_epi+',\'nomProfane\',this.value)" style="width:100%;box-sizing:border-box;'+_inpS+'"></div>';
         }
