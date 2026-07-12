@@ -756,7 +756,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.418</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.419</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22974,7 +22974,9 @@ function _plRefToSuivi(eid,pi){
   // déjà migrées par _plSuiviReattacherNoms vivent sous "Prénom Nom" — deux
   // espaces de clés parallèles qui se recréent des doublons à chaque tenue.
   if(pConf&&window.D&&Array.isArray(D.freres)){
+    var _pcLow=pConf.toLowerCase();
     var _matches=D.freres.filter(function(fr){return (fr.nom||'').trim()===pConf;});
+    if(_matches.length!==1) _matches=D.freres.filter(function(fr){return (fr.nom||'').trim().toLowerCase()===_pcLow;});
     if(_matches.length===1) pConf=((_matches[0].prenom||'')+' '+(_matches[0].nom||'')).trim();
   }
   var pTitre=(p.titre||'').trim();
@@ -24488,8 +24490,27 @@ function plDiagnosticConferenciers(nomFiltre){
           if(v&&v.tenueId===ev.id) infoSuivi='clé "'+k+'" (sujet: '+(v.sujet||'—')+')';
         });
       }
+      // Diagnostic de la résolution du nom (cause fréquente de non-synchro :
+      // le conf du planning ne correspond exactement à AUCUN frère enregistré).
+      var pc=(p.conf||'').trim();
+      var matchesExact=(window.D&&Array.isArray(D.freres))?D.freres.filter(function(fr){return (fr.nom||'').trim()===pc;}):[];
+      var matchesCI=(window.D&&Array.isArray(D.freres))?D.freres.filter(function(fr){return (fr.nom||'').trim().toLowerCase()===pc.toLowerCase();}):[];
+      var resolution='résolution nom : '+matchesExact.length+' frère(s) trouvé(s) avec nom exact "'+pc+'"'
+        +(matchesExact.length!==1&&matchesCI.length===1?' — mais 1 en ignorant la casse (probable faute de casse/espace)':'')
+        +(matchesExact.length===0&&matchesCI.length===0?' — AUCUN frère ne porte ce nom de famille':'')
+        +(matchesExact.length>1?' — AMBIGU, plusieurs frères partagent ce nom de famille':'');
+      // Si non trouvé, retenter la synchro en direct pour voir si ça corrige (sans risque, idempotent).
+      var reparation='';
+      if(infoSuivi==='non trouvée'&&estPlancheOuSym){
+        _plRefToSuivi(ev.id,pi);
+        var suivi2=plSuiviLoad();
+        var trouveApres=null;
+        Object.keys(suivi2).forEach(function(k){ var v=suivi2[k]; if(v&&v.tenueId===ev.id) trouveApres=k; });
+        reparation=' — après nouvelle tentative : '+(trouveApres?'OK, créé sous "'+trouveApres+'"':'toujours rien (voir résolution ci-dessus)');
+      }
       lignes.push((ev.date||'?')+' — "'+p.nom+'" — conf="'+p.conf+'" — titre="'+(p.titre||'')+'"'
         +' — isPlancheOuSym='+estPlancheOuSym
+        +' — '+resolution+reparation
         +(estPlancheOuSym?' — entrée suivi: '+infoSuivi:' — IGNORÉE (nom de rubrique non reconnu comme planche/symbolisme)'));
     });
   });
