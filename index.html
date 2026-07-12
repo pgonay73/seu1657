@@ -753,7 +753,7 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.354</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.355</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -6338,21 +6338,40 @@ function renderAccueilProchainesReunions(){
   var today=new Date(); today.setHours(0,0,0,0);
   var mois=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   var jours=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
-  var all=(typeof plGetTenuesFiltrees==='function')?plGetTenuesFiltrees():getTenues().filter(function(e){return!!e.date;});
-  var futures=all.filter(function(t){
-    if(!t.date) return false;
-    return new Date(t.date+'T12:00:00')>=today;
-  }).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
-  function prochaine(match){
-    for(var i=0;i<futures.length;i++){
-      var s=(futures[i].titre||'').toLowerCase();
-      if(match(s)) return futures[i];
-    }
-    return null;
+  var tenues=getTenues();
+  // Même logique de sélection que dans les écrans respectifs (Secrétaire > CA,
+  // 1er Surveillant > Réunions des Compagnons, 2e Surveillant > Réunions des
+  // Apprentis) : tenues du planning correspondantes + réunions ajoutées
+  // manuellement dans ces panneaux.
+  function candidatsTenues(match){
+    return tenues.filter(function(t){ return t.date && match((t.titre||'').toLowerCase()); })
+      .map(function(t){ return {date:t.date, heure:t.heure}; });
   }
-  var prochainCA=prochaine(function(s){return s.indexOf('conseil')>=0;});
-  var prochaineComp=prochaine(function(s){return(s.indexOf('réunion')>=0||s.indexOf('reunion')>=0)&&s.indexOf('comp')>=0;});
-  var prochaineApp=prochaine(function(s){return(s.indexOf('réunion')>=0||s.indexOf('reunion')>=0)&&s.indexOf('apprent')>=0;});
+  function candidatsManuels(storageKey){
+    var d={}; try{var s=localStorage.getItem(storageKey);if(s)d=JSON.parse(s);}catch(e){}
+    return (d.reunions||[]).map(function(r){ return {date:r.date, heure:r.heure}; });
+  }
+  function prochaine(candidats){
+    var best=null;
+    candidats.forEach(function(c){
+      if(!c.date) return;
+      var d=new Date(c.date+'T12:00:00');
+      if(d>=today && (!best||d<new Date(best.date+'T12:00:00'))) best=c;
+    });
+    return best;
+  }
+  var prochainCA=prochaine(
+    candidatsTenues(function(s){return s.indexOf('conseil')>=0&&s.indexOf('admin')>=0;})
+    .concat((typeof caReunLoad==='function')?(caReunLoad().reunions||[]):candidatsManuels('sec_ca_reunions'))
+  );
+  var prochaineComp=prochaine(
+    candidatsTenues(function(s){return s.indexOf('compagnon')>=0||s.indexOf('2°')>=0||s.indexOf('2eme')>=0||s.indexOf('2ième')>=0;})
+    .concat(candidatsManuels('surv1_reunions'))
+  );
+  var prochaineApp=prochaine(
+    candidatsTenues(function(s){return s.indexOf('apprenti')>=0||s.indexOf('1°')>=0||s.indexOf('1er')>=0||s.indexOf('1eme')>=0;})
+    .concat(candidatsManuels('surv2_reunions'))
+  );
   function fmt(t){
     var d=new Date(t.date+'T12:00:00');
     return jours[d.getDay()]+' '+d.getDate()+' '+mois[d.getMonth()]+' '+d.getFullYear()+(t.heure?' — '+t.heure:'');
