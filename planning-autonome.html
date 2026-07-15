@@ -748,7 +748,7 @@ function loginVerif(){
         <span style="width:24px;display:inline-block;"></span>
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Planning autonome, hors-ligne">Planning autonome — v2026-07-09.420</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Planning autonome, hors-ligne">Planning autonome — v2026-07-09.422</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -1326,6 +1326,45 @@ window.fbGet   = function(key, cb){ try{ var s=localStorage.getItem(key); if(cb)
 window.fbSet   = function(key, value){ try{ localStorage.setItem(key, typeof value==='string'?value:JSON.stringify(value)); }catch(e){} };
 window.fbWatch = function(key, callback){ return null; };
 
+// _FB_ALL_KEYS doit être défini que Firebase soit disponible ou non : exportData()/importData() s'appuient dessus pour la liste
+// complète des clés à sauvegarder/restaurer. Dans cet outil autonome, Firebase est toujours absent : sans ce déplacement,
+// _FB_ALL_KEYS restait undefined et Backup/Restaurer étaient incomplets (ex. suivi Hospitalier jamais sauvegardé/restauré).
+  var _FB_ALL_KEYS = [
+    'planningTenues','tresorerie','tresorerie2','planchesDisponibles',
+    'clefs','motexpert','statsth','hosp_suivi','hosp_tronc',
+    'surv1_reunions','surv2_reunions','sec_planches_arch',
+    'dep_planches','dep_interventions','mb_menus','mh_playlists',
+    'ora_planches','infos_diverses','infosDivers','surv2_data','surv1_data','mc_rituels',
+    'admin_responsables','admin_titulaires','me_questions_posees',
+    'admin_text_planches-tracees','admin_text_correspondance',
+    'planning_libre_data','planning_libre_bareme_parties',
+    'planning_libre_suivi_freres',
+    'planning_libre_duree_generee','admin_nav_visib','accueil_rubriques_visib','planning_libre_criteres','planning_libre_sujets_planches',
+    'planning_libre_procedure',
+    'planning_libre_fonct_bareme','planning_libre_fonct_critmens','planning_libre_fonct_obligatoires','planning_libre_fonct_candidature',
+    'planning_libre_fonct_deuxieme','planning_libre_fonct_troisieme',
+    'planning_libre_fonct_planning','planning_libre_fonct_planches',
+    'planning_libre_fonct_sujets','planning_libre_fonct_suivi',
+    'obs_stats_general','obs_stats_grades','obs_stats_tenues','obs_stats_planches','obs_stats_profane',
+    'obs_stats_initiations','obs_stats_college','obs_stats_ceremonies','obs_stats_presences',
+    'obs_cfg_identite','obs_cfg_regles','obs_cfg_modeles','obs_cfg_detail','obs_cfg_durees',
+    'obs_cfg_statsth','obs_cfg_periode','obs_cfg_infos',
+    'obs_planches_dispo','obs_planches_prog','obs_planches_aplancher',
+    'obs_freres_impression',
+    'obs_sec_freres','obs_sec_presences','obs_sec_tableau','obs_sec_invitation',
+    'obs_ora_archives','obs_ora_clefs',
+    'obs_hosp_suivi','obs_hosp_tronc','obs_tronc_collectes','obs_tronc_sorties',
+    'obs_dep_inter','obs_dep_planches',
+    'obs_exp_expert','obs_exp_patte',
+    'obs_tres_tarifs','obs_tres_catalogue','obs_tres_individuel','obs_tres_tableau',
+    'obs_tresimp_etat','obs_tresimp_fiche','obs_tresimp_att','obs_tresimp_listing','obs_tresimp_synthese',
+    'obs_admin_offices','obs_admin_titulaires','obs_admin_navigation','obs_admin_responsables',
+    'obs_admin_config','obs_admin_planning_libre',
+    'obs_off_1surv','obs_off_2surv','obs_off_mb','obs_off_mh','obs_off_mc','obs_off_couv',
+    'tenuesSpec','inv-infos-loge','accueil_cartes'
+  ];
+  window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
+
 try {
   if(typeof firebase === 'undefined') throw new Error('SDK Firebase absent');
 
@@ -1480,41 +1519,6 @@ try {
   });
 
   // Charger TOUTES les données au démarrage depuis Firebase
-  var _FB_ALL_KEYS = [
-    'planningTenues','tresorerie','tresorerie2','planchesDisponibles',
-    'clefs','motexpert','statsth','hosp_suivi','hosp_tronc',
-    'surv1_reunions','surv2_reunions','sec_planches_arch',
-    'dep_planches','dep_interventions','mb_menus','mh_playlists',
-    'ora_planches','infos_diverses','infosDivers','surv2_data','surv1_data','mc_rituels',
-    'admin_responsables','admin_titulaires','me_questions_posees',
-    'admin_text_planches-tracees','admin_text_correspondance',
-    'planning_libre_data','planning_libre_bareme_parties',
-    'planning_libre_suivi_freres',
-    'planning_libre_duree_generee','admin_nav_visib','accueil_rubriques_visib','planning_libre_criteres','planning_libre_sujets_planches',
-    'planning_libre_procedure',
-    'planning_libre_fonct_bareme','planning_libre_fonct_critmens','planning_libre_fonct_obligatoires','planning_libre_fonct_candidature',
-    'planning_libre_fonct_deuxieme','planning_libre_fonct_troisieme',
-    'planning_libre_fonct_planning','planning_libre_fonct_planches',
-    'planning_libre_fonct_sujets','planning_libre_fonct_suivi',
-    'obs_stats_general','obs_stats_grades','obs_stats_tenues','obs_stats_planches','obs_stats_profane',
-    'obs_stats_initiations','obs_stats_college','obs_stats_ceremonies','obs_stats_presences',
-    'obs_cfg_identite','obs_cfg_regles','obs_cfg_modeles','obs_cfg_detail','obs_cfg_durees',
-    'obs_cfg_statsth','obs_cfg_periode','obs_cfg_infos',
-    'obs_planches_dispo','obs_planches_prog','obs_planches_aplancher',
-    'obs_freres_impression',
-    'obs_sec_freres','obs_sec_presences','obs_sec_tableau','obs_sec_invitation',
-    'obs_ora_archives','obs_ora_clefs',
-    'obs_hosp_suivi','obs_hosp_tronc','obs_tronc_collectes','obs_tronc_sorties',
-    'obs_dep_inter','obs_dep_planches',
-    'obs_exp_expert','obs_exp_patte',
-    'obs_tres_tarifs','obs_tres_catalogue','obs_tres_individuel','obs_tres_tableau',
-    'obs_tresimp_etat','obs_tresimp_fiche','obs_tresimp_att','obs_tresimp_listing','obs_tresimp_synthese',
-    'obs_admin_offices','obs_admin_titulaires','obs_admin_navigation','obs_admin_responsables',
-    'obs_admin_config','obs_admin_planning_libre',
-    'obs_off_1surv','obs_off_2surv','obs_off_mb','obs_off_mh','obs_off_mc','obs_off_couv',
-    'tenuesSpec','inv-infos-loge','accueil_cartes'
-  ];
-  window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
   // Effacer les timestamps locaux pour toujours lire depuis Firebase au démarrage.
   // EXCEPTION : planning_libre_data conserve son timestamp local — son contenu
   // (tenues gen_*) a été corrompu par Firebase avant v163 ; sans cette protection
@@ -11268,15 +11272,16 @@ function importData(input){
         });
       }
 
-      // 5. Recharger les vues
-      try{if(typeof renderPlanning==='function') renderPlanning();}catch(ex){console.error('renderPlanning:',ex);}
-      try{if(typeof renderFreres==='function') renderFreres();}catch(ex){console.error('renderFreres:',ex);}
-      try{if(typeof renderConfig==='function') renderConfig();}catch(ex){console.error('renderConfig:',ex);}
-      try{if(typeof renderMotExpert==='function') renderMotExpert();}catch(ex){console.error('renderMotExpert:',ex);}
-      try{if(typeof renderClefs==='function') renderClefs();}catch(ex){console.error('renderClefs:',ex);}
-
+      // 5. Recharger toutes les vues : un rechargement complet de la page est
+      // le seul moyen fiable de garantir que TOUS les écrans (y compris les
+      // offices comme Hospitalier, Trésorier, etc., absents de la liste de
+      // re-rendus explicites précédente) reflètent bien les données restaurées
+      // — sans ça, un écran resté affiché montrait encore les anciennes
+      // données tant qu'on ne le quittait pas et n'y revenait pas.
       var fbMsg=window.fbSet?' + syncé Firebase':'';
-      toast('\u2713 Restauration : '+(D.freres?D.freres.length:0)+' fr\u00e8res, '+getTenues().length+' tenues'+fbMsg);
+      toast('✓ Restauration : '+(D.freres?D.freres.length:0)+' frères, '+getTenues().length+' tenues'+fbMsg+' — rechargement...');
+      setTimeout(function(){location.reload();},900);
+      return;
     }catch(err){
       alert('Erreur restauration : '+err.message);
     }
