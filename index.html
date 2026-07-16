@@ -4,7 +4,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Gestion Loge</title>
+<title>Gestion Loge — Accès public</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Raleway:wght@300;400;500;600&display=swap');
@@ -742,26 +742,14 @@ function loginVerif(){
     <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
       <nav class="header-nav">
         <button class="hnav active" onclick="nav('accueil')">Accueil</button>
-        <button class="hnav" onclick="nav('freres')">Freres</button>
-        <button class="hnav" onclick="nav('planches')">Planches</button>
-        <button class="hnav" onclick="nav('stats')">Statistiques</button>
-        <button class="hnav" onclick="nav('planning-libre')">Planning</button>
-        <span style="width:16px;display:inline-block;"></span>
-        <button class="hnav" onclick="nav('tresorerie')">Trésorerie</button>
         <button class="hnav" onclick="nav('clefs')">Les Clefs du Temple</button>
         <button class="hnav" onclick="nav('motexpert')">La Patte de l'Expert</button>
-        <span style="width:16px;display:inline-block;"></span>
         <span style="width:24px;display:inline-block;"></span>
-        <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
-        <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
-        <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
-        <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-09.422</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-16.423-public</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
     </div>
-    <button class="hnav" id="btn-offices" style="font-size:11px;padding:4px 10px;white-space:nowrap;flex-shrink:0;margin-left:8px;" onclick="ouvrirModalOffices()">Accès par Office ▾</button>
   </div>
 </header>
 
@@ -16879,7 +16867,7 @@ function secTableauRender(){
 
 function navOfficeAdmin(target){
   nav(target);
-  document.getElementById('btn-offices').classList.add('active');
+  var _boA=document.getElementById('btn-offices'); if(_boA) _boA.classList.add('active');
   // Afficher le bouton retour fixe en bas à gauche (sauf si on revient à l'admin)
   var fabRetour=document.getElementById('fab-retour-admin');
   if(fabRetour) fabRetour.style.display=(target==='off-admin')?'none':'block';
@@ -16958,7 +16946,7 @@ function officeValiderMdp(){
   if(input===officeGetMdp(target)){
     fermerModalOffices();
     nav(target);
-    document.getElementById('btn-offices').classList.add('active');
+    var _boV=document.getElementById('btn-offices'); if(_boV) _boV.classList.add('active');
   } else {
     document.getElementById('office-mdp-err').style.display='block';
     document.getElementById('office-mdp-input').value='';
