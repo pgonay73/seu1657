@@ -1363,6 +1363,15 @@ window.fbWatch = function(key, callback){ return null; };
   ];
   window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
 
+  // Seules ces clés quittent l'appareil vers le cloud Firebase — tout le reste
+  // (Frères, Planning, Trésorerie, offices...) reste exclusivement local
+  // (localStorage), même dans la copie complète de l'administrateur : la clé
+  // d'API Firebase étant publique, toute donnée synchronisée est potentiellement
+  // accessible depuis internet, ce que l'on veut éviter pour tout sauf ces deux
+  // rubriques volontairement partagées entre le site public et les appareils.
+  var _FB_SYNC_ALLOWLIST = ['clefs','motexpert'];
+  function _fbAllowed(key){ return _FB_SYNC_ALLOWLIST.indexOf(key)>=0; }
+
 try {
   if(typeof firebase === 'undefined') throw new Error('SDK Firebase absent');
 
@@ -1379,6 +1388,10 @@ try {
   var _db = firebase.firestore();
 
   window.fbGet = function(key, cb) {
+    if(!_fbAllowed(key)){
+      try{ var sLoc=localStorage.getItem(key); if(cb) cb(sLoc?JSON.parse(sLoc):null); }catch(e){ if(cb) cb(null); }
+      return;
+    }
     _db.collection('seu').doc(key).get().then(function(d) {
       if(d.exists) {
         var val = d.data().value;
@@ -1406,6 +1419,10 @@ try {
   };
 
   window.fbSet = function(key, value) {
+    if(!_fbAllowed(key)){
+      try{ localStorage.setItem(key, typeof value==='string'?value:JSON.stringify(value)); }catch(e){}
+      return;
+    }
     var ts = Date.now();
     try {
       localStorage.setItem(key, typeof value==='string'?value:JSON.stringify(value));
@@ -1421,6 +1438,7 @@ try {
   };
 
   window.fbWatch = function(key, callback) {
+    if(!_fbAllowed(key)) return null;
     return _db.collection('seu').doc(key).onSnapshot(function(snap) {
       if(snap.exists) {
         var val = snap.data().value;
