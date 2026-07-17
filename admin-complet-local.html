@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.434-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.435-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14144,6 +14144,7 @@ function renderOffice(n){
     c+='<button id="admin-pl-l1-btn-planches" onclick="adminPlL1Tab(\'planches\',this)" style="'+_l1I+'">📐 Programmation des planches</button>';
     c+='<button id="admin-pl-l1-btn-avec" onclick="adminPlL1Tab(\'avec\',this)" style="'+_l1I+'">📊 Planning des tenues avec planches</button>';
     c+='<button id="admin-pl-l1-btn-ref" onclick="adminPlL1Tab(\'ref\',this)" style="'+_l1I+'">📌 Planning de référence</button>';
+    c+='<button id="admin-pl-l1-btn-morceaux" onclick="adminPlL1Tab(\'morceaux\',this)" style="'+_l1I+'">🏛 Morceaux d\'architecture</button>';
     c+='</div>';
     // ─ L1.A : Programmation du planning ─
     c+='<div id="admin-pl-l1-prog">';
@@ -14272,6 +14273,17 @@ function renderOffice(n){
     c+='<button onclick="plNavVers(\'suivi-tenue\')" style="background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.3);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Suivi par tenue →</button>';
     c+='</div>';
     c+='<div id="admin-pl-ref-list"></div>';
+    c+='</div></div>';
+    // ─ L1.F : Morceaux d'architecture (dérivé du Planning de référence) ─
+    c+='<div id="admin-pl-l1-morceaux" style="display:none;">';
+    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<div>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Morceaux d\'architecture</h3>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Mêmes tenues que le Planning de référence — seuls les morceaux d\'architecture (Planche / Symbolisme) de chaque tenue sont affichés.</p>';
+    c+='</div>';
+    c+='<button onclick="imprimerPlanningMorceaux()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;flex-shrink:0;margin-left:16px;">🖨 Imprimer</button>';
+    c+='</div>';
+    c+='<div id="admin-pl-morceaux-list"></div>';
     c+='</div></div>';
     c+='</div>';
 
@@ -16429,7 +16441,7 @@ function adminTab(name, btn){
 
 // ── Planning L1 tabs ───────────────────────────────────────────────────
 function adminPlL1Tab(name,btn){
-  var l1=['prog','sans','planches','avec','ref'];
+  var l1=['prog','sans','planches','avec','ref','morceaux'];
   var _bS='padding:9px 14px;font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;border:none;cursor:pointer;border-radius:5px 5px 0 0;';
   var _aS=_bS+'background:rgba(184,146,42,.22);color:#D4AF5A;border-bottom:3px solid #D4AF5A;margin-bottom:-3px;';
   var _iS=_bS+'background:transparent;color:rgba(255,255,255,.5);border-bottom:3px solid transparent;margin-bottom:-3px;';
@@ -16450,6 +16462,7 @@ function adminPlL1Tab(name,btn){
   }
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
   if(name==='ref'){ setTimeout(function(){ adminPlRenderRef('admin-pl-ref-list'); },0); }
+  if(name==='morceaux'){ setTimeout(function(){ adminPlRenderMorceaux('admin-pl-morceaux-list'); },0); }
 }
 // ── Planning L2 sub-tabs ───────────────────────────────────────────────
 function adminPlTab(name, btn){
@@ -24118,7 +24131,8 @@ function plRenderAdminNav(containerId){
     var l1TabsA=[
       {id:'prog',    label:'📅 Programmation du planning'},
       {id:'planches',label:'📐 Programmation des planches'},
-      {id:'ref',     label:'📌 Planning de référence'}
+      {id:'ref',     label:'📌 Planning de référence'},
+      {id:'morceaux',label:"🏛 Morceaux d'architecture"}
     ];
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
@@ -24230,6 +24244,109 @@ function adminPlRenderRef(cid){
       if(detailRow) detailRow.style.display='none';
     });
   }
+}
+// Résout la liste effective des parties d'une tenue, exactement comme le
+// fait plRenderPlanning pour construire sa ligne dépliable (e.detail, sinon
+// les parties du modèle assigné, sinon le détail par défaut).
+function _plPartiesEffectives(e){
+  var modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
+  var modRefParties=modRef&&(modRef.parties||[]).length?modRef.parties:null;
+  return e.detail&&e.detail.length?e.detail:(modRefParties||(D.parDefaut||[]));
+}
+function _plMorceauType(p){
+  var nL=(p.nom||'').toLowerCase(),isMo=nL.indexOf('morceau')>=0||nL.indexOf('architecture')>=0;
+  var eff=p.plancheSteps&&p.plancheSteps.length?p.plancheSteps:(isMo?['planche','parole']:[]);
+  var estS=(p.symDegres&&p.symDegres.length>0)||eff.indexOf('symbolisme')>=0;
+  var estP=eff.indexOf('planche')>=0;
+  return estS?'S':(estP?'P':'');
+}
+// Vue en lecture seule dérivée du Planning de référence (mêmes tenues, même
+// tri par date) : n'affiche pour chaque tenue que ses morceaux d'architecture
+// (Planche et Symbolisme). Purement en lecture — ne modifie jamais les
+// données du planning.
+function adminPlRenderMorceaux(cid){
+  cid=cid||'admin-pl-morceaux-list';
+  var el=document.getElementById(cid); if(!el) return;
+  var data=plLoad();
+  var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var jFr=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var mFr=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDate(ds){ if(!ds) return '—'; var d=new Date(ds+'T12:00:00'); return jFr[d.getDay()]+' '+d.getDate()+' '+mFr[d.getMonth()]+' '+d.getFullYear(); }
+  var h='';
+  if(!evts.length){
+    h='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucune tenue dans le planning de référence.</p>';
+  } else {
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px;">';
+    h+='<thead><tr style="border-bottom:2px solid var(--gold);">';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Date</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:55px;">Degré</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Morceaux d\'architecture (P / S)</th>';
+    h+='</tr></thead><tbody>';
+    evts.forEach(function(e,i){
+      var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom);});
+      var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
+      h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;">';
+      h+='<td style="padding:8px;color:var(--gold2);font-weight:600;white-space:nowrap;">'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+'</td>';
+      h+='<td style="padding:8px;">'+(e.degre||'1°')+'</td>';
+      if(!parties.length){
+        h+='<td style="padding:8px;color:rgba(255,255,255,.4);font-style:italic;">Aucun morceau d\'architecture pour cette tenue.</td>';
+      } else {
+        h+='<td style="padding:8px;">';
+        parties.forEach(function(p){
+          var type=_plMorceauType(p);
+          var lbl=type==='S'?'S — Symbolisme':(type==='P'?'P — Planche':'—');
+          var couleur=type==='S'?'#C080D0':'#33DD66';
+          var confTxt=p.conf?(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf):'';
+          var sujetTxt=p.titre?' « '+p.titre+' »':'';
+          var degTxt=p.symDegres&&p.symDegres.length?' ('+p.symDegres.join(', ')+')':'';
+          h+='<div style="margin-bottom:4px;padding:4px 8px;background:rgba(255,255,255,.04);border-radius:4px;border-left:3px solid '+couleur+';">';
+          h+='<strong style="color:'+couleur+';">'+lbl+'</strong>'+degTxt+sujetTxt+(confTxt?' — <span style="color:rgba(255,255,255,.7);">'+confTxt+'</span>':'')+(p.dur?' <span style="color:rgba(255,255,255,.4);font-size:10.5px;">('+p.dur+' min)</span>':'');
+          h+='</div>';
+        });
+        h+='</td>';
+      }
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+  }
+  el.innerHTML=h;
+}
+function imprimerPlanningMorceaux(){
+  var loge=(D&&D.loge&&D.loge.nom)?D.loge.nom:'';
+  var data=plLoad();
+  var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var jFr=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var mFr=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDate(ds){ if(!ds) return '—'; var d=new Date(ds+'T12:00:00'); return jFr[d.getDay()]+' '+d.getDate()+' '+mFr[d.getMonth()]+' '+d.getFullYear(); }
+  var css='*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:24px;font-size:11px;}'
+    +'h1{font-size:18px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:14px;}'
+    +'table{width:100%;border-collapse:collapse;}'
+    +'th{text-align:left;padding:6px 8px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#7F8C8D;border-bottom:2px solid #B8922A;}'
+    +'td{padding:8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}'
+    +'.item{margin-bottom:4px;}'
+    +'@media print{body{margin:10mm;}}';
+  var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Morceaux d\'architecture — '+loge+'</title><style>'+css+'</style></head><body>';
+  h+='<h1>'+(loge?loge+' — ':'')+'Morceaux d\'architecture (Planche / Symbolisme)</h1>';
+  h+='<table><thead><tr><th style="width:130px;">Date</th><th style="width:50px;">Degré</th><th>Détail</th></tr></thead><tbody>';
+  evts.forEach(function(e){
+    var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom);});
+    h+='<tr><td>'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+'</td><td>'+(e.degre||'1°')+'</td><td>';
+    if(!parties.length){
+      h+='—';
+    } else {
+      parties.forEach(function(p){
+        var type=_plMorceauType(p);
+        var lbl=type==='S'?'S — Symbolisme':(type==='P'?'P — Planche':'—');
+        var confTxt=p.conf?(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf):'';
+        var sujetTxt=p.titre?' « '+p.titre+' »':'';
+        var degTxt=p.symDegres&&p.symDegres.length?' ('+p.symDegres.join(', ')+')':'';
+        h+='<div class="item"><strong>'+lbl+'</strong>'+degTxt+sujetTxt+(confTxt?' — '+confTxt:'')+'</div>';
+      });
+    }
+    h+='</td></tr>';
+  });
+  h+='</tbody></table></body></html>';
+  _printHtml(h,'Morceaux d\'architecture — '+loge);
 }
 function plGenererPlanningReference(){
   if(!confirm('🔄 Générer le planning de référence ?\n\nCette opération va :\n1. Placer toutes les tenues impératives dans le planning\n2. Appliquer toutes les règles de tenues conseillées\n\nLes tenues déjà présentes à ces dates seront remplacées.')) return;
@@ -24982,7 +25099,7 @@ function plNavToAdminL1(id){
   var inAdmin=(adminPl&&adminPl.style.display!=='none');
   if(inAdmin){
     var _nS2='font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:.3px;border:none;cursor:pointer;padding:9px 14px;background:transparent;border-bottom:3px solid transparent;margin-bottom:-3px;';
-    ['prog','sans','planches','avec','ref'].forEach(function(x){
+    ['prog','sans','planches','avec','ref','morceaux'].forEach(function(x){
       var b=document.getElementById('pl-adm-l1-nav-'+x);
       if(b) b.style.cssText=_nS2+(x===id?'color:#D4AF5A;border-bottom-color:#D4AF5A;':'color:rgba(255,255,255,.5);');
     });
