@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.442-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.443-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24284,9 +24284,10 @@ function _plFiltrerParPeriode(evts){
 function _plTrimestreInfo(dateStr){
   var d=new Date(dateStr+'T12:00:00');
   var m=d.getMonth()+1, y=d.getFullYear();
-  if(m>=7) return {key:'T1-'+y, label:'1er trimestre maçonnique', fin:'31/12/'+y};
-  if(m<=3) return {key:'T2-'+y, label:'2e trimestre maçonnique', fin:'31/03/'+y};
-  return {key:'T3-'+y, label:'3e trimestre maçonnique', fin:'30/06/'+y};
+  // Année maçonnique : juil.-déc. de l'année Y + janv.-juin de l'année Y+1.
+  if(m>=7) return {key:'T1-'+y, label:'1er trimestre maçonnique', fin:'31/12/'+y, anneeKey:'AM-'+y, anneeLabel:'année maçonnique '+y+'-'+(y+1)};
+  if(m<=3) return {key:'T2-'+y, label:'2e trimestre maçonnique', fin:'31/03/'+y, anneeKey:'AM-'+(y-1), anneeLabel:'année maçonnique '+(y-1)+'-'+y};
+  return {key:'T3-'+y, label:'3e trimestre maçonnique', fin:'30/06/'+y, anneeKey:'AM-'+(y-1), anneeLabel:'année maçonnique '+(y-1)+'-'+y};
 }
 // Regroupe une liste d'événements déjà triée par date en tranches par
 // trimestre maçonnique, dans l'ordre chronologique.
@@ -24295,7 +24296,7 @@ function _plGrouperParTrimestre(evts){
   evts.forEach(function(e){
     var info=_plTrimestreInfo(e.date);
     var last=buckets[buckets.length-1];
-    if(!last||last.key!==info.key) buckets.push({key:info.key,label:info.label,fin:info.fin,events:[]});
+    if(!last||last.key!==info.key) buckets.push({key:info.key,label:info.label,fin:info.fin,anneeKey:info.anneeKey,anneeLabel:info.anneeLabel,events:[]});
     buckets[buckets.length-1].events.push(e);
   });
   return buckets;
@@ -24308,6 +24309,18 @@ function _plCompterDegres(events){
 }
 function _plDegresTexte(c){
   return '1° : '+(c['1°']||0)+', 2° : '+(c['2°']||0)+', 3° : '+(c['3°']||0);
+}
+// Carte de synthèse annuelle (regroupe les 3 trimestres d'une même année
+// maçonnique) : pour commencer, nombre de tenues et répartition par degré.
+function _plCarteAnnuelleHTML(anneeLabel, events, colspan){
+  return '<tr><td colspan="'+colspan+'" style="padding:12px 8px;background:rgba(68,114,196,.15);border-top:3px double #82AAFF;border-bottom:3px double #82AAFF;">'
+    +'<strong style="color:#82AAFF;font-size:13px;">📆 Synthèse '+anneeLabel+'</strong>'
+    +' — <span style="color:rgba(255,255,255,.9);">'+events.length+' tenue(s)</span>'
+    +' <span style="color:rgba(255,255,255,.55);font-size:11px;">('+_plDegresTexte(_plCompterDegres(events))+')</span>'
+    +'</td></tr>';
+}
+function _plCarteAnnuelleHTMLPrint(anneeLabel, events, colspan){
+  return '<tr class="synthese-annee"><td colspan="'+colspan+'">📆 Synthèse '+anneeLabel+' — '+events.length+' tenue(s) ('+_plDegresTexte(_plCompterDegres(events))+')</td></tr>';
 }
 function _plPartiesEffectives(e){
   var modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
@@ -24367,7 +24380,9 @@ function adminPlRenderCreation(cid){
     h+='<th style="width:36px;"></th>';
     h+='</tr></thead><tbody>';
     var i=0;
-    _plGrouperParTrimestre(evts).forEach(function(bucket){
+    var trimestres=_plGrouperParTrimestre(evts);
+    var anneeAcc=[];
+    trimestres.forEach(function(bucket,bi){
       bucket.events.forEach(function(e){
         var bg=i%2===0?'rgba(255,255,255,.02)':'transparent'; i++;
         var deg=e.degre||'1°';
@@ -24394,6 +24409,12 @@ function adminPlRenderCreation(cid){
       h+=' — <span style="color:rgba(255,255,255,.85);">'+bucket.events.length+' tenue(s)</span>';
       h+=' <span style="color:rgba(255,255,255,.5);font-size:11px;">('+_plDegresTexte(_plCompterDegres(bucket.events))+')</span>';
       h+='</td></tr>';
+      anneeAcc=anneeAcc.concat(bucket.events);
+      var next=trimestres[bi+1];
+      if(!next||next.anneeKey!==bucket.anneeKey){
+        h+=_plCarteAnnuelleHTML(bucket.anneeLabel,anneeAcc,6);
+        anneeAcc=[];
+      }
     });
     h+='</tbody></table>';
   }
@@ -24419,7 +24440,9 @@ function adminPlRenderMorceaux(cid){
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Morceaux d\'architecture (P / S)</th>';
     h+='</tr></thead><tbody>';
     var i=0;
-    _plGrouperParTrimestre(evts).forEach(function(bucket){
+    var trimestres=_plGrouperParTrimestre(evts);
+    var anneeAcc=[];
+    trimestres.forEach(function(bucket,bi){
       var nbP=0,nbS=0;
       bucket.events.forEach(function(e){
         var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom);});
@@ -24455,6 +24478,12 @@ function adminPlRenderMorceaux(cid){
       h+=', <span style="color:#33DD66;">'+nbP+' Planche(s)</span>';
       h+=', <span style="color:#C080D0;">'+nbS+' Symbolisme(s)</span>';
       h+='</td></tr>';
+      anneeAcc=anneeAcc.concat(bucket.events);
+      var next=trimestres[bi+1];
+      if(!next||next.anneeKey!==bucket.anneeKey){
+        h+=_plCarteAnnuelleHTML(bucket.anneeLabel,anneeAcc,4);
+        anneeAcc=[];
+      }
     });
     h+='</tbody></table>';
   }
@@ -24475,11 +24504,15 @@ function imprimerPlanningMorceaux(){
     +'.item{margin-bottom:4px;}'
     +'.synthese{background:#F5EFDD;font-weight:700;}'
     +'.synthese td{border-top:2px solid #B8922A;border-bottom:2px solid #B8922A;padding:8px;}'
+    +'.synthese-annee{background:#DCE6F5;font-weight:700;}'
+    +'.synthese-annee td{border-top:3px double #4472C4;border-bottom:3px double #4472C4;padding:9px 8px;}'
     +'@media print{body{margin:10mm;}}';
   var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Morceaux d\'architecture — '+loge+'</title><style>'+css+'</style></head><body>';
   h+='<h1>'+(loge?loge+' — ':'')+'Morceaux d\'architecture (Planche / Symbolisme)</h1>';
   h+='<table><thead><tr><th style="width:130px;">Date</th><th style="width:50px;">Degré</th><th style="width:130px;">Modèle</th><th>Détail</th></tr></thead><tbody>';
-  _plGrouperParTrimestre(evts).forEach(function(bucket){
+  var trimestres=_plGrouperParTrimestre(evts);
+  var anneeAcc=[];
+  trimestres.forEach(function(bucket,bi){
     var nbP=0,nbS=0;
     bucket.events.forEach(function(e){
       var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom);});
@@ -24500,6 +24533,12 @@ function imprimerPlanningMorceaux(){
       h+='</td></tr>';
     });
     h+='<tr class="synthese"><td colspan="4">🏛 Fin du '+bucket.label+' (au '+bucket.fin+') — '+bucket.events.length+' tenue(s) ('+_plDegresTexte(_plCompterDegres(bucket.events))+'), '+nbP+' Planche(s), '+nbS+' Symbolisme(s)</td></tr>';
+    anneeAcc=anneeAcc.concat(bucket.events);
+    var next=trimestres[bi+1];
+    if(!next||next.anneeKey!==bucket.anneeKey){
+      h+=_plCarteAnnuelleHTMLPrint(bucket.anneeLabel,anneeAcc,4);
+      anneeAcc=[];
+    }
   });
   h+='</tbody></table></body></html>';
   _printHtml(h,'Morceaux d\'architecture — '+loge);
