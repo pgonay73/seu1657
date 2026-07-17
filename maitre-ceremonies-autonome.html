@@ -741,12 +741,9 @@ function loginVerif(){
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
     <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
       <nav class="header-nav">
-        <button class="hnav active" onclick="nav('accueil')">Accueil</button>
-        <button class="hnav" onclick="nav('freres')">Freres</button>
-        <span style="width:24px;display:inline-block;"></span>
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Maître des Cérémonies autonome, hors-ligne">Maître des Cérémonies autonome — v2026-07-09.422</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Maître des Cérémonies autonome, hors-ligne">Maître des Cérémonies autonome — v2026-07-17.423</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -857,28 +854,6 @@ function loginVerif(){
 
     <!-- Onglets Impression supprimés - contenus déplacés dans les offices -->
 
-  </div>
-
-  <!-- FRERES -->
-  <div id="v-freres" class="view">
-    <div class="section-header">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <h2>Les Freres <span id="saison-freres" style="font-size:16px;color:#FFFFFF;font-family:'Raleway',sans-serif;font-weight:400;margin-left:8px;"></span></h2>
-        <span id="resp-lbl-freres" style="font-size:12px;color:rgba(255,255,255,.55);font-style:italic;"></span>
-      </div>
-      <button onclick="dispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>
-    </div>
-    <div style="display:flex;gap:0;border-bottom:2px solid var(--gold);margin-bottom:14px;">
-      <button class="cfg-tab active" id="nav-freres-tab-impression" onclick="navFreresTab('impression',this)">Liste</button>
-      <button class="cfg-tab" id="nav-freres-tab-parfrere" onclick="navFreresTab('parfrere',this)">Par frère</button>
-    </div>
-    <div id="nav-freres-panel-liste" style="display:none;">
-      <div class="freres-grid" id="freres-list-nav"></div>
-    </div>
-    <div id="nav-freres-panel-impression">
-      <div id="nav-freres-impression-content"></div>
-    </div>
-    <div id="nav-freres-panel-parfrere" style="display:none;"></div>
   </div>
 
   <!-- PLANCHES -->
@@ -1364,6 +1339,14 @@ window.fbWatch = function(key, callback){ return null; };
   ];
   window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
 
+  // Seules ces clés quittent l'appareil vers le cloud Firebase — tout le reste
+  // (Frères, Planning, Trésorerie, offices...) reste exclusivement local
+  // (localStorage) : la clé d'API Firebase étant publique, toute donnée
+  // synchronisée est potentiellement accessible depuis internet, ce que l'on
+  // veut éviter pour tout sauf ces deux rubriques volontairement partagées.
+  var _FB_SYNC_ALLOWLIST = ['clefs','motexpert'];
+  function _fbAllowed(key){ return _FB_SYNC_ALLOWLIST.indexOf(key)>=0; }
+
 try {
   if(typeof firebase === 'undefined') throw new Error('SDK Firebase absent');
 
@@ -1380,6 +1363,10 @@ try {
   var _db = firebase.firestore();
 
   window.fbGet = function(key, cb) {
+    if(!_fbAllowed(key)){
+      try{ var sLoc=localStorage.getItem(key); if(cb) cb(sLoc?JSON.parse(sLoc):null); }catch(e){ if(cb) cb(null); }
+      return;
+    }
     _db.collection('seu').doc(key).get().then(function(d) {
       if(d.exists) {
         var val = d.data().value;
@@ -1407,6 +1394,10 @@ try {
   };
 
   window.fbSet = function(key, value) {
+    if(!_fbAllowed(key)){
+      try{ localStorage.setItem(key, typeof value==='string'?value:JSON.stringify(value)); }catch(e){}
+      return;
+    }
     var ts = Date.now();
     try {
       localStorage.setItem(key, typeof value==='string'?value:JSON.stringify(value));
@@ -1422,6 +1413,7 @@ try {
   };
 
   window.fbWatch = function(key, callback) {
+    if(!_fbAllowed(key)) return null;
     return _db.collection('seu').doc(key).onSnapshot(function(snap) {
       if(snap.exists) {
         var val = snap.data().value;
@@ -5632,8 +5624,20 @@ function mcRender(){
     var active=curTab===d.id;
     h+='<button onclick="mcSetTab(\''+d.id+'\')" style="padding:6px 14px;background:'+(active?'var(--gold)':'rgba(255,255,255,.07)')+';border:1px solid '+(active?'var(--gold)':'rgba(255,255,255,.35)')+';border-bottom:'+(active?'2px solid var(--gold)':'none')+';border-radius:4px 4px 0 0;color:'+(active?'#1E3660':'rgba(255,255,255,.55)')+';font-family:Raleway,sans-serif;font-size:11px;font-weight:'+(active?'700':'500')+';cursor:pointer;white-space:nowrap;">'+d.icon+' '+d.label+'</button>';
   });
-  
+  (function(){
+    var active=curTab==='freres';
+    h+='<button onclick="mcSetTab(\'freres\')" style="padding:6px 14px;background:'+(active?'var(--gold)':'rgba(255,255,255,.07)')+';border:1px solid '+(active?'var(--gold)':'rgba(255,255,255,.35)')+';border-bottom:'+(active?'2px solid var(--gold)':'none')+';border-radius:4px 4px 0 0;color:'+(active?'#1E3660':'rgba(255,255,255,.55)')+';font-family:Raleway,sans-serif;font-size:11px;font-weight:'+(active?'700':'500')+';cursor:pointer;white-space:nowrap;">👥 Frères</button>';
+  })();
+
   h+='<button onclick="mcImprimer()" style="background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">🖨️ Imprimer</button>';h+='</div>';
+
+  if(curTab==='freres'){
+    h+='<div id="mc-freres-panel"></div>';
+    h+='</div>';
+    el.innerHTML=h;
+    fFreresTableauRender('mc-freres-panel','mc-fr-');
+    return;
+  }
 
   var curDegre=_MC_DEGRES.filter(function(d){return d.id===curTab;})[0]||{label:curTab};
 
