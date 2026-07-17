@@ -741,9 +741,6 @@ function loginVerif(){
   <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
     <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
       <nav class="header-nav">
-        <button class="hnav active" onclick="nav('accueil')">Accueil</button>
-        <button class="hnav" onclick="nav('freres')">Freres</button>
-        <span style="width:24px;display:inline-block;"></span>
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
         <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil 1° Surveillant autonome, hors-ligne">1° Surveillant autonome — v2026-07-09.422</span>
@@ -857,28 +854,6 @@ function loginVerif(){
 
     <!-- Onglets Impression supprimés - contenus déplacés dans les offices -->
 
-  </div>
-
-  <!-- FRERES -->
-  <div id="v-freres" class="view">
-    <div class="section-header">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <h2>Les Freres <span id="saison-freres" style="font-size:16px;color:#FFFFFF;font-family:'Raleway',sans-serif;font-weight:400;margin-left:8px;"></span></h2>
-        <span id="resp-lbl-freres" style="font-size:12px;color:rgba(255,255,255,.55);font-style:italic;"></span>
-      </div>
-      <button onclick="dispatchImprimer()" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>
-    </div>
-    <div style="display:flex;gap:0;border-bottom:2px solid var(--gold);margin-bottom:14px;">
-      <button class="cfg-tab active" id="nav-freres-tab-impression" onclick="navFreresTab('impression',this)">Liste</button>
-      <button class="cfg-tab" id="nav-freres-tab-parfrere" onclick="navFreresTab('parfrere',this)">Par frère</button>
-    </div>
-    <div id="nav-freres-panel-liste" style="display:none;">
-      <div class="freres-grid" id="freres-list-nav"></div>
-    </div>
-    <div id="nav-freres-panel-impression">
-      <div id="nav-freres-impression-content"></div>
-    </div>
-    <div id="nav-freres-panel-parfrere" style="display:none;"></div>
   </div>
 
   <!-- PLANCHES -->
@@ -4724,6 +4699,15 @@ function secFreresTab(name, btn){
     secFreresImpressionRender();
   }
 
+}
+
+function off1survTab(name, btn){
+  var tabs=document.querySelectorAll('#v-off-1surv .cfg-tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  if(btn) btn.classList.add('active');
+  var pr=document.getElementById('s1surv-panel-reunions'); if(pr) pr.style.display=(name==='freres')?'none':'';
+  var pf=document.getElementById('s1surv-panel-freres'); if(pf) pf.style.display=(name==='freres')?'':'none';
+  if(name==='freres') fFreresTableauRender('s1surv-freres-panel','s1surv-');
 }
 
 function fFreresTableauRender(containerId, idPfx, ficheCallback, deleteCallback){
@@ -14123,7 +14107,12 @@ function renderOffice(n){
     if(!survData.reunions)survData.reunions=[];
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:100%;resize:none;overflow:hidden;';
     var thS='text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;';
-    var sc='<div class="cfg-box" style="margin-top:12px;overflow-x:auto;">';
+    var sc='<div style="display:flex;gap:0;border-bottom:2px solid var(--gold);margin-bottom:14px;flex-wrap:wrap;">';
+    sc+='<button class="cfg-tab active" id="s1surv-tab-reunions" onclick="off1survTab(\'reunions\',this)">Réunions des Compagnons</button>';
+    sc+='<button class="cfg-tab" id="s1surv-tab-freres" onclick="off1survTab(\'freres\',this)">&#128101; Frères</button>';
+    sc+='</div>';
+    sc+='<div id="s1surv-panel-reunions">';
+    sc+='<div class="cfg-box" style="margin-top:12px;overflow-x:auto;">';
     sc+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">';
     sc+='<div style="display:flex;align-items:center;gap:10px;">';
     sc+='<h3 style="font-size:18px;color:#FFFFFF;margin:0;">Réunions des Compagnons</h3>';
@@ -14174,6 +14163,13 @@ function renderOffice(n){
     }
     sc+='</tbody></table></div>';
     sc+=obsHTML('off_1surv');
+    sc+='</div>'; // fin s1surv-panel-reunions
+    sc+='<div id="s1surv-panel-freres" style="display:none;">';
+    sc+='<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">';
+    sc+='<button onclick="secFreresImprimerDoc()" style="background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">🖨️ Imprimer</button>';
+    sc+='</div>';
+    sc+='<div id="s1surv-freres-panel"></div>';
+    sc+='</div>';
     contenu=sc;
   }
   if(n==='off-mb'){
