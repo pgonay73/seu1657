@@ -20768,14 +20768,14 @@ function _plColPickerHTML(t){
     +items+'</div>';
 }
 // Code couleur (fond) de la durée d'une tenue :
-// - jusqu'à 118 min : vert clignotant
-// - 119 à 120 min : vert fixe
-// - 121 à 135 min : orange
+// - moins de 1h39 (99 min) : vert clignotant
+// - de 1h39 (99 min) à 2h05 (125 min) : vert fixe
+// - 126 à 135 min : orange
 // - 136 min et plus : rouge clignotant
 function _plDureeStyle(min){
   if(min>135) return {bg:'#E74C3C',color:'#FFFFFF',cls:' pl-duree-alerte'};
-  if(min>=121) return {bg:'#E67E22',color:'#FFFFFF',cls:''};
-  if(min>=119) return {bg:'#27AE60',color:'#FFFFFF',cls:''};
+  if(min>125) return {bg:'#E67E22',color:'#FFFFFF',cls:''};
+  if(min>=99) return {bg:'#27AE60',color:'#FFFFFF',cls:''};
   return {bg:'#27AE60',color:'#FFFFFF',cls:' pl-duree-alerte'};
 }
 // v390 — Les champs conférencier/intervenant ne stockent que le nom (choisi
