@@ -755,9 +755,10 @@ function loginVerif(){
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
-        <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Effacer le cache local et recharger toutes les données depuis Firebase (utile si des données semblent manquer sur cet appareil)">⬇️ Firebase</button>
+        <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
+        <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.426-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.427-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -11321,19 +11322,72 @@ function importData(input){
 
 function rechargerDepuisFirebase(){
   if(!window.fbGet){alert('Firebase non connecté. Vérifiez votre connexion internet.');return;}
-  if(!confirm('Recharger toutes les données depuis Firebase ?\n\nLe cache local sera effacé et la page rechargée.\nLes données saisies sur cet appareil et non synchronisées seront perdues.')) return;
-  // Effacer tous les horodatages locaux pour que Firebase gagne toujours
-  var allKeys=(window._FB_ALL_KEYS||[]).slice();
-  ['planningTenues','tresorerie','tresorerie2','tenuesSpec','inv-infos-loge'].forEach(function(k){
-    if(allKeys.indexOf(k)<0) allKeys.push(k);
-  });
-  allKeys.forEach(function(key){
+  // Depuis la restriction de synchronisation (_FB_SYNC_ALLOWLIST), seules
+  // 'clefs' et 'motexpert' sont réellement lues depuis Firestore : effacer
+  // puis recharger TOUTES les clés locales (comportement d'origine) ferait
+  // perdre définitivement Frères/Planning/Trésorerie/offices, qui ne
+  // peuvent plus être retéléchargés depuis le cloud. On limite donc l'action
+  // aux seules clés encore synchronisées.
+  var allow=window._FB_SYNC_ALLOWLIST||['clefs','motexpert'];
+  if(!confirm('Recharger Clefs du Temple et Patte de l\'Expert depuis Firebase ?\n\nLe cache local de ces deux rubriques sera effacé et la page rechargée.\nLe reste de vos données (Frères, Planning, Trésorerie, offices...) n\'est plus synchronisé avec le cloud et ne sera pas touché.')) return;
+  allow.forEach(function(key){
     try{localStorage.removeItem(key+'_localTs');}catch(e){}
     try{localStorage.removeItem(key);}catch(e){}
   });
-  try{localStorage.removeItem('planningTenues_localTs');}catch(e){}
   toast('Rechargement depuis Firebase...');
   setTimeout(function(){location.reload();},800);
+}
+
+function recupererAncienCloudEnJSON(){
+  if(!window._fbReady || !window._db){
+    alert('Firebase n\'est pas connecté (vérifiez votre connexion internet). Impossible d\'interroger le cloud pour le moment.');
+    return;
+  }
+  if(!confirm('Ceci va interroger directement Firestore pour retélécharger TOUTES les données qui y sont encore stockées (Frères, Planning, Trésorerie, offices...), même celles qui ne sont plus synchronisées automatiquement.\n\nUn fichier JSON sera téléchargé. Vos données locales actuelles ne seront PAS modifiées — c\'est uniquement une sauvegarde de secours à inspecter/restaurer vous-même ensuite si besoin (bouton 📤 Restaurer).\n\nContinuer ?')) return;
+  var allKeys=(window._FB_ALL_KEYS||[]).slice();
+  var data={exportDate:new Date().toISOString(),version:'3.0',source:'recuperation_ancien_cloud'};
+  var total=allKeys.length, done=0, trouves=0;
+  var banner=document.getElementById('fb-loading-banner'), txt=document.getElementById('fb-loading-msg');
+  if(banner) banner.style.display='block';
+  if(txt) txt.textContent='Récupération de l\'ancien cloud… (0/'+total+')';
+  function checkDone(){
+    if(done>=total){
+      if(banner) banner.style.display='none';
+      if(!trouves){
+        alert('Aucune donnée trouvée dans le cloud (en dehors de Clefs/Patte Expert). Soit tout est déjà vide côté Firestore, soit les règles de sécurité en bloquent la lecture.');
+        return;
+      }
+      if(!data.planning&&data.planningTenues) data.planning=data.planningTenues;
+      var dt=new Date();
+      var aa=String(dt.getFullYear()).slice(2);
+      var mm=(''+(dt.getMonth()+1)).padStart(2,'0');
+      var jj=(''+(dt.getDate())).padStart(2,'0');
+      var hh=(''+(dt.getHours())).padStart(2,'0');
+      var mn=(''+(dt.getMinutes())).padStart(2,'0');
+      var filename='gestion_loge_ANCIEN_CLOUD_'+aa+mm+jj+hh+mn+'.json';
+      var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      alert('✓ Récupération terminée : '+trouves+' rubrique(s) trouvée(s) dans le cloud, téléchargées dans '+filename+'.');
+    }
+  }
+  if(!total){ checkDone(); return; }
+  allKeys.forEach(function(key){
+    window._db.collection('seu').doc(key).get()
+      .then(function(d){
+        done++;
+        if(d.exists && d.data().value!==undefined && d.data().value!==null){
+          data[key]=d.data().value;
+          trouves++;
+        }
+        if(txt) txt.textContent='Récupération de l\'ancien cloud… ('+done+'/'+total+')';
+        checkDone();
+      })
+      .catch(function(e){ console.warn('Récupération échouée pour', key, e); done++; checkDone(); });
+  });
 }
 
 function purgerCloudDonneesSensibles(){
