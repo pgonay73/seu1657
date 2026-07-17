@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.432-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.433-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -3063,6 +3063,15 @@ function imprimerDetailTenueDefaut(){
     {test:isCeremCard,   steps:'cerCardSteps', data:[{v:'St Jean',dur:120},{v:'Jubilé',dur:120},{v:'Tenue funèbre',dur:120},{v:'Autre',dur:120}]},
     {test:isReunHTCard,  steps:'reunSteps',    data:[{v:'CA',dur:60},{v:'Compagnons',dur:120},{v:'Apprentis',dur:120}]}
   ];
+  // Candidature (Profane/Affiliation/Intégration...) : deux groupes de
+  // cases à cocher partageant le même tableau profSteps (mêmes libellés et
+  // valeurs que dans peRender, cas isPr).
+  var PROF_TYPE=[{v:'profane',lbl:'Profane'},{v:'affiliation',lbl:'Affiliation'},{v:'integration',lbl:'Intégration'},{v:'reintegration',lbl:'Réintégration'},{v:'regularisation',lbl:'Régularisation'}];
+  var PROF_ETAPE=[{v:'candidature',lbl:'Candidature + vote',dur:15},{v:'enquete',lbl:'Enquête + vote',dur:15},{v:'bandeau',lbl:'Bandeau + vote',dur:30}];
+  // Morceau d'architecture (Planche / Symbolisme / Morceau / Architecture) :
+  // cases à cocher plancheSteps + case circulParole séparée (mêmes libellés
+  // et valeurs que dans peRender, cas isPl avec sous-cas "morceau").
+  var PLANCHE_TYPE=[{v:'symbolisme',lbl:'Symbolisme',dur:5},{v:'planche',lbl:'Planche',dur:10},{v:'impressions',lbl:'Impressions',dur:10},{v:'passage-vote',lbl:'Passage + vote',dur:30}];
   var css='*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:24px;font-size:12px;}'
     +'h1{font-size:18px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:14px;}'
     +'.partie{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #EDE9E2;}'
@@ -3070,6 +3079,7 @@ function imprimerDetailTenueDefaut(){
     +'.partie-dur{font-weight:400;color:#7F8C8D;font-size:11px;}'
     +'.choix{margin-top:6px;padding-left:6px;}'
     +'.choix div{padding:3px 0;font-size:12px;}'
+    +'.groupe{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#7F8C8D;margin:8px 0 2px;}'
     +'.chk{display:inline-block;width:18px;font-size:14px;}'
     +'@media print{body{margin:10mm;}}';
   var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Détail tenue — '+loge+'</title><style>'+css+'</style></head><body>';
@@ -3079,6 +3089,8 @@ function imprimerDetailTenueDefaut(){
   } else {
     parties.forEach(function(p){
       var card=CARDS.filter(function(c){return c.test(p.nom);})[0];
+      var estCandidature=isProfane(p.nom);
+      var estMorceau=isPlancheOuSym(p.nom)&&!isSymbolisme(p.nom);
       h+='<div class="partie">';
       h+='<div class="partie-titre"><span>'+(p.nom||'')+'</span><span class="partie-dur">'+(p.dur?p.dur+' min':'')+'</span></div>';
       if(card){
@@ -3088,6 +3100,30 @@ function imprimerDetailTenueDefaut(){
           var coche=sel.indexOf(opt.v)>=0;
           h+='<div><span class="chk">'+(coche?'☑':'☐')+'</span>'+opt.v+' ('+opt.dur+' min)</div>';
         });
+        h+='</div>';
+      } else if(estCandidature){
+        var selProf=p.profSteps||[];
+        h+='<div class="choix">';
+        h+='<div class="groupe">Type</div>';
+        PROF_TYPE.forEach(function(opt){
+          var coche=selProf.indexOf(opt.v)>=0;
+          h+='<div><span class="chk">'+(coche?'☑':'☐')+'</span>'+opt.lbl+'</div>';
+        });
+        h+='<div class="groupe">Étape</div>';
+        PROF_ETAPE.forEach(function(opt){
+          var coche=selProf.indexOf(opt.v)>=0;
+          h+='<div><span class="chk">'+(coche?'☑':'☐')+'</span>'+opt.lbl+' ('+opt.dur+' min)</div>';
+        });
+        h+='</div>';
+      } else if(estMorceau){
+        var selPl=p.plancheSteps||[];
+        h+='<div class="choix">';
+        h+='<div class="groupe">Type</div>';
+        PLANCHE_TYPE.forEach(function(opt){
+          var coche=selPl.indexOf(opt.v)>=0;
+          h+='<div><span class="chk">'+(coche?'☑':'☐')+'</span>'+opt.lbl+' ('+opt.dur+' min)</div>';
+        });
+        h+='<div><span class="chk">'+(p.circulParole?'☑':'☐')+'</span>Parole (20 min)</div>';
         h+='</div>';
       }
       h+='</div>';
