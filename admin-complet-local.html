@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.440-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.441-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24357,26 +24357,33 @@ function adminPlRenderCreation(cid){
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Thème (titre)</th>';
     h+='<th style="width:36px;"></th>';
     h+='</tr></thead><tbody>';
-    evts.forEach(function(e,i){
-      var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
-      var deg=e.degre||'1°';
-      var cd=deg==='2°'?'#FF9900':deg==='3°'?'#FF4444':'#33DD66';
-      // !important nécessaire : "#v-off-admin input, select { color:#FFFFFF !important; }"
-      // (règle CSS globale) écraserait sinon la couleur du degré fixée en ligne.
-      var inpD=inpS+'color:'+cd+' !important;font-weight:600;';
-      h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">';
-      h+='<td style="padding:6px;"><input type="date" value="'+(e.date||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'date\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);" style="'+inpD+'width:100%;"></td>';
-      h+='<td style="padding:6px;"><input type="time" value="'+(e.heure||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'heure\',this.value)" style="'+inpD+'width:100%;"></td>';
-      h+='<td style="padding:6px;"><select onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'degre\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);" style="'+inpD+'width:100%;">';
-      ['1°','2°','3°'].forEach(function(d){ h+='<option value="'+d+'"'+(deg===d?' selected':'')+'>'+d+'</option>'; });
-      h+='</select></td>';
-      h+='<td style="padding:6px;"><select onchange="plModeleChanger(&quot;'+e.id+'&quot;,this.value,this);setTimeout(function(){adminPlRenderCreation(&quot;'+cid+'&quot;);},80);" style="'+inpD+'width:100%;">';
-      h+='<option value="">— Aucun —</option>';
-      (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
-      h+='</select></td>';
-      h+='<td style="padding:6px;"><input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="Thème de la tenue..." onblur="plTitreChanger(&quot;'+e.id+'&quot;,this.value)" style="'+inpD+'width:100%;"></td>';
-      h+='<td style="padding:6px;text-align:center;"><button onclick="if(confirm(\'Supprimer cette tenue ?\')){plTenueDelete(&quot;'+e.id+'&quot;);adminPlRenderCreation(&quot;'+cid+'&quot;);}" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;">🗑</button></td>';
-      h+='</tr>';
+    var i=0;
+    _plGrouperParTrimestre(evts).forEach(function(bucket){
+      bucket.events.forEach(function(e){
+        var bg=i%2===0?'rgba(255,255,255,.02)':'transparent'; i++;
+        var deg=e.degre||'1°';
+        var cd=deg==='2°'?'#FF9900':deg==='3°'?'#FF4444':'#33DD66';
+        // !important nécessaire : "#v-off-admin input, select { color:#FFFFFF !important; }"
+        // (règle CSS globale) écraserait sinon la couleur du degré fixée en ligne.
+        var inpD=inpS+'color:'+cd+' !important;font-weight:600;';
+        h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">';
+        h+='<td style="padding:6px;"><input type="date" value="'+(e.date||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'date\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);" style="'+inpD+'width:100%;"></td>';
+        h+='<td style="padding:6px;"><input type="time" value="'+(e.heure||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'heure\',this.value)" style="'+inpD+'width:100%;"></td>';
+        h+='<td style="padding:6px;"><select onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'degre\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);" style="'+inpD+'width:100%;">';
+        ['1°','2°','3°'].forEach(function(d){ h+='<option value="'+d+'"'+(deg===d?' selected':'')+'>'+d+'</option>'; });
+        h+='</select></td>';
+        h+='<td style="padding:6px;"><select onchange="plModeleChanger(&quot;'+e.id+'&quot;,this.value,this);setTimeout(function(){adminPlRenderCreation(&quot;'+cid+'&quot;);},80);" style="'+inpD+'width:100%;">';
+        h+='<option value="">— Aucun —</option>';
+        (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
+        h+='</select></td>';
+        h+='<td style="padding:6px;"><input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="Thème de la tenue..." onblur="plTitreChanger(&quot;'+e.id+'&quot;,this.value)" style="'+inpD+'width:100%;"></td>';
+        h+='<td style="padding:6px;text-align:center;"><button onclick="if(confirm(\'Supprimer cette tenue ?\')){plTenueDelete(&quot;'+e.id+'&quot;);adminPlRenderCreation(&quot;'+cid+'&quot;);}" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;">🗑</button></td>';
+        h+='</tr>';
+      });
+      h+='<tr><td colspan="6" style="padding:10px 8px;background:rgba(184,146,42,.1);border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);">';
+      h+='<strong style="color:var(--gold2);">🏛 Fin du '+bucket.label+'</strong> <span style="color:rgba(255,255,255,.5);font-size:11px;">(au '+bucket.fin+')</span>';
+      h+=' — <span style="color:rgba(255,255,255,.85);">'+bucket.events.length+' tenue(s)</span>';
+      h+='</td></tr>';
     });
     h+='</tbody></table>';
   }
