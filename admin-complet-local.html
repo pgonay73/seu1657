@@ -758,7 +758,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.427-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.428-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -1344,8 +1344,8 @@ window.fbWatch = function(key, callback){ return null; };
   var _FB_ALL_KEYS = [
     'planningTenues','tresorerie','tresorerie2','planchesDisponibles',
     'clefs','motexpert','statsth','hosp_suivi','hosp_tronc',
-    'surv1_reunions','surv2_reunions','sec_planches_arch',
-    'dep_planches','dep_interventions','mb_menus','mh_playlists',
+    'surv1_reunions','surv2_reunions','sec_planches_arch','sec_ca_reunions',
+    'dep_planches','dep_interventions','mb_menus','mh_playlists','mb_fonds_depart',
     'ora_planches','infos_diverses','infosDivers','surv2_data','surv1_data','mc_rituels',
     'admin_responsables','admin_titulaires','me_questions_posees',
     'admin_text_planches-tracees','admin_text_correspondance',
@@ -11204,7 +11204,7 @@ function exportData(){
   // Export complet : toutes les cl\u00e9s connues (_FB_ALL_KEYS + extras)
   var allKeys=(window._FB_ALL_KEYS||[]).slice();
   ['planningTenues','tresorerie','tresorerie2','statsth','tenuesSpec',
-   'planchesDisponibles','motexpert','clefs','inv-infos-loge'].forEach(function(k){
+   'planchesDisponibles','motexpert','clefs','inv-infos-loge','logeLogo'].forEach(function(k){
     if(allKeys.indexOf(k)<0) allKeys.push(k);
   });
   var data={exportDate:new Date().toISOString(),version:'3.0'};
