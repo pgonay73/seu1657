@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.433-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.434-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14257,6 +14257,7 @@ function renderOffice(n){
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Synthèse consolidée : tenues impératives + règles conseillées + critères de sélection. Éditable après génération. C\'est la source unique utilisée par tout le logiciel.</p>';
     c+='</div>';
     c+='<div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px;">';
+    c+='<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,.75);cursor:pointer;white-space:nowrap;padding:0 6px;"><input type="checkbox" id="adm-pl-ref-morceau-only" onchange="adminPlToggleRefMorceauOnly(this)" style="cursor:pointer;accent-color:#33DD66;">N\'afficher que les Morceaux d\'architecture</label>';
     c+='<button onclick="plGenererPlanningReference()" style="background:#4472C4;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Génère automatiquement le planning depuis les tenues impératives, les règles conseillées et les critères.">🔄 Générer</button>';
     c+='<button onclick="plNettoyerDoublonsManuel()" style="background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.5);border-radius:5px;color:#FF9900;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Supprime les tenues en double sur une même date (signalées par ⚠×N), en gardant la plus complète.">🧹 Nettoyer les doublons</button>';
     c+='<button onclick="plSynchroniserSuiviDepuisPlanning()" style="background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:5px;color:#3ECF8E;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Relit tout le planning et met à jour le suivi par frère et par tenue en conséquence.">🔄 Synchroniser le suivi</button>';
@@ -24194,8 +24195,41 @@ function plRenderAdminNav(containerId){
 function adminPlRenderSans(cid){
   plRenderPlanning(cid||'admin-pl-sans-list');
 }
+var _plRefMorceauOnly=false;
+function adminPlToggleRefMorceauOnly(chk){
+  _plRefMorceauOnly=chk.checked;
+  adminPlRenderRef('admin-pl-ref-list');
+}
+// Une tenue "contient un Morceau d'architecture" avec exactement le même
+// calcul que la colonne P (Planche) déjà affichée dans le tableau (voir nbP
+// dans plRenderPlanning), pour rester cohérent avec ce que l'utilisateur y
+// voit déjà.
+function _plEventContientMorceauArchitecture(e){
+  var det=e.detail||[];
+  return det.some(function(p){
+    var nL=(p.nom||'').toLowerCase(),isMo=nL.indexOf('morceau')>=0||nL.indexOf('architecture')>=0;
+    var eff=p.plancheSteps&&p.plancheSteps.length?p.plancheSteps:(isMo?['planche','parole']:[]);
+    return eff.indexOf('planche')>=0;
+  });
+}
 function adminPlRenderRef(cid){
-  plRenderPlanning(cid||'admin-pl-ref-list');
+  cid=cid||'admin-pl-ref-list';
+  plRenderPlanning(cid);
+  // Filtre d'affichage uniquement (masquage de lignes en DOM) : ne modifie
+  // jamais les données du planning, contrairement à un filtrage en amont qui
+  // risquerait d'être ré-enregistré par plRenderPlanning (pré-cochage par
+  // défaut) et de faire disparaître définitivement les tenues masquées.
+  if(_plRefMorceauOnly && cid==='admin-pl-ref-list'){
+    var data=plLoad();
+    (data.events||[]).forEach(function(e){
+      if(_plEventContientMorceauArchitecture(e)) return;
+      var titreCell=document.getElementById('pl-titre-cell-'+e.id);
+      var tr=titreCell?titreCell.closest('tr'):null;
+      if(tr) tr.style.display='none';
+      var detailRow=document.getElementById('pl-detail-row-'+e.id);
+      if(detailRow) detailRow.style.display='none';
+    });
+  }
 }
 function plGenererPlanningReference(){
   if(!confirm('🔄 Générer le planning de référence ?\n\nCette opération va :\n1. Placer toutes les tenues impératives dans le planning\n2. Appliquer toutes les règles de tenues conseillées\n\nLes tenues déjà présentes à ces dates seront remplacées.')) return;
