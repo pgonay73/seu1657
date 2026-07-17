@@ -754,11 +754,12 @@ function loginVerif(){
         <span style="width:24px;display:inline-block;"></span>
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
+        <button onclick="diagnostiquerSauvegardeJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(150,150,150,.5);color:rgba(200,200,200,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Vérifie le contenu d'un fichier JSON de sauvegarde sans rien restaurer (nombre de Frères, Modèles, Tenues, etc.)">🔍 Vérifier un JSON</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.428-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.429-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -11318,6 +11319,51 @@ function importData(input){
     if(input.value!==undefined) input.value='';
   };
   reader.readAsText(file);
+}
+
+function diagnostiquerSauvegardeJSON(input){
+  if(!input||!input.files){
+    var inp=document.createElement('input');
+    inp.type='file'; inp.accept='.json';
+    inp.onchange=function(){diagnostiquerSauvegardeJSON(inp);};
+    inp.click();
+    return;
+  }
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var data;
+    try{ data=JSON.parse(e.target.result); }catch(err){ alert('Fichier JSON invalide : '+err.message); return; }
+    var planning=data.planning||data.planningTenues||null;
+    var lignes=[];
+    lignes.push('Fichier : '+file.name);
+    if(data.exportDate) lignes.push('Date export : '+new Date(data.exportDate).toLocaleString('fr-FR'));
+    lignes.push('');
+    lignes.push('— Contenu principal (planning) —');
+    if(planning){
+      lignes.push('Frères : '+((planning.freres||[]).length)+' entrée(s)');
+      lignes.push('Modèles de tenues : '+((planning.modeles||[]).length)+' entrée(s)');
+      lignes.push('Règles : '+((planning.regles||[]).length)+' entrée(s)');
+      lignes.push('Événements (D.events) : '+((planning.events||[]).length)+' entrée(s)');
+    } else {
+      lignes.push('⚠ Aucune donnée "planning" trouvée dans ce fichier.');
+    }
+    lignes.push('');
+    lignes.push('— Autres clés présentes dans le fichier —');
+    var META=['exportDate','version','planning','source'];
+    var aucune=true;
+    Object.keys(data).forEach(function(k){
+      if(META.indexOf(k)>=0) return;
+      aucune=false;
+      var v=data[k];
+      var taille = v==null ? '(vide)' : Array.isArray(v) ? v.length+' élément(s)' : (typeof v==='object' ? Object.keys(v).length+' clé(s)' : String(v).length+' caractère(s)');
+      lignes.push(k+' : '+taille);
+    });
+    if(aucune) lignes.push('(aucune autre clé)');
+    alert(lignes.join('\n'));
+  };
+  reader.readAsText(file);
+  if(input.value!==undefined) input.value='';
 }
 
 function rechargerDepuisFirebase(){
