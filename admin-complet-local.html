@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.441-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.442-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24300,6 +24300,15 @@ function _plGrouperParTrimestre(evts){
   });
   return buckets;
 }
+// Répartition d'une liste de tenues par degré, pour les cartes de synthèse.
+function _plCompterDegres(events){
+  var c={'1°':0,'2°':0,'3°':0};
+  events.forEach(function(e){ var d=e.degre||'1°'; if(c[d]===undefined) c[d]=0; c[d]++; });
+  return c;
+}
+function _plDegresTexte(c){
+  return '1° : '+(c['1°']||0)+', 2° : '+(c['2°']||0)+', 3° : '+(c['3°']||0);
+}
 function _plPartiesEffectives(e){
   var modRef=e.modeleId?(D.modeles||[]).filter(function(m){return m.id===e.modeleId;})[0]:null;
   var modRefParties=modRef&&(modRef.parties||[]).length?modRef.parties:null;
@@ -24383,6 +24392,7 @@ function adminPlRenderCreation(cid){
       h+='<tr><td colspan="6" style="padding:10px 8px;background:rgba(184,146,42,.1);border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);">';
       h+='<strong style="color:var(--gold2);">🏛 Fin du '+bucket.label+'</strong> <span style="color:rgba(255,255,255,.5);font-size:11px;">(au '+bucket.fin+')</span>';
       h+=' — <span style="color:rgba(255,255,255,.85);">'+bucket.events.length+' tenue(s)</span>';
+      h+=' <span style="color:rgba(255,255,255,.5);font-size:11px;">('+_plDegresTexte(_plCompterDegres(bucket.events))+')</span>';
       h+='</td></tr>';
     });
     h+='</tbody></table>';
@@ -24441,6 +24451,7 @@ function adminPlRenderMorceaux(cid){
       h+='<tr><td colspan="4" style="padding:10px 8px;background:rgba(184,146,42,.1);border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);">';
       h+='<strong style="color:var(--gold2);">🏛 Fin du '+bucket.label+'</strong> <span style="color:rgba(255,255,255,.5);font-size:11px;">(au '+bucket.fin+')</span>';
       h+=' — <span style="color:rgba(255,255,255,.85);">'+bucket.events.length+' tenue(s)</span>';
+      h+=' <span style="color:rgba(255,255,255,.5);font-size:11px;">('+_plDegresTexte(_plCompterDegres(bucket.events))+')</span>';
       h+=', <span style="color:#33DD66;">'+nbP+' Planche(s)</span>';
       h+=', <span style="color:#C080D0;">'+nbS+' Symbolisme(s)</span>';
       h+='</td></tr>';
@@ -24488,7 +24499,7 @@ function imprimerPlanningMorceaux(){
       }
       h+='</td></tr>';
     });
-    h+='<tr class="synthese"><td colspan="4">🏛 Fin du '+bucket.label+' (au '+bucket.fin+') — '+bucket.events.length+' tenue(s), '+nbP+' Planche(s), '+nbS+' Symbolisme(s)</td></tr>';
+    h+='<tr class="synthese"><td colspan="4">🏛 Fin du '+bucket.label+' (au '+bucket.fin+') — '+bucket.events.length+' tenue(s) ('+_plDegresTexte(_plCompterDegres(bucket.events))+'), '+nbP+' Planche(s), '+nbS+' Symbolisme(s)</td></tr>';
   });
   h+='</tbody></table></body></html>';
   _printHtml(h,'Morceaux d\'architecture — '+loge);
