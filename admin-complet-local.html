@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.453-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.454-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24860,6 +24860,45 @@ function adminPlRenderCriteres(){
   h+='</div>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues déjà présentes dans le planning, laquelle correspond à chacune de ces tenues-clés.</div>';
   h+='</div>';
+  // Tenues au 3° issues de la 5e semaine du mois : date calculée
+  // automatiquement, modifiable au besoin.
+  var _mFrLong=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  var _dates5=_admDates5emeSemaine();
+  h+='<div style="margin-bottom:22px;padding-top:14px;border-top:1px solid rgba(184,146,42,.3);">';
+  h+='<label style="'+lblS+'margin-bottom:12px;">Tenues au 3° (5e semaine du mois)</label>';
+  if(!_dates5.length){
+    h+='<div style="font-size:12px;color:rgba(255,255,255,.4);font-style:italic;">Aucune 5e semaine dans la période avec le jour de semaine choisi.</div>';
+  } else {
+    var _ov3=c.datesTroisiemeOverrides||{};
+    h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
+    _dates5.forEach(function(d5){
+      var _mo=parseInt(d5.mois.split('-')[1],10)-1;
+      var _an=d5.mois.split('-')[0];
+      var val=_ov3[d5.mois]||d5.date;
+      h+='<div><label style="'+lblS+'">'+_mFrLong[_mo]+' '+_an+'</label>';
+      h+='<input type="date" data-mois="'+d5.mois+'" class="adm-crit-3e-date" value="'+val+'" onchange="admCritSave();" style="'+inS+'"></div>';
+    });
+    h+='</div>';
+    h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Date calculée automatiquement (5e occurrence du jour choisi) ; modifiable si besoin. Actif uniquement si « 5e semaine → 3° » est cochée ci-dessus.</div>';
+  }
+  h+='</div>';
+  // Tenues au 2°, désignées via menu déroulant parmi les dates disponibles
+  // (mêmes dates que pour les dates spéciales : tenues au 1° dans les bornes).
+  h+='<div style="margin-bottom:22px;padding-top:14px;border-top:1px solid rgba(184,146,42,.3);">';
+  h+='<label style="'+lblS+'margin-bottom:12px;">Tenues au 2° (facultatif)</label>';
+  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
+  ADM_DATES_2EME.forEach(function(sp){
+    h+='<div><label style="'+lblS+'">'+sp.titre+'</label>';
+    h+='<select id="'+sp.champ+'" onchange="admCritSave();" style="'+inS+';min-width:160px;">';
+    h+='<option value="">-- Aucune --</option>';
+    _planDates.forEach(function(ds){
+      h+='<option value="'+ds+'"'+(c[sp.key]===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
+    });
+    h+='</select></div>';
+  });
+  h+='</div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues au 1° déjà présentes dans le planning, lesquelles passer au 2°.</div>';
+  h+='</div>';
   h+='<div style="margin-bottom:22px;">';
   h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Générer le Planning 1</button>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères annuels ci-dessus et les ajoute au Planning 1. Les dates déjà présentes ne sont pas écrasées.</div>';
@@ -24890,6 +24929,15 @@ function admCritSave(){
   ADM_DATES_SPECIALES.forEach(function(sp){
     data[sp.key]=(document.getElementById(sp.champ)||{}).value||'';
   });
+  ADM_DATES_2EME.forEach(function(sp){
+    data[sp.key]=(document.getElementById(sp.champ)||{}).value||'';
+  });
+  var _ov3Save={};
+  document.querySelectorAll('.adm-crit-3e-date').forEach(function(inp){
+    var mois=inp.getAttribute('data-mois');
+    if(mois) _ov3Save[mois]=inp.value;
+  });
+  data.datesTroisiemeOverrides=_ov3Save;
   try{localStorage.setItem(PL_CRITERES_KEY,JSON.stringify(data));}catch(e){}
   if(window.fbSet) window.fbSet(PL_CRITERES_KEY,data);
   var elDeb=document.getElementById('pl-crit-date-debut'); if(elDeb) elDeb.value=data.dateDebut;
@@ -24913,6 +24961,10 @@ function admResetCriteres(){
   ADM_DATES_SPECIALES.forEach(function(sp){
     var el=document.getElementById(sp.champ); if(el) el.value='';
   });
+  ADM_DATES_2EME.forEach(function(sp){
+    var el=document.getElementById(sp.champ); if(el) el.value='';
+  });
+  document.querySelectorAll('.adm-crit-3e-date').forEach(function(inp){ inp.value=''; });
   _plCritSemaines=[];
   document.querySelectorAll('.pl-sbtn').forEach(function(b){b.classList.remove('on');});
   admCritSave();
@@ -24935,6 +24987,13 @@ var ADM_DATES_SPECIALES=[
   {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver",                     motsCles:['jean']},
   {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège',                    motsCles:['election']}
 ];
+// Tenues au 2°, désignées parmi les dates disponibles (tenues au 1° déjà
+// présentes dans le planning) — 3 emplacements facultatifs.
+var ADM_DATES_2EME=[
+  {key:'date2eme1', champ:'adm-crit-date-2eme1', titre:'Tenue au 2° (1)'},
+  {key:'date2eme2', champ:'adm-crit-date-2eme2', titre:'Tenue au 2° (2)'},
+  {key:'date2eme3', champ:'adm-crit-date-2eme3', titre:'Tenue au 2° (3)'}
+];
 // Modèle de tenue dont le nom contient tous les mots-clés donnés
 // (recherche insensible aux accents/casse, via _plSansAccents).
 function _admModeleParMotsCles(mots){
@@ -24945,6 +25004,40 @@ function _admModeleParMotsCles(mots){
     if(ok) return D.modeles[i];
   }
   return null;
+}
+// Calcule, pour la période et le jour de semaine des critères annuels, les
+// mois comportant une 5e occurrence de ce jour (5e semaine) — ce sont les
+// mois où, si « 5e semaine → 3° » est cochée, une tenue au 3° est générée.
+// Chaque entrée {mois:'AAAA-MM', date} sert de valeur par défaut modifiable.
+function _admDates5emeSemaine(){
+  var c=plCriteresLoad()||{};
+  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
+  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
+  if(!perDeb||!perFin||jourCrit<0) return [];
+  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+  var out=[];
+  var cur=new Date(debut.getTime());
+  while(cur<=fin){
+    var y=cur.getFullYear(), mo=cur.getMonth();
+    var occs=[];
+    for(var day=1;day<=31;day++){
+      var dd=new Date(y,mo,day);
+      if(dd.getMonth()!==mo) break;
+      var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+      if(js===jourCrit) occs.push(new Date(dd.getTime()));
+    }
+    if(occs.length===5){
+      var occ5=occs[4];
+      if(occ5>=debut&&occ5<=fin){
+        var moisKey=y+'-'+(mo<9?'0':'')+(mo+1);
+        var ds=moisKey+'-'+(occ5.getDate()<10?'0':'')+occ5.getDate();
+        out.push({mois:moisKey, date:ds});
+      }
+    }
+    if(mo===11) cur=new Date(y+1,0,1);
+    else cur=new Date(y,mo+1,1);
+  }
+  return out;
 }
 function admTransfererAuPlanning(){
   var c=plCriteresLoad()||{};
@@ -24984,7 +25077,13 @@ function admTransfererAuPlanning(){
         }
         if(include&&occ>=debut&&occ<=fin){
           var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
-          nouvelles.push({date:ds, degre3:(c.cinqiemeSurTrois&&occs.length===5&&numSem===5)});
+          var isDegre3=!!(c.cinqiemeSurTrois&&occs.length===5&&numSem===5);
+          if(isDegre3){
+            var moisKey3=y+'-'+(mo<9?'0':'')+(mo+1);
+            var dsOverride=(c.datesTroisiemeOverrides||{})[moisKey3];
+            if(dsOverride) ds=dsOverride;
+          }
+          nouvelles.push({date:ds, degre3:isDegre3});
         }
       }
       if(mo===11) cur=new Date(y+1,0,1);
@@ -25030,6 +25129,21 @@ function admTransfererAuPlanning(){
     }
   });
 
+  // Tenues au 2°, désignées via menu déroulant : la tenue au 1° existant à
+  // cette date passe au 2°, avec le modèle de tenue correspondant.
+  var deg2Aj=0;
+  var mdef2=getModeleParDegre('2°');
+  ADM_DATES_2EME.forEach(function(sp){
+    var ds=c[sp.key]||'';
+    if(!ds) return;
+    var ev=data.events.filter(function(e){return e.date===ds;})[0];
+    if(ev && ev.degre!=='2°'){
+      ev.degre='2°';
+      if(mdef2){ ev.modeleId=mdef2.id; ev.titre=mdef2.nom; ev.detail=[]; }
+      deg2Aj++;
+    }
+  });
+
   nouvelles.forEach(function(item){
     var ds=item.date;
     if(existByDate[ds]){
@@ -25054,10 +25168,11 @@ function admTransfererAuPlanning(){
       parties:partiesG, modeleId:_mEvt?_mEvt.id:'', orateurs:[], officiers:[],
       degre:item.degre3?'3°':'1°'
     });
+    existByDate[ds]=true;
     added++;
   });
 
-  if(added>0||updated>0||heureAj>0||titreAj>0||modAj>0){
+  if(added>0||updated>0||heureAj>0||titreAj>0||modAj>0||deg2Aj>0){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
     if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
@@ -25066,6 +25181,7 @@ function admTransfererAuPlanning(){
     if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';
     if(titreAj>0) msg+=(msg?' ':'')+titreAj+' tenue'+(titreAj>1?'s':'')+' spéciale'+(titreAj>1?'s':'')+' désignée'+(titreAj>1?'s':'')+'.';
     if(modAj>0) msg+=(msg?' ':'')+modAj+' modèle'+(modAj>1?'s':'')+' de tenue appliqué'+(modAj>1?'s':'')+'.';
+    if(deg2Aj>0) msg+=(msg?' ':'')+deg2Aj+' tenue'+(deg2Aj>1?'s':'')+' passée'+(deg2Aj>1?'s':'')+' au 2°.';
     if(heureAj>0) msg+=(msg?' ':'')+heureAj+' heure'+(heureAj>1?'s':'')+' complétée'+(heureAj>1?'s':'')+' sur des tenues déjà présentes.';
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
     var restantes=skipped-updated-heureAj;
