@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.446-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.447-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14152,17 +14152,17 @@ function renderOffice(n){
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 1 — Thème &amp; Modèle</h3>';
-    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Première étape : poser le squelette du planning (date, degré, modèle de tenue, thème). Les planches, candidats et conférenciers viendront dans une étape ultérieure.</p>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Première étape : poser le squelette du planning (date, degré, modèle de tenue, thème) à partir des critères annuels ci-dessous. Les planches, candidats et conférenciers viendront dans une étape ultérieure.</p>';
     c+='</div>';
     c+='<button onclick="plTenueAdd({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-creation-list\');" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
     c+='</div>';
+    c+='<div id="admin-pl-panel-criteres"></div>';
     c+='<div id="admin-pl-creation-list"></div>';
     c+='</div></div>';
     // ─ L1.A : Programmation du planning ─
     c+='<div id="admin-pl-l1-prog">';
     c+='<div style="display:none;">';
     c+='<button class="cfg-tab active" id="admin-pl-tab-procedure" onclick="adminPlTab(\'procedure\',this)" style="'+_l2S+'">Procédure</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-criteres" onclick="adminPlTab(\'criteres\',this)" style="'+_l2S+'">Critères de sélection</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-tenuesImp" onclick="adminPlTab(\'tenuesImp\',this)" style="'+_l2S+'">Tenues impératives</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-tenuesCons" onclick="adminPlTab(\'tenuesCons\',this)" style="'+_l2S+'">Fortement conseillé</button>';
     c+='<button class="cfg-tab" id="admin-pl-tab-modeles" onclick="adminPlTab(\'modeles\',this)" style="'+_l2S+'">Modèles de tenues</button>';
@@ -14172,7 +14172,6 @@ function renderOffice(n){
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Procédure</h3>';
     c+='<p style="font-size:13px;color:var(--grey);margin-bottom:14px;">Définissez ici la procédure de planification des tenues.</p>';
     c+='</div></div>';
-    c+='<div id="admin-pl-panel-criteres" style="display:none;"></div>';
     c+='<div id="admin-pl-panel-tenuesImp" style="display:none;">';
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:6px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Tenues impératives</h3>';
     c+='<p style="font-size:12px;color:var(--grey);margin-bottom:14px;font-style:italic;">Définissez les tenues à organiser impérativement dans l\'année. Pour chaque tenue, indiquez la date conseillée et une date de substitution. Le bouton <strong style="color:var(--gold);">→ Planning</strong> crée la tenue directement dans le planning (la date de substitution est utilisée automatiquement si la date conseillée est déjà occupée).</p>';
@@ -16475,11 +16474,11 @@ function adminPlL1Tab(name,btn){
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
   if(name==='ref'){ setTimeout(function(){ adminPlRenderRef('admin-pl-ref-list'); },0); }
   if(name==='morceaux'){ setTimeout(function(){ adminPlRenderMorceaux('admin-pl-morceaux-list'); },0); }
-  if(name==='creation'){ setTimeout(function(){ adminPlRenderCreation('admin-pl-creation-list'); },0); }
+  if(name==='creation'){ setTimeout(function(){ adminPlRenderCreation('admin-pl-creation-list'); adminPlRenderCriteres(); },0); }
 }
 // ── Planning L2 sub-tabs ───────────────────────────────────────────────
 function adminPlTab(name, btn){
-  var subTabs=['modeles','detail','tenuesImp','tenuesCons','suivi','suivi-tenue','planning','dispos','sujets','procedure','criteres'];
+  var subTabs=['modeles','detail','tenuesImp','tenuesCons','suivi','suivi-tenue','planning','dispos','sujets','procedure'];
   var subBtns=document.querySelectorAll('#admin-pl-l1-prog .cfg-tab, #admin-pl-l1-planches .cfg-tab');
   for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
   if(btn) btn.classList.add('active');
@@ -16492,7 +16491,6 @@ function adminPlTab(name, btn){
     plLibreAutoriserEtOuvrir();
     return;
   }
-  if(name==='criteres'){ setTimeout(adminPlRenderCriteres,0); return; }
   if(name==='procedure') return;
   if(name==='modeles') setTimeout(function(){ renderModeles(); },0);
   if(name==='detail') setTimeout(function(){
@@ -19871,6 +19869,7 @@ function plViderPlanning(){
   plSave({events:[]});
   plRenderObligatoires();
   plRender();
+  if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
   toast('Planning vidé.');
 }
 
@@ -24150,7 +24149,6 @@ function plRenderAdminNav(containerId){
     ];
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
-      {id:'criteres',  label:'Critères de sélection'},
       {id:'tenuesImp', label:'Tenues impératives'},
       {id:'tenuesCons',label:'Fortement conseillé'},
       {id:'sans',      label:'📋 Planning des tenues sans planches'}
@@ -24186,7 +24184,6 @@ function plRenderAdminNav(containerId){
     {id:'prog',    label:'📅 Programmation du planning',         fn:'plNavToAdminL1'},
     {id:'planches',label:'📐 Programmation des planches',        fn:'plNavToAdminL1'},
     {id:'procedure',   label:'Procédure',                            fn:'plNavToAdminPl'},
-    {id:'criteres',    label:'Critères de sélection',               fn:'plNavToAdminPl'},
     {id:'tenuesImp',   label:'Tenues impératives',                  fn:'plNavToAdminPl'},
     {id:'tenuesCons',  label:'Fortement conseillé',                 fn:'plNavToAdminPl'},
     {id:'sans',        label:'📋 Planning des tenues sans planches', fn:'plNavToAdminPl'},
@@ -24772,7 +24769,7 @@ function adminPlRenderCriteres(){
   var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
   var h='<div class="cfg-box">';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
-  h+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0;">Critères de sélection</h3>';
+  h+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0;">Critères annuels</h3>';
   h+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">';
   h+='<button class="pl-btn pl-btn-outline pl-btn-sm" onclick="admResetCriteres()">Réinitialiser</button>';
   h+='<button onclick="plViderPlanning()" style="background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#E74C3C;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;padding:4px 12px;border-radius:4px;cursor:pointer;">🗑 Nouveau planning</button>';
@@ -24830,8 +24827,8 @@ function adminPlRenderCriteres(){
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé lors de la génération automatique des tenues.</div>';
   h+='</div>';
   h+='<div style="margin-bottom:22px;">';
-  h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Transférer au planning</button>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères ci-dessus et les ajoute au planning. Les dates déjà présentes ne sont pas écrasées.</div>';
+  h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Générer le Planning 1</button>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères annuels ci-dessus et les ajoute au Planning 1. Les dates déjà présentes ne sont pas écrasées.</div>';
   h+='</div>';
   h+='</div>';
   el.innerHTML=h;
@@ -24969,6 +24966,7 @@ function admTransfererAuPlanning(){
   if(added>0||updated>0){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
+    if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
     var msg='';
     if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';;
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
@@ -25299,6 +25297,7 @@ function plNavToAdminPl(tab){
   if(tab==='planning') return;
   if(tab==='sans'){plNavToAdminL1('sans');return;}
   if(tab==='ref'){plNavToAdminL1('ref');return;}
+  if(tab==='criteres'){plNavToAdminL1('creation');return;}
   var adminPl=document.getElementById('admin-panel-planning');
   var inAdmin=(adminPl&&adminPl.style.display!=='none');
   if(inAdmin){
@@ -25311,7 +25310,7 @@ function plNavToAdminPl(tab){
     // L2 : afficher le sous-menu et marquer l'onglet actif
     var l2=document.getElementById('pl-adm-l2-nav');
     if(l2) l2.style.display='flex';
-    ['procedure','criteres','tenuesImp','tenuesCons','sans'].forEach(function(x){
+    ['procedure','tenuesImp','tenuesCons','sans'].forEach(function(x){
       var b=document.getElementById('pl-adm-l2-nav-'+x);
       if(b) b.style.cssText=_nS3+(x===tab?'color:#D4AF5A;border-bottom-color:#D4AF5A;':'color:rgba(255,255,255,.5);');
     });
