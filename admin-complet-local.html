@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.451-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.452-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24411,6 +24411,7 @@ function adminPlRenderCreation(cid){
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:80px;">Degré</th>';
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:200px;">Modèle</th>';
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Thème (titre)</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:80px;">Durée</th>';
     h+='<th style="width:36px;"></th>';
     h+='</tr></thead><tbody>';
     var i=0;
@@ -24435,10 +24436,18 @@ function adminPlRenderCreation(cid){
         (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
         h+='</select></td>';
         h+='<td style="padding:6px;"><input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="Thème de la tenue..." onblur="plTitreChanger(&quot;'+e.id+'&quot;,this.value)" style="'+inpD+'width:100%;"></td>';
+        var _dureeP1=_plPartiesEffectives(e).reduce(function(s,p){return s+(parseInt(p.dur)||0);},0);
+        h+='<td style="padding:6px;">';
+        if(_dureeP1>0){
+          var _dsP1=_plDureeStyle(_dureeP1);
+          var _hP1=Math.floor(_dureeP1/60),_mP1=_dureeP1%60;
+          h+='<span class="pl-p1-duree'+_dsP1.cls+'" style="font-size:10px;background:'+_dsP1.bg+';color:'+_dsP1.color+';font-weight:700;white-space:nowrap;border-radius:8px;padding:1px 7px;">⏱ '+(_hP1>0?_hP1+'h'+(_mP1>0?String(_mP1).padStart(2,'0'):''):_dureeP1+' min')+'</span>';
+        }
+        h+='</td>';
         h+='<td style="padding:6px;text-align:center;"><button onclick="if(confirm(\'Supprimer cette tenue ?\')){plTenueDelete(&quot;'+e.id+'&quot;);adminPlRenderCreation(&quot;'+cid+'&quot;);if(typeof adminPlRenderCriteres===\'function\')adminPlRenderCriteres();}" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;">🗑</button></td>';
         h+='</tr>';
       });
-      h+='<tr><td colspan="6" style="padding:10px 8px;background:rgba(184,146,42,.1);border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);">';
+      h+='<tr><td colspan="7" style="padding:10px 8px;background:rgba(184,146,42,.1);border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);">';
       h+='<strong style="color:var(--gold2);">🏛 Fin du '+bucket.label+'</strong> <span style="color:rgba(255,255,255,.5);font-size:11px;">(au '+bucket.fin+')</span>';
       h+=' — <span style="color:rgba(255,255,255,.85);">'+bucket.events.length+' tenue(s)</span>';
       h+=' <span style="color:rgba(255,255,255,.5);font-size:11px;">('+_plDegresTexte(_plCompterDegres(bucket.events))+')</span>';
@@ -24448,7 +24457,7 @@ function adminPlRenderCreation(cid){
       anneeAcc=anneeAcc.concat(bucket.events);
       var next=trimestres[bi+1];
       if(!next||next.anneeKey!==bucket.anneeKey){
-        h+=_plCarteAnnuelleHTML(bucket.anneeLabel,anneeAcc,6);
+        h+=_plCarteAnnuelleHTML(bucket.anneeLabel,anneeAcc,7);
         anneeAcc=[];
       }
     });
@@ -24919,11 +24928,22 @@ function admSelectNoSems(){
 // Tenues spéciales à date fixe, saisies directement dans les critères
 // annuels (indépendantes du jour de semaine récurrent).
 var ADM_DATES_SPECIALES=[
-  {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation Collège + VM + Député'},
-  {key:'dateInspecteur',   champ:'adm-crit-date-inspecteur',   titre:'Inspecteur'},
-  {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver"},
-  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège'}
+  {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation Collège + VM + Député', motsCles:['installation']},
+  {key:'dateInspecteur',   champ:'adm-crit-date-inspecteur',   titre:'Inspecteur',                          motsCles:['inspecteur']},
+  {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver",                     motsCles:['jean']},
+  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège',                    motsCles:['election']}
 ];
+// Modèle de tenue dont le nom contient tous les mots-clés donnés
+// (recherche insensible aux accents/casse, via _plSansAccents).
+function _admModeleParMotsCles(mots){
+  for(var i=0;i<(D.modeles||[]).length;i++){
+    var n=_plSansAccents(D.modeles[i].nom);
+    var ok=true;
+    for(var k=0;k<mots.length;k++){ if(n.indexOf(mots[k])<0){ ok=false; break; } }
+    if(ok) return D.modeles[i];
+  }
+  return null;
+}
 function admTransfererAuPlanning(){
   var c=plCriteresLoad()||{};
   var perDeb=c.dateDebut||'';
@@ -24974,23 +24994,34 @@ function admTransfererAuPlanning(){
   var existByDate={};
   data.events.forEach(function(e){existByDate[e.date]=true;});
 
-  var added=0, skipped=0, updated=0, heureAj=0, specAj=0, titreAj=0;
+  var added=0, skipped=0, updated=0, heureAj=0, specAj=0, titreAj=0, modAj=0;
 
   // Tenues spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
   // la date est choisie parmi les tenues déjà présentes dans le planning
   // (menu déroulant), on marque donc cette tenue comme étant la tenue-clé
-  // désignée (titre imposé) et on complète l'heure si elle manquait.
+  // désignée (titre imposé), on complète l'heure si elle manquait, et on
+  // lui applique le modèle de tenue correspondant. Si Installation et
+  // Inspecteur tombent à la même date, on utilise le modèle combiné
+  // "Inspecteur + Installation" plutôt que les modèles individuels.
+  var _dInstall=c.dateInstallation||'', _dInspect=c.dateInspecteur||'';
+  var _memeDateInstallInspect=!!(_dInstall && _dInstall===_dInspect);
+  var _modCombine=_memeDateInstallInspect?_admModeleParMotsCles(['inspecteur','installation']):null;
+  var _titreCombine='Inspecteur + Installation Collège + VM + Député';
   ADM_DATES_SPECIALES.forEach(function(sp){
     var ds=c[sp.key]||'';
     if(!ds) return;
+    var estInstallOuInspect=(sp.key==='dateInstallation'||sp.key==='dateInspecteur');
+    var titreAppliq=(_memeDateInstallInspect&&estInstallOuInspect)?_titreCombine:sp.titre;
     var ev=data.events.filter(function(e){return e.date===ds;})[0];
+    var modTrouve=(_memeDateInstallInspect&&estInstallOuInspect)?_modCombine:_admModeleParMotsCles(sp.motsCles);
     if(ev){
       if(!ev.heure){ ev.heure=heure; heureAj++; }
-      if(ev.titre!==sp.titre){ ev.titre=sp.titre; titreAj++; }
+      if(ev.titre!==titreAppliq){ ev.titre=titreAppliq; titreAj++; }
+      if(modTrouve && ev.modeleId!==modTrouve.id){ ev.modeleId=modTrouve.id; ev.detail=[]; modAj++; }
     } else {
       data.events.push({
-        id:'pl'+Date.now()+'_'+sp.key, date:ds, heure:heure, titre:sp.titre,
-        degre:'1°', modeleId:mdef?mdef.id:'', detail:[]
+        id:'pl'+Date.now()+'_'+sp.key, date:ds, heure:heure, titre:titreAppliq,
+        degre:'1°', modeleId:modTrouve?modTrouve.id:(mdef?mdef.id:''), detail:[]
       });
       existByDate[ds]=true;
       added++; specAj++;
@@ -25024,7 +25055,7 @@ function admTransfererAuPlanning(){
     added++;
   });
 
-  if(added>0||updated>0||heureAj>0||titreAj>0){
+  if(added>0||updated>0||heureAj>0||titreAj>0||modAj>0){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
     if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
@@ -25032,6 +25063,7 @@ function admTransfererAuPlanning(){
     var msg='';
     if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';
     if(titreAj>0) msg+=(msg?' ':'')+titreAj+' tenue'+(titreAj>1?'s':'')+' spéciale'+(titreAj>1?'s':'')+' désignée'+(titreAj>1?'s':'')+'.';
+    if(modAj>0) msg+=(msg?' ':'')+modAj+' modèle'+(modAj>1?'s':'')+' de tenue appliqué'+(modAj>1?'s':'')+'.';
     if(heureAj>0) msg+=(msg?' ':'')+heureAj+' heure'+(heureAj>1?'s':'')+' complétée'+(heureAj>1?'s':'')+' sur des tenues déjà présentes.';
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
     var restantes=skipped-updated-heureAj;
