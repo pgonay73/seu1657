@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.447-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.448-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24937,17 +24937,19 @@ function admTransfererAuPlanning(){
   var existByDate={};
   data.events.forEach(function(e){existByDate[e.date]=true;});
 
-  var added=0, skipped=0, updated=0;
+  var added=0, skipped=0, updated=0, heureAj=0;
   nouvelles.forEach(function(item){
     var ds=item.date;
     if(existByDate[ds]){
-      if(item.degre3){
-        var ev=data.events.filter(function(e){return e.date===ds;})[0];
-        if(ev&&ev.degre!=='3°'){
-          ev.degre='3°';
-          if(mdef3){ev.modeleId=mdef3.id;ev.titre=mdef3.nom;}
-          updated++;
-        }
+      var ev=data.events.filter(function(e){return e.date===ds;})[0];
+      // Une tenue déjà présente (créée manuellement ou par une autre voie)
+      // n'a pas forcément d'heure : on la complète avec l'heure des critères
+      // sans écraser une heure déjà saisie.
+      if(ev && !ev.heure){ ev.heure=heure; heureAj++; }
+      if(item.degre3 && ev && ev.degre!=='3°'){
+        ev.degre='3°';
+        if(mdef3){ev.modeleId=mdef3.id;ev.titre=mdef3.nom;}
+        updated++;
       }
       skipped++;return;
     }
@@ -24963,17 +24965,19 @@ function admTransfererAuPlanning(){
     added++;
   });
 
-  if(added>0||updated>0){
+  if(added>0||updated>0||heureAj>0){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
     if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
     var msg='';
-    if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';;
+    if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';
+    if(heureAj>0) msg+=(msg?' ':'')+heureAj+' heure'+(heureAj>1?'s':'')+' complétée'+(heureAj>1?'s':'')+' sur des tenues déjà présentes.';
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
-    if(skipped-updated>0) msg+=' ('+( skipped-updated)+' date'+(skipped-updated>1?'s déjà présentes':' déjà présente')+')';
+    var restantes=skipped-updated-heureAj;
+    if(restantes>0) msg+=' ('+restantes+' date'+(restantes>1?'s déjà présentes sans changement':' déjà présente sans changement')+')';
     toast(msg||'Planning mis à jour.');
   } else {
-    toast('Toutes les dates ('+skipped+') sont déjà présentes dans le planning.');
+    toast('Toutes les dates ('+skipped+') sont déjà présentes dans le planning, avec une heure déjà renseignée.');
   }
 }
 
