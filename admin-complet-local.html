@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.449-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.450-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24425,7 +24425,7 @@ function adminPlRenderCreation(cid){
         // (règle CSS globale) écraserait sinon la couleur du degré fixée en ligne.
         var inpD=inpS+'color:'+cd+' !important;font-weight:600;';
         h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">';
-        h+='<td style="padding:6px;"><input type="date" value="'+(e.date||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'date\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);" style="'+inpD+'width:100%;"></td>';
+        h+='<td style="padding:6px;"><input type="date" value="'+(e.date||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'date\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);if(typeof adminPlRenderCriteres===\'function\')adminPlRenderCriteres();" style="'+inpD+'width:100%;"></td>';
         h+='<td style="padding:6px;"><input type="time" value="'+(e.heure||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'heure\',this.value)" style="'+inpD+'width:100%;"></td>';
         h+='<td style="padding:6px;"><select onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'degre\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);" style="'+inpD+'width:100%;">';
         ['1°','2°','3°'].forEach(function(d){ h+='<option value="'+d+'"'+(deg===d?' selected':'')+'>'+d+'</option>'; });
@@ -24435,7 +24435,7 @@ function adminPlRenderCreation(cid){
         (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
         h+='</select></td>';
         h+='<td style="padding:6px;"><input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="Thème de la tenue..." onblur="plTitreChanger(&quot;'+e.id+'&quot;,this.value)" style="'+inpD+'width:100%;"></td>';
-        h+='<td style="padding:6px;text-align:center;"><button onclick="if(confirm(\'Supprimer cette tenue ?\')){plTenueDelete(&quot;'+e.id+'&quot;);adminPlRenderCreation(&quot;'+cid+'&quot;);}" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;">🗑</button></td>';
+        h+='<td style="padding:6px;text-align:center;"><button onclick="if(confirm(\'Supprimer cette tenue ?\')){plTenueDelete(&quot;'+e.id+'&quot;);adminPlRenderCreation(&quot;'+cid+'&quot;);if(typeof adminPlRenderCriteres===\'function\')adminPlRenderCriteres();}" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;">🗑</button></td>';
         h+='</tr>';
       });
       h+='<tr><td colspan="6" style="padding:10px 8px;background:rgba(184,146,42,.1);border-top:2px solid var(--gold);border-bottom:2px solid var(--gold);">';
@@ -24827,16 +24827,26 @@ function adminPlRenderCriteres(){
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé lors de la génération automatique des tenues.</div>';
   h+='</div>';
   // Dates spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
-  // une date facultative à côté de chaque tenue-clé de l'année.
+  // on désigne, via un menu déroulant, laquelle des tenues déjà présentes
+  // dans le planning correspond à chacune.
+  var _mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function _fmtDateCrit(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+_mFrCrit[d.getMonth()]+' '+d.getFullYear(); }
+  var _planDates=(plLoad().events||[]).map(function(e){return e.date;}).filter(function(d){return !!d;})
+    .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
   h+='<div style="margin-bottom:22px;padding-top:14px;border-top:1px solid rgba(184,146,42,.3);">';
   h+='<label style="'+lblS+'margin-bottom:12px;">Dates spéciales (facultatif)</label>';
   h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
   ADM_DATES_SPECIALES.forEach(function(sp){
     h+='<div><label style="'+lblS+'">'+sp.titre+'</label>';
-    h+='<input type="date" id="'+sp.champ+'" value="'+(c[sp.key]||'')+'" onchange="admCritSave();" style="'+inS+'"></div>';
+    h+='<select id="'+sp.champ+'" onchange="admCritSave();" style="'+inS+';min-width:160px;">';
+    h+='<option value="">-- Aucune --</option>';
+    _planDates.forEach(function(ds){
+      h+='<option value="'+ds+'"'+(c[sp.key]===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
+    });
+    h+='</select></div>';
   });
   h+='</div>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Si la date saisie est déjà occupée par une tenue, seuls l\'heure et le titre manquants sont complétés.</div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues déjà présentes dans le planning, laquelle correspond à chacune de ces tenues-clés.</div>';
   h+='</div>';
   h+='<div style="margin-bottom:22px;">';
   h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Générer le Planning 1</button>';
@@ -24963,18 +24973,19 @@ function admTransfererAuPlanning(){
   var existByDate={};
   data.events.forEach(function(e){existByDate[e.date]=true;});
 
-  var added=0, skipped=0, updated=0, heureAj=0, specAj=0;
+  var added=0, skipped=0, updated=0, heureAj=0, specAj=0, titreAj=0;
 
   // Tenues spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
-  // si la date est déjà occupée, on complète seulement l'heure/le titre
-  // manquants ; sinon on crée la tenue.
+  // la date est choisie parmi les tenues déjà présentes dans le planning
+  // (menu déroulant), on marque donc cette tenue comme étant la tenue-clé
+  // désignée (titre imposé) et on complète l'heure si elle manquait.
   ADM_DATES_SPECIALES.forEach(function(sp){
     var ds=c[sp.key]||'';
     if(!ds) return;
     var ev=data.events.filter(function(e){return e.date===ds;})[0];
     if(ev){
       if(!ev.heure){ ev.heure=heure; heureAj++; }
-      if(!ev.titre){ ev.titre=sp.titre; }
+      if(ev.titre!==sp.titre){ ev.titre=sp.titre; titreAj++; }
     } else {
       data.events.push({
         id:'pl'+Date.now()+'_'+sp.key, date:ds, heure:heure, titre:sp.titre,
@@ -25012,12 +25023,14 @@ function admTransfererAuPlanning(){
     added++;
   });
 
-  if(added>0||updated>0||heureAj>0){
+  if(added>0||updated>0||heureAj>0||titreAj>0){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
     if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
+    if(typeof adminPlRenderCriteres==='function') adminPlRenderCriteres();
     var msg='';
     if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';
+    if(titreAj>0) msg+=(msg?' ':'')+titreAj+' tenue'+(titreAj>1?'s':'')+' spéciale'+(titreAj>1?'s':'')+' désignée'+(titreAj>1?'s':'')+'.';
     if(heureAj>0) msg+=(msg?' ':'')+heureAj+' heure'+(heureAj>1?'s':'')+' complétée'+(heureAj>1?'s':'')+' sur des tenues déjà présentes.';
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
     var restantes=skipped-updated-heureAj;
