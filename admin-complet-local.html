@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.448-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.449-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24826,6 +24826,18 @@ function adminPlRenderCriteres(){
   h+='</select>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé lors de la génération automatique des tenues.</div>';
   h+='</div>';
+  // Dates spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
+  // une date facultative à côté de chaque tenue-clé de l'année.
+  h+='<div style="margin-bottom:22px;padding-top:14px;border-top:1px solid rgba(184,146,42,.3);">';
+  h+='<label style="'+lblS+'margin-bottom:12px;">Dates spéciales (facultatif)</label>';
+  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
+  ADM_DATES_SPECIALES.forEach(function(sp){
+    h+='<div><label style="'+lblS+'">'+sp.titre+'</label>';
+    h+='<input type="date" id="'+sp.champ+'" value="'+(c[sp.key]||'')+'" onchange="admCritSave();" style="'+inS+'"></div>';
+  });
+  h+='</div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Si la date saisie est déjà occupée par une tenue, seuls l\'heure et le titre manquants sont complétés.</div>';
+  h+='</div>';
   h+='<div style="margin-bottom:22px;">';
   h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Générer le Planning 1</button>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères annuels ci-dessus et les ajoute au Planning 1. Les dates déjà présentes ne sont pas écrasées.</div>';
@@ -24853,6 +24865,9 @@ function admCritSave(){
     modeleDefaut:(document.getElementById('adm-crit-modele')||{}).value||'',
     cinqiemeSurTrois:_chk5?_chk5.checked:false
   };
+  ADM_DATES_SPECIALES.forEach(function(sp){
+    data[sp.key]=(document.getElementById(sp.champ)||{}).value||'';
+  });
   try{localStorage.setItem(PL_CRITERES_KEY,JSON.stringify(data));}catch(e){}
   if(window.fbSet) window.fbSet(PL_CRITERES_KEY,data);
   var elDeb=document.getElementById('pl-crit-date-debut'); if(elDeb) elDeb.value=data.dateDebut;
@@ -24873,6 +24888,9 @@ function admResetCriteres(){
   var dJ=document.getElementById('adm-crit-jour'); if(dJ) dJ.value='';
   var dH=document.getElementById('adm-crit-heure'); if(dH) dH.value='';
   var dM=document.getElementById('adm-crit-modele'); if(dM) dM.value='';
+  ADM_DATES_SPECIALES.forEach(function(sp){
+    var el=document.getElementById(sp.champ); if(el) el.value='';
+  });
   _plCritSemaines=[];
   document.querySelectorAll('.pl-sbtn').forEach(function(b){b.classList.remove('on');});
   admCritSave();
@@ -24887,6 +24905,14 @@ function admSelectNoSems(){
   document.querySelectorAll('.pl-sbtn[data-s]').forEach(function(b){b.classList.remove('on');});
   admCritSave();
 }
+// Tenues spéciales à date fixe, saisies directement dans les critères
+// annuels (indépendantes du jour de semaine récurrent).
+var ADM_DATES_SPECIALES=[
+  {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation Collège + VM + Député'},
+  {key:'dateInspecteur',   champ:'adm-crit-date-inspecteur',   titre:'Inspecteur'},
+  {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver"},
+  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège'}
+];
 function admTransfererAuPlanning(){
   var c=plCriteresLoad()||{};
   var perDeb=c.dateDebut||'';
@@ -24896,48 +24922,69 @@ function admTransfererAuPlanning(){
   var heure=c.heure||'19:30';
   var modeleId=c.modeleDefaut||'';
 
-  if(!perDeb||!perFin){toast('⚠ Définissez les dates début et fin dans les critères.');return;}
-  if(jourCrit<0){toast('⚠ Sélectionnez un jour de la semaine dans les critères.');return;}
-
-  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
   var mdef=modeleId?getModele(modeleId):getModeleDefaut();
   var mdef3=getModeleParDegre('3°');
 
+  // Génération récurrente par jour de semaine (uniquement si les critères
+  // de récurrence sont renseignés — les dates spéciales ci-dessous
+  // fonctionnent indépendamment).
   var nouvelles=[];
-  var cur=new Date(debut.getTime());
-  while(cur<=fin){
-    var y=cur.getFullYear(), mo=cur.getMonth();
-    var occs=[];
-    for(var day=1;day<=31;day++){
-      var dd=new Date(y,mo,day);
-      if(dd.getMonth()!==mo) break;
-      var js=(dd.getDay()===0)?6:(dd.getDay()-1);
-      if(js===jourCrit) occs.push(new Date(dd.getTime()));
-    }
-    for(var oi=0;oi<occs.length;oi++){
-      var occ=occs[oi], numSem=oi+1, include=(semaines.length===0);
-      if(!include){
-        for(var si=0;si<semaines.length;si++){
-          if(semaines[si]===5){if(numSem===5&&occs.length===5)include=true;}
-          else{if(semaines[si]===numSem)include=true;}
+  if(perDeb && perFin && jourCrit>=0){
+    var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+    var cur=new Date(debut.getTime());
+    while(cur<=fin){
+      var y=cur.getFullYear(), mo=cur.getMonth();
+      var occs=[];
+      for(var day=1;day<=31;day++){
+        var dd=new Date(y,mo,day);
+        if(dd.getMonth()!==mo) break;
+        var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+        if(js===jourCrit) occs.push(new Date(dd.getTime()));
+      }
+      for(var oi=0;oi<occs.length;oi++){
+        var occ=occs[oi], numSem=oi+1, include=(semaines.length===0);
+        if(!include){
+          for(var si=0;si<semaines.length;si++){
+            if(semaines[si]===5){if(numSem===5&&occs.length===5)include=true;}
+            else{if(semaines[si]===numSem)include=true;}
+          }
+        }
+        if(include&&occ>=debut&&occ<=fin){
+          var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
+          nouvelles.push({date:ds, degre3:(c.cinqiemeSurTrois&&occs.length===5&&numSem===5)});
         }
       }
-      if(include&&occ>=debut&&occ<=fin){
-        var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
-        nouvelles.push({date:ds, degre3:(c.cinqiemeSurTrois&&occs.length===5&&numSem===5)});
-      }
+      if(mo===11) cur=new Date(y+1,0,1);
+      else cur=new Date(y,mo+1,1);
     }
-    if(mo===11) cur=new Date(y+1,0,1);
-    else cur=new Date(y,mo+1,1);
   }
-
-  if(!nouvelles.length){toast('⚠ Aucune date générée avec ces critères.');return;}
 
   var data=plLoad(); if(!data.events) data.events=[];
   var existByDate={};
   data.events.forEach(function(e){existByDate[e.date]=true;});
 
-  var added=0, skipped=0, updated=0, heureAj=0;
+  var added=0, skipped=0, updated=0, heureAj=0, specAj=0;
+
+  // Tenues spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
+  // si la date est déjà occupée, on complète seulement l'heure/le titre
+  // manquants ; sinon on crée la tenue.
+  ADM_DATES_SPECIALES.forEach(function(sp){
+    var ds=c[sp.key]||'';
+    if(!ds) return;
+    var ev=data.events.filter(function(e){return e.date===ds;})[0];
+    if(ev){
+      if(!ev.heure){ ev.heure=heure; heureAj++; }
+      if(!ev.titre){ ev.titre=sp.titre; }
+    } else {
+      data.events.push({
+        id:'pl'+Date.now()+'_'+sp.key, date:ds, heure:heure, titre:sp.titre,
+        degre:'1°', modeleId:mdef?mdef.id:'', detail:[]
+      });
+      existByDate[ds]=true;
+      added++; specAj++;
+    }
+  });
+
   nouvelles.forEach(function(item){
     var ds=item.date;
     if(existByDate[ds]){
@@ -24976,6 +25023,8 @@ function admTransfererAuPlanning(){
     var restantes=skipped-updated-heureAj;
     if(restantes>0) msg+=' ('+restantes+' date'+(restantes>1?'s déjà présentes sans changement':' déjà présente sans changement')+')';
     toast(msg||'Planning mis à jour.');
+  } else if(!nouvelles.length && !specAj){
+    toast('⚠ Aucune date générée : renseignez les critères de récurrence (jour de semaine + dates début/fin) ou au moins une date spéciale.');
   } else {
     toast('Toutes les dates ('+skipped+') sont déjà présentes dans le planning, avec une heure déjà renseignée.');
   }
