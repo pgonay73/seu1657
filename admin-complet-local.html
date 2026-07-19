@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.481-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.482-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25190,6 +25190,8 @@ function plProposLoad(){
       if(p.impression===undefined) p.impression=false;
       if(p.passage2===undefined) p.passage2=false;
       if(p.passage3===undefined) p.passage3=false;
+      if(p.date===undefined) p.date='';
+      if(p.origine===undefined) p.origine='';
     });
     return d;
   }catch(e){return[];}
@@ -25199,9 +25201,29 @@ function plProposSave(arr){
   if(window.fbSet) window.fbSet(PL_PROPOS_KEY,arr);
   if(typeof _autoBackupSiDue==='function') _autoBackupSiDue();
 }
+// Dates de tenues (Planning 1) comportant un morceau d'architecture
+// (Planche/Symbolisme) dans leur détail — mêmes données que l'onglet
+// « Morceaux d'architecture ».
+function _plProposDatesMorceaux(){
+  var data=plLoad();
+  var evts=_plFiltrerParPeriode((data.events||[]).slice());
+  return evts.filter(function(e){
+    return _plPartiesEffectives(e).some(function(p){return isPlancheOuSym(p.nom);});
+  }).map(function(e){return e.date;}).filter(function(d){return !!d;})
+    .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
+}
+// Exclut des options les dates déjà prises par une AUTRE proposition, tout
+// en gardant la valeur déjà choisie pour la proposition en cours.
+function _plProposDatesDisponibles(val,monId){
+  var prisesParAutres={};
+  plProposLoad().forEach(function(p){ if(p.id!==monId && p.date) prisesParAutres[p.date]=true; });
+  var d=_plProposDatesMorceaux().filter(function(ds){ return !prisesParAutres[ds]; });
+  if(val && d.indexOf(val)<0) d.push(val);
+  return d.sort();
+}
 function plProposAjouter(nomFrere){
   var arr=plProposLoad();
-  arr.push({id:'prop'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:'', type:'', sujet:'', parole:false, impression:false, passage2:false, passage3:false});
+  arr.push({id:'prop'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:'', type:'', sujet:'', date:'', origine:'', parole:false, impression:false, passage2:false, passage3:false});
   plProposSave(arr);
   adminPlRenderPropositions();
 }
@@ -25211,6 +25233,21 @@ function plProposChangerDegre(id,val){
   if(!p) return;
   p.degre=val;
   plProposSave(arr);
+}
+function plProposChangerOrigine(id,val){
+  var arr=plProposLoad();
+  var p=arr.filter(function(x){return x.id===id;})[0];
+  if(!p) return;
+  p.origine=val;
+  plProposSave(arr);
+}
+function plProposChangerDate(id,val){
+  var arr=plProposLoad();
+  var p=arr.filter(function(x){return x.id===id;})[0];
+  if(!p) return;
+  p.date=val;
+  plProposSave(arr);
+  adminPlRenderPropositions(); // les dates disponibles des autres lignes changent
 }
 function plProposChangerType(id,val){
   var arr=plProposLoad();
@@ -25264,9 +25301,11 @@ function adminPlRenderPropositions(cid){
   });
   var ordered=avecPlanche.concat(sansPlanche);
   var cbS='font-size:11px;color:var(--text);display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
+  var mFrProp=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function _plProposFmtDate(ds){ if(!ds) return ''; var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrProp[d.getMonth()]+' '+d.getFullYear(); }
   var h='<div class="cfg-box">';
   h+='<div style="display:flex;gap:10px;padding:6px 8px;border-bottom:2px solid var(--gold);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;flex-wrap:wrap;">';
-  h+='<div style="width:180px;flex-shrink:0;">Frère</div><div style="width:70px;flex-shrink:0;">Degré</div><div style="width:130px;flex-shrink:0;">Type</div><div style="width:290px;flex-shrink:0;">Si planche</div><div style="flex:1;min-width:180px;">Sujet proposé</div><div style="width:60px;flex-shrink:0;"></div>';
+  h+='<div style="width:180px;flex-shrink:0;">Frère</div><div style="width:70px;flex-shrink:0;">Degré</div><div style="width:130px;flex-shrink:0;">Type</div><div style="width:290px;flex-shrink:0;">Si planche</div><div style="width:160px;flex-shrink:0;">Date</div><div style="width:44px;flex-shrink:0;" title="Origine du sujet : Frère ou Liste">Orig.</div><div style="flex:1;min-width:180px;">Sujet proposé</div><div style="width:60px;flex-shrink:0;"></div>';
   h+='</div>';
   ordered.forEach(function(fr,fi){
     var mesProps=fr.props.length?fr.props:[null];
@@ -25294,13 +25333,24 @@ function adminPlRenderPropositions(cid){
           h+='</div>';
         }
         h+='</div>';
+        h+='<div style="width:160px;flex-shrink:0;"><select onchange="plProposChangerDate(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+        h+='<option value=""'+(!p.date?' selected':'')+'>-- Aucune --</option>';
+        _plProposDatesDisponibles(p.date,p.id).forEach(function(ds){
+          h+='<option value="'+ds+'"'+(p.date===ds?' selected':'')+'>'+_plProposFmtDate(ds)+'</option>';
+        });
+        h+='</select></div>';
+        h+='<div style="width:44px;flex-shrink:0;"><select onchange="plProposChangerOrigine(&quot;'+p.id+'&quot;,this.value)" title="Origine du sujet : F = Frère (idée propre), L = Liste (banque de sujets)" style="'+inS+';width:100%;padding:6px 2px;text-align:center;">';
+        h+='<option value=""'+(!p.origine?' selected':'')+'>--</option>';
+        h+='<option value="F"'+(p.origine==='F'?' selected':'')+' title="Frère">F</option>';
+        h+='<option value="L"'+(p.origine==='L'?' selected':'')+' title="Liste">L</option>';
+        h+='</select></div>';
         h+='<div style="flex:1;min-width:180px;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" placeholder="Sujet proposé..." onblur="plProposChangerSujet(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;box-sizing:border-box;"></div>';
         h+='<div style="width:60px;flex-shrink:0;display:flex;gap:4px;justify-content:flex-end;">';
         h+='<button onclick="if(confirm(\'Supprimer cette proposition ?\'))plProposSupprimer(&quot;'+p.id+'&quot;)" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;padding:2px;">🗑</button>';
         if(pi===mesProps.length-1) h+='<button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une autre proposition pour ce frère" style="background:none;border:none;color:rgba(184,146,42,.8);cursor:pointer;font-size:14px;padding:2px;">➕</button>';
         h+='</div>';
       } else {
-        h+='<div style="width:70px;flex-shrink:0;"></div><div style="width:130px;flex-shrink:0;"></div><div style="width:290px;flex-shrink:0;"></div>';
+        h+='<div style="width:70px;flex-shrink:0;"></div><div style="width:130px;flex-shrink:0;"></div><div style="width:290px;flex-shrink:0;"></div><div style="width:160px;flex-shrink:0;"></div><div style="width:44px;flex-shrink:0;"></div>';
         h+='<div style="flex:1;min-width:180px;"></div>';
         h+='<div style="width:60px;flex-shrink:0;display:flex;justify-content:flex-end;"><button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une proposition" style="background:none;border:none;color:rgba(184,146,42,.8);cursor:pointer;font-size:14px;padding:2px;">➕</button></div>';
       }
@@ -25326,6 +25376,9 @@ function imprimerListePropositionsPlanches(){
     +'@media print{body{margin:10mm;}}';
   var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Propositions de planches par frère — '+loge+'</title><style>'+css+'</style></head><body>';
   h+='<h1>'+(loge?loge+' — ':'')+'Propositions de planches par frère</h1>';
+  var jFrProp=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var mFrProp2=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDateProp(ds){ if(!ds) return ''; var d=new Date(ds+'T12:00:00'); return jFrProp[d.getDay()]+' '+d.getDate()+' '+mFrProp2[d.getMonth()]+' '+d.getFullYear(); }
   var lignes=[];
   D.freres.slice().sort(fSortNom).forEach(function(f){
     var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
@@ -25340,15 +25393,16 @@ function imprimerListePropositionsPlanches(){
         if(p.passage3) det.push('passage au 3°');
         detTxt=det.join(', ');
       }
-      lignes.push({nom:nomFrere,degre:p.degre||'',type:typeTxt,det:detTxt,sujet:p.sujet||''});
+      var origTxt=p.origine==='F'?'Frère':(p.origine==='L'?'Liste':'—');
+      lignes.push({nom:nomFrere,degre:p.degre||'',type:typeTxt,det:detTxt,date:fmtDateProp(p.date),origine:origTxt,sujet:p.sujet||''});
     });
   });
   if(!lignes.length){
     h+='<p>Aucune proposition pour le moment.</p>';
   } else {
-    h+='<table><thead><tr><th style="width:180px;">Frère</th><th style="width:55px;">Degré</th><th style="width:110px;">Type</th><th style="width:200px;">Détail</th><th>Sujet proposé</th></tr></thead><tbody>';
+    h+='<table><thead><tr><th style="width:160px;">Frère</th><th style="width:45px;">Degré</th><th style="width:95px;">Type</th><th style="width:160px;">Détail</th><th style="width:120px;">Date</th><th style="width:55px;">Origine</th><th>Sujet proposé</th></tr></thead><tbody>';
     lignes.forEach(function(l){
-      h+='<tr><td>'+l.nom+'</td><td>'+(l.degre||'—')+'</td><td>'+l.type+'</td><td>'+(l.det||'—')+'</td><td>'+(l.sujet||'—')+'</td></tr>';
+      h+='<tr><td>'+l.nom+'</td><td>'+(l.degre||'—')+'</td><td>'+l.type+'</td><td>'+(l.det||'—')+'</td><td>'+(l.date||'—')+'</td><td>'+l.origine+'</td><td>'+(l.sujet||'—')+'</td></tr>';
     });
     h+='</tbody></table>';
   }
