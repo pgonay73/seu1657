@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.469-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.470-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14204,6 +14204,8 @@ function renderOffice(n){
     c+='<button onclick="plTenueAdd2({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-planning2-list\',true);" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
     c+='</div>';
     c+='<div id="admin-pl-planning2-list"></div>';
+    c+='<div id="admin-pl2-candidatures"></div>';
+    c+='<div id="admin-pl2-initiations"></div>';
     c+='</div></div>';
     // ─ L1.B2 : Planning 3 (pour l'instant, copie conforme de Planning 2) ─
     c+='<div id="admin-pl-l1-planning3" style="display:none;">';
@@ -16477,7 +16479,7 @@ function adminPlL1Tab(name,btn){
     var mb=document.getElementById('admin-pl-tab-procedure');
     if(mb) adminPlTab('procedure',mb);
   }
-  if(name==='sans'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning2-list',true); },0); }
+  if(name==='sans'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning2-list',true); adminPl2RenderCandidatures(); adminPl2RenderInitiations(); },0); }
   if(name==='planning3'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning3-list',true); },0); }
   if(name==='planches'){
     var db=document.getElementById('admin-pl-tab-sujets');
@@ -24523,6 +24525,79 @@ function adminPlRenderCreation(cid,store2){
     });
     h+='</tbody></table>';
   }
+  el.innerHTML=h;
+}
+// ── Planning 2 : Candidatures (6 dates réservées = 2 candidatures × 3
+// dates) — Profane : Courrier / Enquête + Bandeau / Cérémonie. Autre
+// (affiliation, régularisation, réintégration) : Courrier / Enquête /
+// Cérémonie. Stockage indépendant (localStorage uniquement).
+var PL2_CAND_KEY='planning2_candidatures';
+function pl2CandDefaut(){ return [{type:'profane',courrier:'',enquete:'',ceremonie:''},{type:'profane',courrier:'',enquete:'',ceremonie:''}]; }
+function pl2CandLoad(){
+  try{ var s=localStorage.getItem(PL2_CAND_KEY); if(s){ var d=JSON.parse(s); if(d&&d.length) return d; } }catch(e){}
+  return pl2CandDefaut();
+}
+function pl2CandSave(data){ try{localStorage.setItem(PL2_CAND_KEY,JSON.stringify(data));}catch(e){} }
+function pl2CandChangerType(idx,val){
+  var cands=pl2CandLoad(); if(!cands[idx]) return;
+  cands[idx].type=val; pl2CandSave(cands); adminPl2RenderCandidatures();
+}
+function pl2CandChangerDate(idx,champ,val){
+  var cands=pl2CandLoad(); if(!cands[idx]) return;
+  cands[idx][champ]=val; pl2CandSave(cands);
+}
+function adminPl2RenderCandidatures(cid){
+  cid=cid||'admin-pl2-candidatures';
+  var el=document.getElementById(cid); if(!el) return;
+  var cands=pl2CandLoad();
+  var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
+  var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
+  var h='<div class="cfg-box" style="margin-top:18px;">';
+  h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Candidatures (6 dates)</h3>';
+  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 4px;font-style:italic;">2 candidatures réservées, chacune avec 3 dates. Profane : Courrier, Enquête + Bandeau, Cérémonie. Autre (affiliation, régularisation, réintégration) : Courrier, Enquête, Cérémonie.</p>';
+  cands.forEach(function(cand,idx){
+    var isProfane=cand.type!=='autre';
+    h+='<div style="margin-top:14px;padding-top:14px;border-top:2mm solid var(--gold);">';
+    h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
+    h+='<div><label style="'+lblS+'">Candidature '+(idx+1)+' — Type</label>';
+    h+='<select onchange="pl2CandChangerType('+idx+',this.value)" style="'+inS+'">';
+    h+='<option value="profane"'+(isProfane?' selected':'')+'>Profane</option>';
+    h+='<option value="autre"'+(!isProfane?' selected':'')+'>Autre (affiliation, régul., réint.)</option>';
+    h+='</select></div>';
+    h+='<div><label style="'+lblS+'">Courrier</label><input type="date" value="'+(cand.courrier||'')+'" onchange="pl2CandChangerDate('+idx+',\'courrier\',this.value)" style="'+inS+'"></div>';
+    h+='<div><label style="'+lblS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</label><input type="date" value="'+(cand.enquete||'')+'" onchange="pl2CandChangerDate('+idx+',\'enquete\',this.value)" style="'+inS+'"></div>';
+    h+='<div><label style="'+lblS+'">Cérémonie</label><input type="date" value="'+(cand.ceremonie||'')+'" onchange="pl2CandChangerDate('+idx+',\'ceremonie\',this.value)" style="'+inS+'"></div>';
+    h+='</div></div>';
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
+// ── Planning 2 : Initiations (6 dates réservées) — chaque date est notée
+// (libellée) avant toute information de degré, puisqu'il s'agit ici de
+// simples réservations de créneaux, indépendantes des tenues existantes.
+var PL2_INIT_KEY='planning2_initiations';
+function pl2InitLoad(){
+  try{ var s=localStorage.getItem(PL2_INIT_KEY); if(s){ var d=JSON.parse(s); if(d&&d.length===6) return d; } }catch(e){}
+  return ['','','','','',''];
+}
+function pl2InitSave(dates){ try{localStorage.setItem(PL2_INIT_KEY,JSON.stringify(dates));}catch(e){} }
+function pl2InitChanger(idx,val){
+  var dates=pl2InitLoad(); dates[idx]=val; pl2InitSave(dates);
+}
+function adminPl2RenderInitiations(cid){
+  cid=cid||'admin-pl2-initiations';
+  var el=document.getElementById(cid); if(!el) return;
+  var dates=pl2InitLoad();
+  var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
+  var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
+  var h='<div class="cfg-box" style="margin-top:18px;">';
+  h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Initiations (6 dates)</h3>';
+  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 14px;font-style:italic;">6 dates réservées pour des initiations, notées ici avant toute information de degré.</p>';
+  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
+  for(var i=0;i<6;i++){
+    h+='<div><label style="'+lblS+'">Initiation '+(i+1)+'</label><input type="date" value="'+(dates[i]||'')+'" onchange="pl2InitChanger('+i+',this.value)" style="'+inS+'"></div>';
+  }
+  h+='</div></div>';
   el.innerHTML=h;
 }
 function adminPlRenderMorceaux(cid){
