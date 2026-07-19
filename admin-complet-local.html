@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.477-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.478-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -19066,6 +19066,7 @@ var PA_SUGGESTIONS_MOIS={
       <div class="pl-cfg-box" style="background:rgba(255,255,255,.05);">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
           <h4 style="margin:0;">Suivi des planches par frère et tenue</h4>
+          <button class="pl-btn pl-btn-outline pl-btn-sm" onclick="imprimerListeFreresPlanches()">🖨 Liste des planches proposées par frère</button>
         </div>
         <p style="font-size:11.5px;color:rgba(255,255,255,.45);margin-bottom:10px;">
           Une ligne par frère de la loge. Indépendant de l'onglet « Planches des frères ».
@@ -25103,6 +25104,57 @@ function imprimerPlanningMorceaux(){
   });
   h+='</tbody></table></body></html>';
   _printHtml(h,'Morceaux d\'architecture — '+loge);
+}
+// Liste des frères avec les planches/symbolismes qu'ils proposent : degré,
+// sujet et, si déjà planifiée (rattachée à une tenue) ou une date
+// prévisible a été saisie, la date correspondante. Repose sur les mêmes
+// données que « Suivi des planches par frère et tenue » (plSuiviLoad),
+// simplement présentées comme une liste consultable/imprimable plutôt que
+// comme un formulaire d'édition.
+function imprimerListeFreresPlanches(){
+  var loge=(D&&D.loge&&D.loge.nom)?D.loge.nom:'';
+  if(!window.D || !Array.isArray(D.freres) || !D.freres.length){
+    toast('Aucun frère enregistré.'); return;
+  }
+  var suivi=plSuiviLoad();
+  var evts=(plLoad().events)||[];
+  var dateParTenue={};
+  evts.forEach(function(e){ if(e.id && e.date) dateParTenue[e.id]=e.date; });
+  var jFr=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var mFr=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDate(ds){ if(!ds) return ''; var d=new Date(ds+'T12:00:00'); return jFr[d.getDay()]+' '+d.getDate()+' '+mFr[d.getMonth()]+' '+d.getFullYear(); }
+  var lignes=[];
+  D.freres.slice().sort(fSortNom).forEach(function(f){
+    var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
+    var nb=plSuiviNb(suivi,nomFrere);
+    for(var i=0;i<nb;i++){
+      var e=plSuiviEntree(suivi,nomFrere,PL_SUIVI_LIGNES[i]);
+      if(!e.sujet && !e.degre) continue; // ligne inutilisée
+      var ds=e.tenueId?(dateParTenue[e.tenueId]||''):(e.datePrevisible||'');
+      lignes.push({nom:nomFrere,type:e.type||'Planche',degre:e.degre||'',sujet:e.sujet||'',date:ds,planifiee:!!e.tenueId});
+    }
+  });
+  var css='*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:24px;font-size:11px;}'
+    +'h1{font-size:18px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:14px;}'
+    +'table{width:100%;border-collapse:collapse;}'
+    +'th{text-align:left;padding:6px 8px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#7F8C8D;border-bottom:2px solid #B8922A;}'
+    +'td{padding:7px 8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}'
+    +'.non-planifiee{color:#B0A99A;font-style:italic;}'
+    +'@media print{body{margin:10mm;}}';
+  var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Planches proposées par frère — '+loge+'</title><style>'+css+'</style></head><body>';
+  h+='<h1>'+(loge?loge+' — ':'')+'Planches proposées par frère</h1>';
+  if(!lignes.length){
+    h+='<p>Aucune planche ou symbolisme proposé pour le moment.</p>';
+  } else {
+    h+='<table><thead><tr><th style="width:180px;">Frère</th><th style="width:60px;">Type</th><th style="width:55px;">Degré</th><th>Sujet</th><th style="width:150px;">Date</th></tr></thead><tbody>';
+    lignes.forEach(function(l){
+      var dateTxt=l.date?fmtDate(l.date)+(l.planifiee?'':' (prévisible)'):'<span class="non-planifiee">Non planifiée</span>';
+      h+='<tr><td>'+l.nom+'</td><td>'+l.type+'</td><td>'+(l.degre||'—')+'</td><td>'+(l.sujet||'—')+'</td><td>'+dateTxt+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='</body></html>';
+  _printHtml(h,'Planches proposées par frère — '+loge);
 }
 function plGenererPlanningReference(){
   if(!confirm('🔄 Générer le planning de référence ?\n\nCette opération va :\n1. Placer toutes les tenues impératives dans le planning\n2. Appliquer toutes les règles de tenues conseillées\n\nLes tenues déjà présentes à ces dates seront remplacées.')) return;
