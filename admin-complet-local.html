@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.456-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.457-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14193,10 +14193,13 @@ function renderOffice(n){
     c+='<button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="peAdd(\'admin-pl-pe-defaut\')">+ Ajouter une ligne</button>';
     c+='</div></div>';
     c+='</div>';
-    // ─ L1.B : Planning des tenues sans planches ─
+    // ─ L1.B : Planning 2 — Détail des tenues (ex Planning des tenues sans planches) ─
     c+='<div id="admin-pl-l1-sans" style="display:none;">';
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
-    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0;">Planning des tenues sans planches</h3>';
+    c+='<div>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 2 — Détail des tenues</h3>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Deuxième étape : à partir du squelette posé dans Planning 1, ajoutez pour chaque tenue les planches, candidats, conférenciers et autres détails.</p>';
+    c+='</div>';
     c+='<div style="display:flex;gap:8px;align-items:center;">';
     c+='<button id="adm-pl-btn-toggle-details" onclick="plToggleTousDetails(this)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:5px;color:rgba(255,255,255,.75);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">&#9654; Déplier tout</button>';
     c+='<button onclick="plImprimerAvecBornes()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
@@ -24142,6 +24145,7 @@ function plRenderAdminNav(containerId){
   if(containerId){
     var l1TabsA=[
       {id:'creation',label:'1️⃣ Planning 1 — Thème &amp; Modèle'},
+      {id:'sans',    label:'2️⃣ Planning 2 — Détail des tenues'},
       {id:'prog',    label:'📅 Programmation du planning'},
       {id:'planches',label:'📐 Programmation des planches'},
       {id:'ref',     label:'📌 Planning de référence'},
@@ -24150,8 +24154,7 @@ function plRenderAdminNav(containerId){
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
       {id:'tenuesImp', label:'Tenues impératives'},
-      {id:'tenuesCons',label:'Fortement conseillé'},
-      {id:'sans',      label:'📋 Planning des tenues sans planches'}
+      {id:'tenuesCons',label:'Fortement conseillé'}
     ];
     var _nS='font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:.3px;border:none;cursor:pointer;padding:9px 14px;background:transparent;border-bottom:3px solid transparent;margin-bottom:-3px;';
     var _nA=_nS+'color:#D4AF5A;border-bottom-color:#D4AF5A;';
@@ -24186,7 +24189,7 @@ function plRenderAdminNav(containerId){
     {id:'procedure',   label:'Procédure',                            fn:'plNavToAdminPl'},
     {id:'tenuesImp',   label:'Tenues impératives',                  fn:'plNavToAdminPl'},
     {id:'tenuesCons',  label:'Fortement conseillé',                 fn:'plNavToAdminPl'},
-    {id:'sans',        label:'📋 Planning des tenues sans planches', fn:'plNavToAdminPl'},
+    {id:'sans',        label:'2️⃣ Planning 2 — Détail des tenues',   fn:'plNavToAdminPl'},
     {id:'ref',         label:'📌 Planning de référence',            fn:'plNavToAdminL1'}
   ];
   var h='<div class="section-header" style="flex-wrap:wrap;gap:8px;margin-bottom:0;">';
@@ -25543,7 +25546,7 @@ function plNavToAdminPl(tab){
     // L2 : afficher le sous-menu et marquer l'onglet actif
     var l2=document.getElementById('pl-adm-l2-nav');
     if(l2) l2.style.display='flex';
-    ['procedure','tenuesImp','tenuesCons','sans'].forEach(function(x){
+    ['procedure','tenuesImp','tenuesCons'].forEach(function(x){
       var b=document.getElementById('pl-adm-l2-nav-'+x);
       if(b) b.style.cssText=_nS3+(x===tab?'color:#D4AF5A;border-bottom-color:#D4AF5A;':'color:rgba(255,255,255,.5);');
     });
