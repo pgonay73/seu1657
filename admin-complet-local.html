@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.459-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.460-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24440,7 +24440,7 @@ function adminPlRenderCreation(cid){
         var inpD=inpS+'color:'+cd+' !important;font-weight:600;';
         h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">';
         var _ferieP1=e.date?plJourFerie(e.date):'';
-        h+='<td style="padding:6px;"><div style="display:flex;align-items:center;gap:4px;"><input type="date" value="'+(e.date||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'date\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);if(typeof adminPlRenderCriteres===\'function\')adminPlRenderCriteres();" style="'+inpD+'width:100%;">'+(_ferieP1?'<span title="'+_ferieP1+'" style="font-size:13px;flex-shrink:0;">⚠️</span>':'')+'</div></td>';
+        h+='<td style="padding:6px;"><div style="display:flex;align-items:center;gap:4px;"><input type="date" value="'+(e.date||'')+'" onchange="if(typeof _admSuivreDeplacementDate3e===\'function\')_admSuivreDeplacementDate3e(&quot;'+e.id+'&quot;,&quot;'+(e.date||'')+'&quot;,this.value);plChampSimpleChanger(&quot;'+e.id+'&quot;,\'date\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);if(typeof adminPlRenderCriteres===\'function\')adminPlRenderCriteres();" style="'+inpD+'width:100%;">'+(_ferieP1?'<span title="'+_ferieP1+'" style="font-size:13px;flex-shrink:0;">⚠️</span>':'')+'</div></td>';
         h+='<td style="padding:6px;"><input type="time" value="'+(e.heure||'')+'" onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'heure\',this.value)" style="'+inpD+'width:100%;"></td>';
         h+='<td style="padding:6px;"><select onchange="plChampSimpleChanger(&quot;'+e.id+'&quot;,\'degre\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;);" style="'+inpD+'width:100%;">';
         ['1°','2°','3°'].forEach(function(d){ h+='<option value="'+d+'"'+(deg===d?' selected':'')+'>'+d+'</option>'; });
@@ -25067,6 +25067,26 @@ function _admDates5emeSemaine(){
     else cur=new Date(y,mo+1,1);
   }
   return out;
+}
+// Si une tenue au 3° dont la date correspond à celle enregistrée pour la
+// 5e semaine de son mois (calculée ou déjà modifiée) est déplacée
+// directement dans le tableau (Planning 1/2/3), on répercute ce
+// déplacement dans les critères annuels — sinon une régénération
+// ultérieure recréerait une tenue en double à l'ancienne date.
+function _admSuivreDeplacementDate3e(eid, ancienneDate, nouvelleDate){
+  if(!ancienneDate || !nouvelleDate || ancienneDate===nouvelleDate) return;
+  var ev=(plLoad().events||[]).filter(function(e){return e.id===eid;})[0];
+  if(!ev || ev.degre!=='3°') return;
+  var moisKey=ancienneDate.substring(0,7);
+  var c=plCriteresLoad()||{};
+  var ov=c.datesTroisiemeOverrides||{};
+  var d5=_admDates5emeSemaine().filter(function(d){return d.mois===moisKey;})[0];
+  var dateAttendue=ov[moisKey]||(d5?d5.date:'');
+  if(dateAttendue!==ancienneDate) return;
+  ov[moisKey]=nouvelleDate;
+  c.datesTroisiemeOverrides=ov;
+  try{localStorage.setItem(PL_CRITERES_KEY,JSON.stringify(c));}catch(e){}
+  if(window.fbSet) window.fbSet(PL_CRITERES_KEY,c);
 }
 function admTransfererAuPlanning(){
   var c=plCriteresLoad()||{};
