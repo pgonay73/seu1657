@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.475-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.476-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22606,9 +22606,23 @@ function vmTab(name, btn){
 }
 // ── Détail tenue dans Planning libre ──
 var _plDetailTenueId = null;
+// v476 — La carte "Détail de la tenue" (parties, titre, modèle) peut désormais
+// aussi éditer une tenue de Planning 2/3 (magasin séparé). window._plDetailStore2
+// indique quel magasin est actif pour l'ouverture en cours ; les fonctions de la
+// carte l'utilisent pour choisir plLoad/plSave ou plLoad2/plSave2, et pour
+// rafraîchir le bon tableau à la fermeture.
+window._plDetailStore2 = false;
+function _plDetailLoad(){ return window._plDetailStore2 ? plLoad2() : plLoad(); }
+function _plDetailSave(d){ if(window._plDetailStore2) plSave2(d); else plSave(d); }
+function _plDetailRefresh(){
+  if(window._plDetailStore2){
+    if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
+  } else if(typeof plRender==='function'){ plRender(); }
+}
 
-function plOuvrirDetailTenue(eid){
-  var data = plLoad();
+function plOuvrirDetailTenue(eid,store2){
+  window._plDetailStore2 = !!store2;
+  var data = _plDetailLoad();
   var evt = (data.events||[]).filter(function(e){return e.id===eid;})[0];
   if(!evt) return;
   _plDetailTenueId = eid;
@@ -22657,13 +22671,14 @@ function plOuvrirDetailTenue(eid){
       _peList._autoSaveTimer=setTimeout(function(){
         if(!_plDetailTenueId) return;
         try{
-          var _d=plLoad();
+          var _d=_plDetailLoad();
           var _ev=(_d.events||[]).filter(function(x){return x.id===_plDetailTenueId;})[0];
           if(_ev){
             _ev.detail=peGet('pe-pl-detail');
             var _tEl=document.getElementById('ov-pl-detail-titre-input');
             if(_tEl) _ev.titre=_tEl.value.trim();
-            plSave(_d);
+            if(window._plDetailStore2) _ev._pl2Touche=true;
+            _plDetailSave(_d);
           }
         }catch(_e){}
       },500);
@@ -22676,14 +22691,16 @@ function plOuvrirDetailTenue(eid){
 function plValiderLigneTenue(btn){
   // Sauvegarde la ligne courante dans les données de la tenue
   if(!_plDetailTenueId) return;
-  var data = plLoad();
+  var data = _plDetailLoad();
   var evt = (data.events||[]).filter(function(e){return e.id===_plDetailTenueId;})[0];
   if(!evt) return;
   evt.detail = peGet('pe-pl-detail');
-  plSave(data);
-  plRender();
-  // Une planche/symbolisme saisie ici (titre + conférencier) est synchronisée vers le suivi.
-  _plRefSyncPlanches(_plDetailTenueId);
+  if(window._plDetailStore2) evt._pl2Touche=true;
+  _plDetailSave(data);
+  _plDetailRefresh();
+  // Une planche/symbolisme saisie ici (titre + conférencier) est synchronisée vers le suivi
+  // (uniquement pertinent pour Planning 1, non synchronisé à Planning 2/3).
+  if(!window._plDetailStore2) _plRefSyncPlanches(_plDetailTenueId);
   // Feedback visuel
   var orig = btn.textContent;
   btn.textContent = '✓ Ok';
@@ -22702,33 +22719,39 @@ function plDetailAjouterPartie(idx){
 
 function plFermerDetailTenue(){
   var eid=_plDetailTenueId;
+  var _wasStore2=window._plDetailStore2;
+  var _ld=_wasStore2?plLoad2:plLoad, _sv=_wasStore2?plSave2:plSave;
   // Auto-enregistrement à la SORTIE : toutes les infos saisies dans la carte sont
   // persistées dès qu'on ferme (croix, Fermer ou Enregistrer), puis affichées sur
   // le planning de référence.
   var _finalDetail=null, _finalTitre=null, _hadTitreField=false;
   if(eid){
     try{
-      var _data=plLoad();
+      var _data=_ld();
       var _evt=(_data.events||[]).filter(function(x){return x.id===eid;})[0];
       if(_evt){
         _evt.detail=peGet('pe-pl-detail');
         var _titreEl2=document.getElementById('ov-pl-detail-titre-input');
         if(_titreEl2){ _evt.titre=_titreEl2.value.trim(); _hadTitreField=true; }
-        plSave(_data);
+        if(_wasStore2) _evt._pl2Touche=true;
+        _sv(_data);
         _finalDetail=_evt.detail; _finalTitre=_evt.titre;
       }
     }catch(_e){}
   }
   document.getElementById('ov-pl-detail').style.display = 'none';
   _plDetailTenueId = null;
-  if(eid) plRender();
-  // Synchroniser les planches/symbolismes (titre + conférencier) vers le suivi.
-  if(eid) _plRefSyncPlanches(eid);
+  if(eid) _plDetailRefresh();
+  // Synchroniser les planches/symbolismes (titre + conférencier) vers le suivi
+  // (uniquement pertinent pour Planning 1, non synchronisé à Planning 2/3).
+  if(eid && !_wasStore2) _plRefSyncPlanches(eid);
   // Réaffirmation différée (v345) : un echo Firebase en retard peut arriver juste
   // après la fermeture et écraser localStorage avec un instantané plus ancien. On
   // réapplique les valeurs finales de titre/détail 2 s plus tard pour corriger
   // automatiquement toute réapparition de l'ancien état, sans action de l'utilisateur.
-  if(eid){
+  // (Planning 2/3 n'étant pas synchronisé à Firebase, cette protection ne
+  // concerne que Planning 1.)
+  if(eid && !_wasStore2){
     setTimeout(function(){
       try{
         var _d2=plLoad();
@@ -22743,9 +22766,9 @@ function plFermerDetailTenue(){
     },2000);
   }
 }
-function plOuvrirDetailTenueFromInline(eid){
+function plOuvrirDetailTenueFromInline(eid,store2){
   plValiderLigneTenueAuto(eid);
-  plOuvrirDetailTenue(eid);
+  plOuvrirDetailTenue(eid,store2);
 }
 function plValiderLigneTenueAuto(eid){
   // sauvegarde silencieuse avant d'ouvrir le modal (pour ne pas perdre les edits inline)
@@ -22754,14 +22777,15 @@ function plValiderLigneTenueAuto(eid){
 
 function plSauvegarderTitreTenue(){
   if(!_plDetailTenueId) return;
-  var data=plLoad();
+  var data=_plDetailLoad();
   var evt=(data.events||[]).filter(function(e){return e.id===_plDetailTenueId;})[0];
   if(!evt) return;
   var titreEl=document.getElementById('ov-pl-detail-titre-input');
-  if(titreEl) evt.titre=titreEl.value.trim();
+  if(titreEl){ evt.titre=titreEl.value.trim(); if(window._plDetailStore2) evt._titreManuel=(evt.titre!==''); }
   var _peListT=document.getElementById('pe-pl-detail');
   if(_peListT) evt.detail=peGet('pe-pl-detail');
-  plSave(data);
+  if(window._plDetailStore2) evt._pl2Touche=true;
+  _plDetailSave(data);
   var headEl=document.getElementById('ov-pl-detail-titre');
   if(headEl){
     var mois=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
@@ -22770,13 +22794,13 @@ function plSauvegarderTitreTenue(){
     var _lbl=evt.titre||(titreEl?titreEl.placeholder:'')||'Tenue';
     headEl.textContent=ds+' — '+_lbl;
   }
-  plRender();
+  _plDetailRefresh();
 }
 // Changement de modèle depuis la carte complète : recharge les éléments par défaut
 // du nouveau modèle (avec confirmation si des éléments avaient déjà été personnalisés).
 function plModaleModeleChanger(newModeleId){
   if(!_plDetailTenueId) return;
-  var data=plLoad();
+  var data=_plDetailLoad();
   var evt=(data.events||[]).filter(function(e){return e.id===_plDetailTenueId;})[0];
   if(!evt) return;
   if(evt.detail&&evt.detail.length){
@@ -22791,10 +22815,11 @@ function plModaleModeleChanger(newModeleId){
   var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
   var _deg=(typeof _degreDepuisModele==='function')?_degreDepuisModele(_mRef):null;
   if(_deg) evt.degre=_deg;
-  // Caler le titre sur le nouveau modèle choisi
-  if(_mRef) evt.titre=_mRef.nom;
+  // Caler le titre sur le nouveau modèle choisi — sauf si déjà personnalisé (v475/v476)
+  if(_mRef && !evt._titreManuel) evt.titre=_mRef.nom;
+  if(window._plDetailStore2) evt._pl2Touche=true;
   _plDetailEnsure(evt);
-  plSave(data);
+  _plDetailSave(data);
   window._peDegreCourant=evt.degre||'';
   peRender('pe-pl-detail', evt.detail);
   var titreInpEl=document.getElementById('ov-pl-detail-titre-input');
@@ -22809,16 +22834,17 @@ function plModaleModeleChanger(newModeleId){
     var _d0=new Date((evt.date||'')+'T12:00:00');
     titreEl0.textContent=_d0.getDate()+' '+_mois0[_d0.getMonth()]+' '+_d0.getFullYear()+' — '+(evt.titre||'Tenue');
   }
-  plRender();
+  _plDetailRefresh();
 }
 
 function plSauvegarderDetailTenue(){
   if(!_plDetailTenueId) return;
-  var data = plLoad();
+  var data = _plDetailLoad();
   var evt = (data.events||[]).filter(function(e){return e.id===_plDetailTenueId;})[0];
   if(!evt) return;
   evt.detail = peGet('pe-pl-detail');
-  plSave(data);
+  if(window._plDetailStore2) evt._pl2Touche=true;
+  _plDetailSave(data);
   plFermerDetailTenue();
   toast('Détail enregistré.');
 }
@@ -24601,6 +24627,7 @@ function adminPlRenderCreation(cid,store2){
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Thème (titre)</th>';
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:80px;">Durée</th>';
     h+='<th style="width:36px;"></th>';
+    h+='<th style="width:36px;"></th>';
     h+='</tr></thead><tbody>';
     var i=0;
     var trimestres=_plGrouperParTrimestre(evts);
@@ -24635,6 +24662,7 @@ function adminPlRenderCreation(cid,store2){
           h+='<span class="pl-p1-duree'+_dsP1.cls+'" style="font-size:10px;background:'+_dsP1.bg+';color:'+_dsP1.color+';font-weight:700;white-space:nowrap;border-radius:8px;padding:1px 7px;">⏱ '+(_hP1>0?_hP1+'h'+(_mP1>0?String(_mP1).padStart(2,'0'):''):_dureeP1+' min')+'</span>';
         }
         h+='</td>';
+        h+='<td style="padding:6px;text-align:center;"><button onclick="plOuvrirDetailTenueFromInline(&quot;'+e.id+'&quot;,'+(store2?'true':'false')+')" title="Détail des parties de la tenue (modifier si nécessaire)" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:12px;padding:2px 6px;">▶</button></td>';
         h+='<td style="padding:6px;text-align:center;"><button onclick="if(confirm(\'Supprimer cette tenue ?\')){plTenueDelete'+sfx+'(&quot;'+e.id+'&quot;);adminPlRenderCreation(&quot;'+cid+'&quot;,'+(store2?'true':'false')+');'+_critRefresh+'}" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;">🗑</button></td>';
         h+='</tr>';
       });
