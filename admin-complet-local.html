@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.463-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.464-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24867,7 +24867,7 @@ function adminPlRenderCriteres(){
   // tout en gardant, pour chaque menu, sa propre valeur déjà choisie.
   function _admToutesDesignations(){
     var m=[];
-    ADM_DATES_SPECIALES.forEach(function(sp){ if(c[sp.key]) m.push({id:'spec:'+sp.key, date:c[sp.key]}); });
+    ADM_DATES_SPECIALES.forEach(function(sp){ var v=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang); if(v) m.push({id:'spec:'+sp.key, date:v}); });
     ADM_DATES_2EME.forEach(function(sp){ if(c[sp.key]) m.push({id:'2e:'+sp.key, date:c[sp.key]}); });
     _dates5.forEach(function(d5){ var v=_ov3[d5.mois]||d5.date; if(v) m.push({id:'3e:'+d5.mois, date:v}); });
     return m;
@@ -24889,11 +24889,12 @@ function adminPlRenderCriteres(){
   h+='<label style="'+lblS+'margin-bottom:12px;">Dates spéciales (facultatif)</label>';
   h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
   ADM_DATES_SPECIALES.forEach(function(sp){
+    var valSp=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
     h+='<div><label style="'+lblS+'">'+sp.titre+'</label>';
     h+='<select id="'+sp.champ+'" onchange="admCritSave();adminPlRenderCriteres();" style="'+inS+';min-width:160px;">';
     h+='<option value="">-- Aucune --</option>';
-    _admOptionsDisponibles(_planDates,c[sp.key],'spec:'+sp.key).forEach(function(ds){
-      h+='<option value="'+ds+'"'+(c[sp.key]===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
+    _admOptionsDisponibles(_planDates,valSp,'spec:'+sp.key).forEach(function(ds){
+      h+='<option value="'+ds+'"'+(valSp===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
     });
     h+='</select></div>';
   });
@@ -25024,11 +25025,13 @@ function admSelectNoSems(){
 }
 // Tenues spéciales à date fixe, saisies directement dans les critères
 // annuels (indépendantes du jour de semaine récurrent).
+// moisCible : mois JS 0-indexé (9=octobre, 11=décembre, 5=juin). rang :
+// occurrence du jour de semaine choisi dans ce mois (2 = 2e tenue).
 var ADM_DATES_SPECIALES=[
-  {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation Collège + VM + Député', motsCles:['installation']},
-  {key:'dateInspecteur',   champ:'adm-crit-date-inspecteur',   titre:'Inspecteur',                          motsCles:['inspecteur']},
-  {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver",                     motsCles:['jean']},
-  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège',                    motsCles:['election']}
+  {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation Collège + VM + Député', motsCles:['installation'], moisCible:9,  rang:2},
+  {key:'dateInspecteur',   champ:'adm-crit-date-inspecteur',   titre:'Inspecteur',                          motsCles:['inspecteur'],   moisCible:9,  rang:2},
+  {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver",                     motsCles:['jean'],         moisCible:11, rang:2},
+  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège',                    motsCles:['election'],     moisCible:5,  rang:2}
 ];
 // Tenues au 2°, désignées parmi les dates disponibles (tenues au 1° déjà
 // présentes dans le planning) — 3 emplacements facultatifs.
@@ -25081,6 +25084,40 @@ function _admDates5emeSemaine(){
     else cur=new Date(y,mo+1,1);
   }
   return out;
+}
+// Calcule la date par défaut d'une tenue-clé (Installation, Inspecteur,
+// St Jean, Élection) : la N-ième occurrence (rang) du jour de semaine
+// choisi dans le mois cible (moisCible, 0-indexé), à l'intérieur des
+// bornes définies. Cherche le mois cible dans chaque année couverte par
+// la période, pour couvrir une période à cheval sur deux années civiles.
+function _admDateOccurrence(moisCible, rang){
+  var c=plCriteresLoad()||{};
+  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
+  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
+  if(!perDeb||!perFin||jourCrit<0) return '';
+  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+  var cur=new Date(debut.getFullYear(),debut.getMonth(),1);
+  var finCur=new Date(fin.getFullYear(),fin.getMonth(),1);
+  while(cur<=finCur){
+    var y=cur.getFullYear(), mo=cur.getMonth();
+    if(mo===moisCible){
+      var occs=[];
+      for(var day=1;day<=31;day++){
+        var dd=new Date(y,mo,day);
+        if(dd.getMonth()!==mo) break;
+        var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+        if(js===jourCrit) occs.push(dd);
+      }
+      if(occs.length>=rang){
+        var occ=occs[rang-1];
+        if(occ>=debut&&occ<=fin){
+          return y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
+        }
+      }
+    }
+    cur=new Date(y,mo+1,1);
+  }
+  return '';
 }
 // Si une tenue déplacée directement dans le tableau (Planning 1/2/3) était
 // référencée par les critères annuels (Dates spéciales, Tenues au 2°,
@@ -25175,12 +25212,12 @@ function admTransfererAuPlanning(){
   // lui applique le modèle de tenue correspondant. Si Installation et
   // Inspecteur tombent à la même date, on utilise le modèle combiné
   // "Inspecteur + Installation" plutôt que les modèles individuels.
-  var _dInstall=c.dateInstallation||'', _dInspect=c.dateInspecteur||'';
+  var _dInstall=c.dateInstallation||_admDateOccurrence(9,2), _dInspect=c.dateInspecteur||_admDateOccurrence(9,2);
   var _memeDateInstallInspect=!!(_dInstall && _dInstall===_dInspect);
   var _modCombine=_memeDateInstallInspect?_admModeleParMotsCles(['inspecteur','installation']):null;
   var _titreCombine='Inspecteur + Installation Collège + VM + Député';
   ADM_DATES_SPECIALES.forEach(function(sp){
-    var ds=c[sp.key]||'';
+    var ds=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
     if(!ds) return;
     var estInstallOuInspect=(sp.key==='dateInstallation'||sp.key==='dateInspecteur');
     var titreAppliq=(_memeDateInstallInspect&&estInstallOuInspect)?_titreCombine:sp.titre;
