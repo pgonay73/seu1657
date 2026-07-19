@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.479-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.480-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -1357,7 +1357,7 @@ window.fbWatch = function(key, callback){ return null; };
     'admin_responsables','admin_titulaires','me_questions_posees',
     'admin_text_planches-tracees','admin_text_correspondance',
     'planning_libre_data','planning_libre_bareme_parties',
-    'planning_libre_suivi_freres',
+    'planning_libre_suivi_freres','planning_libre_propositions_planches',
     'planning_libre_duree_generee','admin_nav_visib','accueil_rubriques_visib','planning_libre_criteres','planning_libre_sujets_planches',
     'planning_libre_procedure',
     'planning_libre_fonct_bareme','planning_libre_fonct_critmens','planning_libre_fonct_obligatoires','planning_libre_fonct_candidature',
@@ -14198,6 +14198,7 @@ function renderOffice(n){
     c+='<button id="admin-pl-l1-btn-avec" onclick="adminPlL1Tab(\'avec\',this)" style="'+_l1I+'">📊 Planning des tenues avec planches</button>';
     c+='<button id="admin-pl-l1-btn-ref" onclick="adminPlL1Tab(\'ref\',this)" style="'+_l1I+'">📌 Planning de référence</button>';
     c+='<button id="admin-pl-l1-btn-morceaux" onclick="adminPlL1Tab(\'morceaux\',this)" style="'+_l1I+'">🏛 Morceaux d\'architecture</button>';
+    c+='<button id="admin-pl-l1-btn-propositions" onclick="adminPlL1Tab(\'propositions\',this)" style="'+_l1I+'">📝 Propositions de planches</button>';
     c+='</div>';
     // ─ L1.0 : Planning 1 — squelette du planning (thème + modèle uniquement) ─
     c+='<div id="admin-pl-l1-creation" style="display:none;">';
@@ -14375,6 +14376,19 @@ function renderOffice(n){
     c+='<button onclick="imprimerPlanningMorceaux()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;flex-shrink:0;margin-left:16px;">🖨 Imprimer</button>';
     c+='</div>';
     c+='<div id="admin-pl-morceaux-list"></div>';
+    c+='</div></div>';
+    // ─ L1.G : Propositions de planches par frère (page indépendante, à ne pas
+    // confondre avec « Suivi par frère » : ici, simples propositions de
+    // sujets par degré, non liées à une tenue ni à une planification) ─
+    c+='<div id="admin-pl-l1-propositions" style="display:none;">';
+    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<div>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Propositions de planches par frère</h3>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour chaque frère, notez les sujets de planche ou symbolisme qu\'il propose, et à quel degré. Simples propositions, indépendantes du Suivi par frère et non liées à une tenue.</p>';
+    c+='</div>';
+    c+='<button onclick="imprimerListePropositionsPlanches()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;flex-shrink:0;margin-left:16px;">🖨 Imprimer</button>';
+    c+='</div>';
+    c+='<div id="admin-pl-propositions-list"></div>';
     c+='</div></div>';
     c+='</div>';
 
@@ -16532,7 +16546,7 @@ function adminTab(name, btn){
 
 // ── Planning L1 tabs ───────────────────────────────────────────────────
 function adminPlL1Tab(name,btn){
-  var l1=['creation','prog','sans','planning3','planning4','planches','avec','ref','morceaux'];
+  var l1=['creation','prog','sans','planning3','planning4','planches','avec','ref','morceaux','propositions'];
   var _bS='padding:9px 14px;font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;border:none;cursor:pointer;border-radius:5px 5px 0 0;';
   var _aS=_bS+'background:rgba(184,146,42,.22);color:#D4AF5A;border-bottom:3px solid #D4AF5A;margin-bottom:-3px;';
   var _iS=_bS+'background:transparent;color:rgba(255,255,255,.5);border-bottom:3px solid transparent;margin-bottom:-3px;';
@@ -16556,6 +16570,7 @@ function adminPlL1Tab(name,btn){
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
   if(name==='ref'){ setTimeout(function(){ adminPlRenderRef('admin-pl-ref-list'); },0); }
   if(name==='morceaux'){ setTimeout(function(){ adminPlRenderMorceaux('admin-pl-morceaux-list'); },0); }
+  if(name==='propositions'){ setTimeout(function(){ adminPlRenderPropositions('admin-pl-propositions-list'); },0); }
   if(name==='creation'){ setTimeout(function(){ adminPlRenderCreation('admin-pl-creation-list'); adminPlRenderCriteres(); },0); }
 }
 // ── Planning L2 sub-tabs ───────────────────────────────────────────────
@@ -24379,7 +24394,8 @@ function plRenderAdminNav(containerId){
       {id:'prog',      label:'📅 Programmation du planning'},
       {id:'planches',  label:'📐 Programmation des planches'},
       {id:'ref',       label:'📌 Planning de référence'},
-      {id:'morceaux',  label:"🏛 Morceaux d'architecture"}
+      {id:'morceaux',  label:"🏛 Morceaux d'architecture"},
+      {id:'propositions', label:'📝 Propositions de planches'}
     ];
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
@@ -25156,6 +25172,113 @@ function imprimerListeFreresPlanches(){
   }
   h+='</body></html>';
   _printHtml(h,'Planches proposées par frère — '+loge);
+}
+// ── Propositions de planches par frère (page indépendante) ──────────────
+// Simples propositions de sujets par frère et par degré : contrairement au
+// Suivi par frère (qui suit jusqu'à 3 lignes fixes, avec réservation de
+// tenue), ici chaque frère peut avoir un nombre libre de propositions,
+// chacune juste taguée par un degré, sans lien avec le planning ni avec
+// une tenue précise.
+var PL_PROPOS_KEY='planning_libre_propositions_planches';
+function plProposLoad(){
+  try{var s=localStorage.getItem(PL_PROPOS_KEY);var d=s?JSON.parse(s):[];return Array.isArray(d)?d:[];}catch(e){return[];}
+}
+function plProposSave(arr){
+  try{localStorage.setItem(PL_PROPOS_KEY,JSON.stringify(arr));}catch(e){}
+  if(window.fbSet) window.fbSet(PL_PROPOS_KEY,arr);
+  if(typeof _autoBackupSiDue==='function') _autoBackupSiDue();
+}
+function plProposAjouter(nomFrere){
+  var arr=plProposLoad();
+  arr.push({id:'prop'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:'', sujet:''});
+  plProposSave(arr);
+  adminPlRenderPropositions();
+}
+function plProposChangerDegre(id,val){
+  var arr=plProposLoad();
+  var p=arr.filter(function(x){return x.id===id;})[0];
+  if(!p) return;
+  p.degre=val;
+  plProposSave(arr);
+}
+function plProposChangerSujet(id,val){
+  var arr=plProposLoad();
+  var p=arr.filter(function(x){return x.id===id;})[0];
+  if(!p) return;
+  p.sujet=val;
+  plProposSave(arr);
+}
+function plProposSupprimer(id){
+  var arr=plProposLoad().filter(function(x){return x.id!==id;});
+  plProposSave(arr);
+  adminPlRenderPropositions();
+}
+function adminPlRenderPropositions(cid){
+  cid=cid||'admin-pl-propositions-list';
+  var el=document.getElementById(cid); if(!el) return;
+  if(!window.D || !Array.isArray(D.freres) || !D.freres.length){
+    el.innerHTML='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucun frère enregistré.</p>';
+    return;
+  }
+  var props=plProposLoad();
+  var parFrere={};
+  props.forEach(function(p){ if(!parFrere[p.frere]) parFrere[p.frere]=[]; parFrere[p.frere].push(p); });
+  var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
+  var h='';
+  D.freres.slice().sort(fSortNom).forEach(function(f,fi){
+    var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
+    var mesProps=parFrere[nomFrere]||[];
+    h+='<div class="cfg-box" style="margin-top:'+(fi===0?'0':'12px')+';">';
+    h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(mesProps.length?'12px':'0')+';">';
+    h+='<h4 style="margin:0;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-size:16px;font-weight:700;">'+nomFrere+'</h4>';
+    h+='<button class="pl-btn pl-btn-outline pl-btn-sm" onclick="plProposAjouter(&quot;'+nomFrere+'&quot;)">+ Ajouter une proposition</button>';
+    h+='</div>';
+    mesProps.forEach(function(p,pi){
+      h+='<div style="display:flex;gap:10px;align-items:flex-end;margin-top:'+(pi===0?'0':'8px')+';flex-wrap:wrap;">';
+      h+='<div><select onchange="plProposChangerDegre(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';min-width:80px;">';
+      h+='<option value=""'+(!p.degre?' selected':'')+'>--</option>';
+      ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(p.degre===dg?' selected':'')+'>'+dg+'</option>'; });
+      h+='</select></div>';
+      h+='<div style="flex:1;min-width:220px;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" placeholder="Sujet proposé..." onblur="plProposChangerSujet(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;box-sizing:border-box;"></div>';
+      h+='<button onclick="if(confirm(\'Supprimer cette proposition ?\'))plProposSupprimer(&quot;'+p.id+'&quot;)" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;padding:6px;">🗑</button>';
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  el.innerHTML=h;
+}
+function imprimerListePropositionsPlanches(){
+  var loge=(D&&D.loge&&D.loge.nom)?D.loge.nom:'';
+  if(!window.D || !Array.isArray(D.freres) || !D.freres.length){
+    toast('Aucun frère enregistré.'); return;
+  }
+  var props=plProposLoad();
+  var parFrere={};
+  props.forEach(function(p){ if(p.degre||p.sujet){ if(!parFrere[p.frere]) parFrere[p.frere]=[]; parFrere[p.frere].push(p); } });
+  var css='*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:24px;font-size:11px;}'
+    +'h1{font-size:18px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:14px;}'
+    +'table{width:100%;border-collapse:collapse;}'
+    +'th{text-align:left;padding:6px 8px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#7F8C8D;border-bottom:2px solid #B8922A;}'
+    +'td{padding:7px 8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}'
+    +'@media print{body{margin:10mm;}}';
+  var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Propositions de planches par frère — '+loge+'</title><style>'+css+'</style></head><body>';
+  h+='<h1>'+(loge?loge+' — ':'')+'Propositions de planches par frère</h1>';
+  var lignes=[];
+  D.freres.slice().sort(fSortNom).forEach(function(f){
+    var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
+    (parFrere[nomFrere]||[]).forEach(function(p){ lignes.push({nom:nomFrere,degre:p.degre||'',sujet:p.sujet||''}); });
+  });
+  if(!lignes.length){
+    h+='<p>Aucune proposition pour le moment.</p>';
+  } else {
+    h+='<table><thead><tr><th style="width:200px;">Frère</th><th style="width:60px;">Degré</th><th>Sujet proposé</th></tr></thead><tbody>';
+    lignes.forEach(function(l){
+      h+='<tr><td>'+l.nom+'</td><td>'+(l.degre||'—')+'</td><td>'+(l.sujet||'—')+'</td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='</body></html>';
+  _printHtml(h,'Propositions de planches par frère — '+loge);
 }
 function plGenererPlanningReference(){
   if(!confirm('🔄 Générer le planning de référence ?\n\nCette opération va :\n1. Placer toutes les tenues impératives dans le planning\n2. Appliquer toutes les règles de tenues conseillées\n\nLes tenues déjà présentes à ces dates seront remplacées.')) return;
@@ -26309,7 +26432,7 @@ function plNavToAdminL1(id){
   var inAdmin=(adminPl&&adminPl.style.display!=='none');
   if(inAdmin){
     var _nS2='font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:.3px;border:none;cursor:pointer;padding:9px 14px;background:transparent;border-bottom:3px solid transparent;margin-bottom:-3px;';
-    ['creation','sans','planning3','planning4','prog','planches','avec','ref','morceaux'].forEach(function(x){
+    ['creation','sans','planning3','planning4','prog','planches','avec','ref','morceaux','propositions'].forEach(function(x){
       var b=document.getElementById('pl-adm-l1-nav-'+x);
       if(b) b.style.cssText=_nS2+(x===id?'color:#D4AF5A;border-bottom-color:#D4AF5A;':'color:rgba(255,255,255,.5);');
     });
