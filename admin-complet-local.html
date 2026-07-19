@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.471-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.472-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -19480,7 +19480,7 @@ function plDureeGenereeMaj(valeur){
 }
 
 function plLoad(){try{var s=localStorage.getItem(PL_KEY);var d=s?JSON.parse(s):{events:[]};if(d&&d.events&&d.events.length)d.events=d.events.filter(function(t){return !(t&&t.date==='2026-09-04'&&(t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);});return d;}catch(e){return{events:[]};}}
-function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}window._plLocalSaveTs=Date.now();if(window.fbSet)window.fbSet(PL_KEY,d);}
+function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}window._plLocalSaveTs=Date.now();if(window.fbSet)window.fbSet(PL_KEY,d);if(typeof _plSyncVersStore2==='function')_plSyncVersStore2(d);}
 function plNomSave(){var el=document.getElementById('pl-planning-nom');if(!el)return;var d=plLoad();d.nom=el.value;plSave(d);}
 function plNomLoad(){var el=document.getElementById('pl-planning-nom');if(!el)return;el.value=plLoad().nom||'';}
 // ── Bridge D.tenues → Planning Libre ─────────────────────────────────────
@@ -19491,22 +19491,31 @@ function plTenueDelete(id){var d=plLoad();d.events=d.events.filter(function(e){r
 function plTenueSetPresences(id,presences,presents){plTenueUpdate(id,{presences:presences,presents:presents});}
 // ── Planning 2/3 : second magasin de données, indépendant de Planning 1 ──
 // Planning 2 et Planning 3 partagent CES données (modifier l'un modifie
-// l'autre), mais elles sont totalement déconnectées de Planning 1 : les
-// modifier ne touche jamais planning_libre_data. Amorcé une seule fois par
-// une copie de Planning 1 au premier accès (voir _plEnsureStore2Seeded).
+// l'autre). Amorcé une seule fois par une copie de Planning 1 au premier
+// accès (voir _plEnsureStore2Seeded), puis synchronisé en continu depuis
+// Planning 1 (voir _plSyncVersStore2) — MAIS uniquement pour les tenues
+// pas encore personnalisées dans Planning 2 (voir _pl2MarkTouche) : une
+// fois qu'une tenue a été éditée dans Planning 2/3, ou désignée via
+// Candidatures/Initiations, elle n'est plus jamais écrasée par Planning 1.
 var PL_KEY2='planning_libre_data_v2';
 function plLoad2(){try{var s=localStorage.getItem(PL_KEY2);return s?JSON.parse(s):{events:[]};}catch(e){return{events:[]};}}
 function plSave2(d){try{localStorage.setItem(PL_KEY2,JSON.stringify(d));}catch(e){}}
 function plTenueAdd2(t){var d=plLoad2();d.events.push(t);plSave2(d);}
-function plTenueDelete2(id){var d=plLoad2();d.events=d.events.filter(function(e){return e.id!==id;});plSave2(d);}
+function plTenueDelete2(id){
+  var d=plLoad2();
+  d.events=d.events.filter(function(e){return e.id!==id;});
+  if(!d.suppressions) d.suppressions=[];
+  if(d.suppressions.indexOf(id)<0) d.suppressions.push(id);
+  plSave2(d);
+}
 function plChampSimpleChanger2(eid,champ,val){
   var data=plLoad2();
-  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i][champ]=val;break;}}
+  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i][champ]=val;data.events[i]._pl2Touche=true;break;}}
   plSave2(data);
 }
 function plTitreChanger2(eid,val){
   var data=plLoad2();
-  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();break;}}
+  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._pl2Touche=true;break;}}
   plSave2(data);
 }
 function plModeleChanger2(eid,newModeleId){
@@ -19515,6 +19524,7 @@ function plModeleChanger2(eid,newModeleId){
   if(!ev) return;
   ev.modeleId=newModeleId||'';
   ev.detail=[];
+  ev._pl2Touche=true;
   var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
   var _deg=_degreDepuisModele(_mRef);
   if(_deg) ev.degre=_deg;
@@ -19522,7 +19532,8 @@ function plModeleChanger2(eid,newModeleId){
   plSave2(data);
 }
 // Copie Planning 1 dans le magasin de Planning 2/3, une seule fois (si ce
-// magasin n'existe pas encore ou est vide) — ensuite totalement indépendant.
+// magasin n'existe pas encore ou est vide) — ensuite synchronisé en continu
+// (voir _plSyncVersStore2) pour les tenues non personnalisées.
 function _plEnsureStore2Seeded(){
   var existant=null;
   try{ existant=localStorage.getItem(PL_KEY2); }catch(e){}
@@ -19530,7 +19541,54 @@ function _plEnsureStore2Seeded(){
     try{ if(JSON.parse(existant).events&&JSON.parse(existant).events.length) return; }catch(e){}
   }
   var d1=plLoad();
-  plSave2({events:JSON.parse(JSON.stringify(d1.events||[]))});
+  var events=JSON.parse(JSON.stringify(d1.events||[]));
+  events.forEach(function(e){ e._plFromP1=true; });
+  plSave2({events:events});
+}
+// Répercute toute modification de Planning 1 (d1) dans Planning 2/3 :
+// - tenue existante (même id) et pas encore personnalisée (_pl2Touche) :
+//   ses champs Date/Heure/Degré/Modèle/Titre/Détail sont mis à jour ;
+// - nouvelle tenue créée dans Planning 1 : ajoutée aussi à Planning 2/3
+//   (sauf si son id a déjà été explicitement supprimé dans Planning 2) ;
+// - tenue supprimée dans Planning 1 : retirée de Planning 2/3 seulement
+//   si elle provenait de Planning 1 et n'a jamais été personnalisée.
+// Les tenues créées directement dans Planning 2 (plTenueAdd2) n'ont pas
+// _plFromP1 et ne sont donc jamais affectées par cette synchronisation.
+function _plSyncVersStore2(d1){
+  var d2=plLoad2();
+  if(!d2.events) d2.events=[];
+  var supprimes={}; (d2.suppressions||[]).forEach(function(id){ supprimes[id]=true; });
+  var d2ById={}; d2.events.forEach(function(e){ d2ById[e.id]=e; });
+  var d1Ids={};
+  (d1.events||[]).forEach(function(e1){
+    d1Ids[e1.id]=true;
+    var e2=d2ById[e1.id];
+    if(e2){
+      if(!e2._pl2Touche){
+        e2.date=e1.date; e2.heure=e1.heure; e2.degre=e1.degre;
+        e2.modeleId=e1.modeleId; e2.titre=e1.titre;
+        e2.detail=e1.detail?JSON.parse(JSON.stringify(e1.detail)):e1.detail;
+      }
+    } else if(!supprimes[e1.id]){
+      var copie=JSON.parse(JSON.stringify(e1));
+      copie._plFromP1=true;
+      d2.events.push(copie);
+    }
+  });
+  d2.events=d2.events.filter(function(e2){
+    if(!e2._plFromP1) return true;
+    if(e2._pl2Touche) return true;
+    return !!d1Ids[e2.id];
+  });
+  plSave2(d2);
+}
+// Marque une tenue de Planning 2/3 comme personnalisée : elle ne sera
+// plus jamais écrasée par une synchronisation depuis Planning 1. Utilisé
+// par les désignations Candidatures/Initiations.
+function _pl2MarkTouche(id){
+  var d=plLoad2();
+  var ev=d.events.filter(function(e){return e.id===id;})[0];
+  if(ev){ ev._pl2Touche=true; plSave2(d); }
 }
 
 // ── Barème global éditable — affiché en grille 3 colonnes ───────────────
@@ -24555,7 +24613,9 @@ function _pl2Designer(ancienneDate,nouvelleDate,label){
   }
   if(nouvelleDate){
     var evNouv=data.events.filter(function(e){return e.date===nouvelleDate;})[0];
-    if(evNouv) evNouv.titre=label;
+    // Une tenue désignée (Candidature/Initiation) est considérée comme
+    // personnalisée : elle ne sera plus jamais écrasée par Planning 1.
+    if(evNouv){ evNouv.titre=label; evNouv._pl2Touche=true; }
   }
   plSave2(data);
 }
