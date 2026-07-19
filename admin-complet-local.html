@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.472-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.473-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24596,8 +24596,23 @@ function _pl2DatesDisponibles(){
     .filter(function(d){ if(c.dateDebut&&d<c.dateDebut) return false; if(c.dateFin&&d>c.dateFin) return false; return true; })
     .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
 }
-function _pl2OptsAvecValeur(val){
-  var d=_pl2DatesDisponibles();
+// Recense toutes les dates déjà désignées (Candidatures + Initiations),
+// sous la forme {id, date}, pour exclure des menus déroulants les dates
+// déjà prises par une AUTRE désignation.
+function _pl2ToutesDesignations(){
+  var m=[];
+  pl2CandLoad().forEach(function(cand,idx){
+    if(cand.courrier) m.push({id:'cand:'+idx+':courrier', date:cand.courrier});
+    if(cand.enquete) m.push({id:'cand:'+idx+':enquete', date:cand.enquete});
+    if(cand.ceremonie) m.push({id:'cand:'+idx+':ceremonie', date:cand.ceremonie});
+  });
+  pl2InitLoad().forEach(function(item,idx){ if(item.date) m.push({id:'init:'+idx, date:item.date}); });
+  return m;
+}
+function _pl2OptsAvecValeur(val,monId){
+  var prisesParAutres={};
+  _pl2ToutesDesignations().forEach(function(x){ if(x.id!==monId) prisesParAutres[x.date]=true; });
+  var d=_pl2DatesDisponibles().filter(function(ds){ return !prisesParAutres[ds]; });
   if(val && d.indexOf(val)<0) d.push(val);
   return d.sort();
 }
@@ -24619,43 +24634,91 @@ function _pl2Designer(ancienneDate,nouvelleDate,label){
   }
   plSave2(data);
 }
+// Applique un modèle de tenue à la tenue de Planning 2/3 désignée à une
+// date donnée (Cérémonie de candidature, ou Initiation).
+function _pl2AppliquerModele(date,modeleId){
+  if(!date||!modeleId) return;
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.date===date;})[0];
+  if(ev){ ev.modeleId=modeleId; ev.detail=[]; ev._pl2Touche=true; plSave2(data); }
+}
+function _pl2RafraichirTout(){
+  adminPl2RenderCandidatures();
+  adminPl2RenderInitiations();
+  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
+}
+function _pl2SelectModeles(val,onchg){
+  var h2='<select onchange="'+onchg+'" style="padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;min-width:160px;">';
+  h2+='<option value="">-- Aucun --</option>';
+  (D.modeles||[]).forEach(function(m){ h2+='<option value="'+m.id+'"'+(val===m.id?' selected':'')+'>'+m.nom+'</option>'; });
+  h2+='</select>';
+  return h2;
+}
 // ── Planning 2 : Candidatures (6 dates réservées = 2 candidatures × 3
 // dates) — Profane : Courrier / Enquête + Bandeau / Cérémonie. Autre
 // (affiliation, régularisation, réintégration) : Courrier / Enquête /
 // Cérémonie. La date choisie désigne une tenue déjà présente dans
 // Planning 2/3 (menu déroulant, comme dans Planning 1) et son titre est
-// pris en charge en conséquence.
+// pris en charge en conséquence. Le nom du candidat et le modèle de
+// tenue (appliqués à la tenue de Cérémonie) sont saisis à part.
 var PL2_CAND_KEY='planning2_candidatures';
-function pl2CandDefaut(){ return [{type:'profane',courrier:'',enquete:'',ceremonie:''},{type:'profane',courrier:'',enquete:'',ceremonie:''}]; }
+function pl2CandDefaut(){ return [
+  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleId:''},
+  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleId:''}
+]; }
 function pl2CandLoad(){
-  try{ var s=localStorage.getItem(PL2_CAND_KEY); if(s){ var d=JSON.parse(s); if(d&&d.length) return d; } }catch(e){}
+  try{
+    var s=localStorage.getItem(PL2_CAND_KEY);
+    if(s){
+      var d=JSON.parse(s);
+      if(d&&d.length){
+        d.forEach(function(c){ if(c.nom===undefined)c.nom=''; if(c.modeleId===undefined)c.modeleId=''; });
+        return d;
+      }
+    }
+  }catch(e){}
   return pl2CandDefaut();
 }
 function pl2CandSave(data){ try{localStorage.setItem(PL2_CAND_KEY,JSON.stringify(data));}catch(e){} }
-function pl2CandLabel(idx,champ,type){
-  if(champ==='courrier') return 'Candidature '+(idx+1)+' — Courrier';
-  if(champ==='enquete') return 'Candidature '+(idx+1)+' — '+(type==='autre'?'Enquête':'Enquête + Bandeau');
-  return 'Candidature '+(idx+1)+' — Cérémonie';
+function pl2CandLabel(idx,champ,type,nom){
+  var suffixe=nom?' — '+nom:'';
+  if(champ==='courrier') return 'Candidature '+(idx+1)+' — Courrier'+suffixe;
+  if(champ==='enquete') return 'Candidature '+(idx+1)+' — '+(type==='autre'?'Enquête':'Enquête + Bandeau')+suffixe;
+  return 'Candidature '+(idx+1)+' — Cérémonie'+suffixe;
 }
 function pl2CandChangerType(idx,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
-  var ancienLabel=pl2CandLabel(idx,'enquete',cands[idx].type);
   cands[idx].type=val;
   pl2CandSave(cands);
   // Le libellé de la 2e date dépend du type : on réapplique la désignation
   // avec le nouveau libellé sur la tenue déjà choisie, s'il y en a une.
-  if(cands[idx].enquete) _pl2Designer(cands[idx].enquete,cands[idx].enquete,pl2CandLabel(idx,'enquete',val));
-  adminPl2RenderCandidatures();
-  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
+  if(cands[idx].enquete) _pl2Designer(cands[idx].enquete,cands[idx].enquete,pl2CandLabel(idx,'enquete',val,cands[idx].nom));
+  _pl2RafraichirTout();
 }
 function pl2CandChangerDate(idx,champ,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
   var ancienneDate=cands[idx][champ]||'';
   cands[idx][champ]=val;
   pl2CandSave(cands);
-  _pl2Designer(ancienneDate,val,pl2CandLabel(idx,champ,cands[idx].type));
-  adminPl2RenderCandidatures();
-  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
+  _pl2Designer(ancienneDate,val,pl2CandLabel(idx,champ,cands[idx].type,cands[idx].nom));
+  if(champ==='ceremonie' && val && cands[idx].modeleId) _pl2AppliquerModele(val,cands[idx].modeleId);
+  _pl2RafraichirTout();
+}
+function pl2CandChangerNom(idx,val){
+  var cands=pl2CandLoad(); if(!cands[idx]) return;
+  cands[idx].nom=val;
+  pl2CandSave(cands);
+  ['courrier','enquete','ceremonie'].forEach(function(champ){
+    if(cands[idx][champ]) _pl2Designer(cands[idx][champ],cands[idx][champ],pl2CandLabel(idx,champ,cands[idx].type,val));
+  });
+  _pl2RafraichirTout();
+}
+function pl2CandChangerModele(idx,val){
+  var cands=pl2CandLoad(); if(!cands[idx]) return;
+  cands[idx].modeleId=val;
+  pl2CandSave(cands);
+  if(cands[idx].ceremonie) _pl2AppliquerModele(cands[idx].ceremonie,val);
+  _pl2RafraichirTout();
 }
 function adminPl2RenderCandidatures(cid){
   cid=cid||'admin-pl2-candidatures';
@@ -24665,10 +24728,10 @@ function adminPl2RenderCandidatures(cid){
   var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
   var mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrCrit[d.getMonth()]+' '+d.getFullYear(); }
-  function selectDate(val,onchg){
+  function selectDate(val,onchg,monId){
     var h2='<select onchange="'+onchg+'" style="'+inS+';min-width:160px;">';
     h2+='<option value="">-- Aucune --</option>';
-    _pl2OptsAvecValeur(val).forEach(function(ds){
+    _pl2OptsAvecValeur(val,monId).forEach(function(ds){
       h2+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+fmtDate(ds)+'</option>';
     });
     h2+='</select>';
@@ -24686,9 +24749,13 @@ function adminPl2RenderCandidatures(cid){
     h+='<option value="profane"'+(isProfane?' selected':'')+'>Profane</option>';
     h+='<option value="autre"'+(!isProfane?' selected':'')+'>Autre (affiliation, régul., réint.)</option>';
     h+='</select></div>';
-    h+='<div><label style="'+lblS+'">Courrier</label>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)')+'</div>';
-    h+='<div><label style="'+lblS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</label>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)')+'</div>';
-    h+='<div><label style="'+lblS+'">Cérémonie</label>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)')+'</div>';
+    h+='<div><label style="'+lblS+'">Nom du candidat</label><input type="text" value="'+(cand.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2CandChangerNom('+idx+',this.value)" style="'+inS+'"></div>';
+    h+='<div><label style="'+lblS+'">Modèle de tenue</label>'+_pl2SelectModeles(cand.modeleId,'pl2CandChangerModele('+idx+',this.value)')+'</div>';
+    h+='</div>';
+    h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;margin-top:10px;">';
+    h+='<div><label style="'+lblS+'">Courrier</label>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)','cand:'+idx+':courrier')+'</div>';
+    h+='<div><label style="'+lblS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</label>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)','cand:'+idx+':enquete')+'</div>';
+    h+='<div><label style="'+lblS+'">Cérémonie</label>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)','cand:'+idx+':ceremonie')+'</div>';
     h+='</div></div>';
   });
   h+='</div>';
@@ -24698,25 +24765,53 @@ function adminPl2RenderCandidatures(cid){
 // (menu déroulant, comme dans Planning 1) désigne une tenue déjà
 // présente dans Planning 2/3, dont le titre est pris en charge ; le
 // libellé « Initiation N » est noté avant toute information de degré.
+// Le nom de l'initié et le modèle de tenue Initiation sont saisis à part
+// et appliqués à la tenue désignée.
 var PL2_INIT_KEY='planning2_initiations';
+function pl2InitDefaut(){ var a=[]; for(var i=0;i<6;i++)a.push({date:'',nom:'',modeleId:''}); return a; }
 function pl2InitLoad(){
-  try{ var s=localStorage.getItem(PL2_INIT_KEY); if(s){ var d=JSON.parse(s); if(d&&d.length===6) return d; } }catch(e){}
-  return ['','','','','',''];
+  try{
+    var s=localStorage.getItem(PL2_INIT_KEY);
+    if(s){
+      var d=JSON.parse(s);
+      if(d&&d.length===6){
+        if(typeof d[0]==='string') return d.map(function(v){ return {date:v||'',nom:'',modeleId:''}; }); // ancien format
+        d.forEach(function(x){ if(x.nom===undefined)x.nom=''; if(x.modeleId===undefined)x.modeleId=''; });
+        return d;
+      }
+    }
+  }catch(e){}
+  return pl2InitDefaut();
 }
-function pl2InitSave(dates){ try{localStorage.setItem(PL2_INIT_KEY,JSON.stringify(dates));}catch(e){} }
-function pl2InitChanger(idx,val){
-  var dates=pl2InitLoad();
-  var ancienneDate=dates[idx]||'';
-  dates[idx]=val;
-  pl2InitSave(dates);
-  _pl2Designer(ancienneDate,val,'Initiation '+(idx+1));
-  adminPl2RenderInitiations();
-  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
+function pl2InitSave(items){ try{localStorage.setItem(PL2_INIT_KEY,JSON.stringify(items));}catch(e){} }
+function pl2InitLabel(idx,nom){ return 'Initiation '+(idx+1)+(nom?' — '+nom:''); }
+function pl2InitChangerDate(idx,val){
+  var items=pl2InitLoad(); if(!items[idx]) return;
+  var ancienneDate=items[idx].date||'';
+  items[idx].date=val;
+  pl2InitSave(items);
+  _pl2Designer(ancienneDate,val,pl2InitLabel(idx,items[idx].nom));
+  if(val && items[idx].modeleId) _pl2AppliquerModele(val,items[idx].modeleId);
+  _pl2RafraichirTout();
+}
+function pl2InitChangerNom(idx,val){
+  var items=pl2InitLoad(); if(!items[idx]) return;
+  items[idx].nom=val;
+  pl2InitSave(items);
+  if(items[idx].date) _pl2Designer(items[idx].date,items[idx].date,pl2InitLabel(idx,val));
+  _pl2RafraichirTout();
+}
+function pl2InitChangerModele(idx,val){
+  var items=pl2InitLoad(); if(!items[idx]) return;
+  items[idx].modeleId=val;
+  pl2InitSave(items);
+  if(items[idx].date) _pl2AppliquerModele(items[idx].date,val);
+  _pl2RafraichirTout();
 }
 function adminPl2RenderInitiations(cid){
   cid=cid||'admin-pl2-initiations';
   var el=document.getElementById(cid); if(!el) return;
-  var dates=pl2InitLoad();
+  var items=pl2InitLoad();
   var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
   var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
   var mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
@@ -24724,18 +24819,22 @@ function adminPl2RenderInitiations(cid){
   var h='<div class="cfg-box" style="margin-top:18px;">';
   h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Initiations (6 dates)</h3>';
   h+='<p style="font-size:11px;color:var(--grey);margin:0 0 14px;font-style:italic;">6 dates réservées pour des initiations, choisies parmi les tenues déjà présentes dans Planning 2/3 ; le libellé (Initiation 1 à 6) est noté avant toute information de degré.</p>';
-  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
-  for(var i=0;i<6;i++){
-    var val=dates[i]||'';
+  items.forEach(function(item,i){
+    var val=item.date||'';
+    h+='<div style="margin-top:'+(i===0?'0':'14px')+';padding-top:'+(i===0?'0':'14px')+';'+(i===0?'':'border-top:1px solid rgba(184,146,42,.3);')+'">';
+    h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
     h+='<div><label style="'+lblS+'">Initiation '+(i+1)+'</label>';
-    h+='<select onchange="pl2InitChanger('+i+',this.value)" style="'+inS+';min-width:160px;">';
+    h+='<select onchange="pl2InitChangerDate('+i+',this.value)" style="'+inS+';min-width:160px;">';
     h+='<option value="">-- Aucune --</option>';
-    _pl2OptsAvecValeur(val).forEach(function(ds){
+    _pl2OptsAvecValeur(val,'init:'+i).forEach(function(ds){
       h+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+fmtDate(ds)+'</option>';
     });
     h+='</select></div>';
-  }
-  h+='</div></div>';
+    h+='<div><label style="'+lblS+'">Nom de l\'initié</label><input type="text" value="'+(item.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2InitChangerNom('+i+',this.value)" style="'+inS+'"></div>';
+    h+='<div><label style="'+lblS+'">Modèle de tenue</label>'+_pl2SelectModeles(item.modeleId,'pl2InitChangerModele('+i+',this.value)')+'</div>';
+    h+='</div></div>';
+  });
+  h+='</div>';
   el.innerHTML=h;
 }
 function adminPlRenderMorceaux(cid){
