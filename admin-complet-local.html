@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.474-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.475-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -19581,7 +19581,7 @@ function plChampSimpleChanger2(eid,champ,val){
 }
 function plTitreChanger2(eid,val){
   var data=plLoad2();
-  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._pl2Touche=true;break;}}
+  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._pl2Touche=true;data.events[i]._titreManuel=(val.trim()!=='');break;}}
   plSave2(data);
 }
 function plModeleChanger2(eid,newModeleId){
@@ -19594,7 +19594,10 @@ function plModeleChanger2(eid,newModeleId){
   var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
   var _deg=_degreDepuisModele(_mRef);
   if(_deg) ev.degre=_deg;
-  if(_mRef) ev.titre=_mRef.nom;
+  // v475 — Un titre déjà personnalisé (saisi à la main, ou via une désignation
+  // Candidature/Initiation) n'est plus écrasé par le nom du modèle quand on
+  // change simplement le modèle de tenue.
+  if(_mRef && !ev._titreManuel) ev.titre=_mRef.nom;
   plSave2(data);
 }
 // Copie Planning 1 dans le magasin de Planning 2/3, une seule fois (si ce
@@ -22124,7 +22127,7 @@ function _degreDepuisModele(m){
 }
 function plTitreChanger(eid,val){
   var data=plLoad();
-  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();break;}}
+  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._titreManuel=(val.trim()!=='');break;}}
   plSave(data);
 }
 // v366 — Le titre (écrans admin) était un <input>, dont la valeur n'est pas
@@ -22166,8 +22169,10 @@ function plModeleChanger(eid,newModeleId,triggerEl){
   var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
   var _deg=_degreDepuisModele(_mRef);
   if(_deg) ev.degre=_deg;
-  // Caler le titre sur le nouveau modèle choisi
-  if(_mRef) ev.titre=_mRef.nom;
+  // Caler le titre sur le nouveau modèle choisi — sauf si un titre a déjà été
+  // personnalisé à la main (v475) : dans ce cas, changer le modèle ne doit
+  // pas effacer ce titre.
+  if(_mRef && !ev._titreManuel) ev.titre=_mRef.nom;
   plSave(data);
   var contId=null;
   if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list,#admin-pl-ref-list');if(c)contId=c.id;}
@@ -24690,13 +24695,14 @@ function _pl2Designer(ancienneDate,nouvelleDate,label){
   var data=plLoad2();
   if(ancienneDate && ancienneDate!==nouvelleDate){
     var evAnc=data.events.filter(function(e){return e.date===ancienneDate;})[0];
-    if(evAnc && evAnc.titre===label) evAnc.titre='';
+    if(evAnc && evAnc.titre===label){ evAnc.titre=''; evAnc._titreManuel=false; }
   }
   if(nouvelleDate){
     var evNouv=data.events.filter(function(e){return e.date===nouvelleDate;})[0];
     // Une tenue désignée (Candidature/Initiation) est considérée comme
-    // personnalisée : elle ne sera plus jamais écrasée par Planning 1.
-    if(evNouv){ evNouv.titre=label; evNouv._pl2Touche=true; }
+    // personnalisée : elle ne sera plus jamais écrasée par Planning 1, ni par
+    // un changement ultérieur de modèle de tenue (_titreManuel, v475).
+    if(evNouv){ evNouv.titre=label; evNouv._pl2Touche=true; evNouv._titreManuel=true; }
   }
   plSave2(data);
 }
@@ -24707,6 +24713,14 @@ function _pl2AppliquerModele(date,modeleId){
   var data=plLoad2();
   var ev=data.events.filter(function(e){return e.date===date;})[0];
   if(ev){ ev.modeleId=modeleId; ev.detail=[]; ev._pl2Touche=true; plSave2(data); }
+}
+// Applique le degré (1°/2°/3°) d'une Initiation à la tenue de Planning 2/3
+// désignée à cette date.
+function _pl2AppliquerDegre(date,degre){
+  if(!date||!degre) return;
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.date===date;})[0];
+  if(ev){ ev.degre=degre; ev._pl2Touche=true; plSave2(data); }
 }
 function _pl2RafraichirTout(){
   adminPl2RenderCandidatures();
@@ -24834,15 +24848,15 @@ function adminPl2RenderCandidatures(cid){
 // Le nom de l'initié et le modèle de tenue Initiation sont saisis à part
 // et appliqués à la tenue désignée.
 var PL2_INIT_KEY='planning2_initiations';
-function pl2InitDefaut(){ var a=[]; for(var i=0;i<6;i++)a.push({date:'',nom:'',modeleId:''}); return a; }
+function pl2InitDefaut(){ var a=[]; for(var i=0;i<6;i++)a.push({date:'',nom:'',modeleId:'',degre:''}); return a; }
 function pl2InitLoad(){
   try{
     var s=localStorage.getItem(PL2_INIT_KEY);
     if(s){
       var d=JSON.parse(s);
       if(d&&d.length===6){
-        if(typeof d[0]==='string') return d.map(function(v){ return {date:v||'',nom:'',modeleId:''}; }); // ancien format
-        d.forEach(function(x){ if(x.nom===undefined)x.nom=''; if(x.modeleId===undefined)x.modeleId=''; });
+        if(typeof d[0]==='string') return d.map(function(v){ return {date:v||'',nom:'',modeleId:'',degre:''}; }); // ancien format
+        d.forEach(function(x){ if(x.nom===undefined)x.nom=''; if(x.modeleId===undefined)x.modeleId=''; if(x.degre===undefined)x.degre=''; });
         return d;
       }
     }
@@ -24850,21 +24864,32 @@ function pl2InitLoad(){
   return pl2InitDefaut();
 }
 function pl2InitSave(items){ try{localStorage.setItem(PL2_INIT_KEY,JSON.stringify(items));}catch(e){} }
-function pl2InitLabel(idx,nom){ return 'Initiation '+(idx+1)+(nom?' — '+nom:''); }
+function pl2InitLabel(idx,nom,degre){ return 'Initiation '+(idx+1)+(nom?' — '+nom:'')+(degre?' ('+degre+')':''); }
 function pl2InitChangerDate(idx,val){
   var items=pl2InitLoad(); if(!items[idx]) return;
   var ancienneDate=items[idx].date||'';
   items[idx].date=val;
   pl2InitSave(items);
-  _pl2Designer(ancienneDate,val,pl2InitLabel(idx,items[idx].nom));
+  _pl2Designer(ancienneDate,val,pl2InitLabel(idx,items[idx].nom,items[idx].degre));
   if(val && items[idx].modeleId) _pl2AppliquerModele(val,items[idx].modeleId);
+  if(val && items[idx].degre) _pl2AppliquerDegre(val,items[idx].degre);
   _pl2RafraichirTout();
 }
 function pl2InitChangerNom(idx,val){
   var items=pl2InitLoad(); if(!items[idx]) return;
   items[idx].nom=val;
   pl2InitSave(items);
-  if(items[idx].date) _pl2Designer(items[idx].date,items[idx].date,pl2InitLabel(idx,val));
+  if(items[idx].date) _pl2Designer(items[idx].date,items[idx].date,pl2InitLabel(idx,val,items[idx].degre));
+  _pl2RafraichirTout();
+}
+function pl2InitChangerDegre(idx,val){
+  var items=pl2InitLoad(); if(!items[idx]) return;
+  items[idx].degre=val;
+  pl2InitSave(items);
+  if(items[idx].date){
+    _pl2Designer(items[idx].date,items[idx].date,pl2InitLabel(idx,items[idx].nom,val));
+    if(val) _pl2AppliquerDegre(items[idx].date,val);
+  }
   _pl2RafraichirTout();
 }
 function pl2InitChangerModele(idx,val){
@@ -24897,6 +24922,10 @@ function adminPl2RenderInitiations(cid){
     });
     h+='</select></div>';
     h+='<div><label style="'+lblS+'">Nom de l\'initié</label><input type="text" value="'+(item.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2InitChangerNom('+i+',this.value)" style="'+inS+'"></div>';
+    h+='<div><label style="'+lblS+'">Degré</label><select onchange="pl2InitChangerDegre('+i+',this.value)" style="'+inS+'">';
+    h+='<option value=""'+(!item.degre?' selected':'')+'>--</option>';
+    ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(item.degre===dg?' selected':'')+'>'+dg+'</option>'; });
+    h+='</select></div>';
     h+='<div><label style="'+lblS+'">Modèle de tenue</label>'+_pl2SelectModeles(item.modeleId,'pl2InitChangerModele('+i+',this.value)')+'</div>';
     h+='</div></div>';
   });
