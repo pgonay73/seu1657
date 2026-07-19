@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.458-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.459-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14142,6 +14142,7 @@ function renderOffice(n){
     c+='<button id="admin-pl-l1-btn-creation" onclick="adminPlL1Tab(\'creation\',this)" style="'+_l1I+'">1️⃣ Planning 1 — Thème &amp; Modèle</button>';
     c+='<button id="admin-pl-l1-btn-prog" onclick="adminPlL1Tab(\'prog\',this)" style="'+_l1A+'">📅 Programmation du planning</button>';
     c+='<button id="admin-pl-l1-btn-sans" onclick="adminPlL1Tab(\'sans\',this)" style="'+_l1I+'">📋 Planning des tenues sans planches</button>';
+    c+='<button id="admin-pl-l1-btn-planning3" onclick="adminPlL1Tab(\'planning3\',this)" style="'+_l1I+'">3️⃣ Planning 3</button>';
     c+='<button id="admin-pl-l1-btn-planches" onclick="adminPlL1Tab(\'planches\',this)" style="'+_l1I+'">📐 Programmation des planches</button>';
     c+='<button id="admin-pl-l1-btn-avec" onclick="adminPlL1Tab(\'avec\',this)" style="'+_l1I+'">📊 Planning des tenues avec planches</button>';
     c+='<button id="admin-pl-l1-btn-ref" onclick="adminPlL1Tab(\'ref\',this)" style="'+_l1I+'">📌 Planning de référence</button>';
@@ -14203,6 +14204,17 @@ function renderOffice(n){
     c+='<button onclick="plTenueAdd({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-planning2-list\');" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
     c+='</div>';
     c+='<div id="admin-pl-planning2-list"></div>';
+    c+='</div></div>';
+    // ─ L1.B2 : Planning 3 (pour l'instant, copie conforme de Planning 2) ─
+    c+='<div id="admin-pl-l1-planning3" style="display:none;">';
+    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<div>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 3</h3>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour l\'instant, copie conforme de Planning 2 (mêmes tenues, mêmes colonnes).</p>';
+    c+='</div>';
+    c+='<button onclick="plTenueAdd({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-planning3-list\');" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
+    c+='</div>';
+    c+='<div id="admin-pl-planning3-list"></div>';
     c+='</div></div>';
     // ─ L1.C : Programmation des planches ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
@@ -16451,7 +16463,7 @@ function adminTab(name, btn){
 
 // ── Planning L1 tabs ───────────────────────────────────────────────────
 function adminPlL1Tab(name,btn){
-  var l1=['creation','prog','sans','planches','avec','ref','morceaux'];
+  var l1=['creation','prog','sans','planning3','planches','avec','ref','morceaux'];
   var _bS='padding:9px 14px;font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;border:none;cursor:pointer;border-radius:5px 5px 0 0;';
   var _aS=_bS+'background:rgba(184,146,42,.22);color:#D4AF5A;border-bottom:3px solid #D4AF5A;margin-bottom:-3px;';
   var _iS=_bS+'background:transparent;color:rgba(255,255,255,.5);border-bottom:3px solid transparent;margin-bottom:-3px;';
@@ -16466,6 +16478,7 @@ function adminPlL1Tab(name,btn){
     if(mb) adminPlTab('procedure',mb);
   }
   if(name==='sans'){ setTimeout(function(){ adminPlRenderCreation('admin-pl-planning2-list'); },0); }
+  if(name==='planning3'){ setTimeout(function(){ adminPlRenderCreation('admin-pl-planning3-list'); },0); }
   if(name==='planches'){
     var db=document.getElementById('admin-pl-tab-sujets');
     if(db) adminPlTab('sujets',db);
@@ -24140,12 +24153,13 @@ function plRenderAdminNav(containerId){
   // Contexte admin : Row 2 = 4 onglets L1, Row 3 = sous-menu de "Programmation du planning"
   if(containerId){
     var l1TabsA=[
-      {id:'creation',label:'1️⃣ Planning 1 — Thème &amp; Modèle'},
-      {id:'sans',    label:'2️⃣ Planning 2 — Détail des tenues'},
-      {id:'prog',    label:'📅 Programmation du planning'},
-      {id:'planches',label:'📐 Programmation des planches'},
-      {id:'ref',     label:'📌 Planning de référence'},
-      {id:'morceaux',label:"🏛 Morceaux d'architecture"}
+      {id:'creation',  label:'1️⃣ Planning 1 — Thème &amp; Modèle'},
+      {id:'sans',      label:'2️⃣ Planning 2 — Détail des tenues'},
+      {id:'planning3', label:'3️⃣ Planning 3'},
+      {id:'prog',      label:'📅 Programmation du planning'},
+      {id:'planches',  label:'📐 Programmation des planches'},
+      {id:'ref',       label:'📌 Planning de référence'},
+      {id:'morceaux',  label:"🏛 Morceaux d'architecture"}
     ];
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
@@ -25567,7 +25581,7 @@ function plNavToAdminL1(id){
   var inAdmin=(adminPl&&adminPl.style.display!=='none');
   if(inAdmin){
     var _nS2='font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:.3px;border:none;cursor:pointer;padding:9px 14px;background:transparent;border-bottom:3px solid transparent;margin-bottom:-3px;';
-    ['creation','prog','sans','planches','avec','ref','morceaux'].forEach(function(x){
+    ['creation','sans','planning3','prog','planches','avec','ref','morceaux'].forEach(function(x){
       var b=document.getElementById('pl-adm-l1-nav-'+x);
       if(b) b.style.cssText=_nS2+(x===id?'color:#D4AF5A;border-bottom-color:#D4AF5A;':'color:rgba(255,255,255,.5);');
     });
