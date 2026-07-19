@@ -759,7 +759,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.470-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-17.471-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14196,7 +14196,9 @@ function renderOffice(n){
     c+='</div>';
     // ─ L1.B : Planning 2 — Détail des tenues (pour l'instant, copie conforme de Planning 1) ─
     c+='<div id="admin-pl-l1-sans" style="display:none;">';
-    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<div id="admin-pl2-candidatures"></div>';
+    c+='<div id="admin-pl2-initiations"></div>';
+    c+='<div class="cfg-box" style="margin-top:18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 2 — Détail des tenues</h3>';
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour l\'instant, copie conforme de Planning 1 (mêmes tenues, mêmes colonnes). Les planches, candidats et conférenciers viendront ici dans une étape ultérieure.</p>';
@@ -14204,8 +14206,6 @@ function renderOffice(n){
     c+='<button onclick="plTenueAdd2({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-planning2-list\',true);" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
     c+='</div>';
     c+='<div id="admin-pl-planning2-list"></div>';
-    c+='<div id="admin-pl2-candidatures"></div>';
-    c+='<div id="admin-pl2-initiations"></div>';
     c+='</div></div>';
     // ─ L1.B2 : Planning 3 (pour l'instant, copie conforme de Planning 2) ─
     c+='<div id="admin-pl-l1-planning3" style="display:none;">';
@@ -24527,10 +24527,44 @@ function adminPlRenderCreation(cid,store2){
   }
   el.innerHTML=h;
 }
+// ── Planning 2 : dates disponibles pour les menus déroulants Candidatures/
+// Initiations — mêmes règles que Planning 1 (tenues au 1°, dans les
+// bornes des critères annuels), mais tirées du magasin de Planning 2/3.
+function _pl2DatesDisponibles(){
+  var c=plCriteresLoad()||{};
+  return (plLoad2().events||[])
+    .filter(function(e){ return (e.degre||'1°')==='1°'; })
+    .map(function(e){return e.date;}).filter(function(d){return !!d;})
+    .filter(function(d){ if(c.dateDebut&&d<c.dateDebut) return false; if(c.dateFin&&d>c.dateFin) return false; return true; })
+    .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
+}
+function _pl2OptsAvecValeur(val){
+  var d=_pl2DatesDisponibles();
+  if(val && d.indexOf(val)<0) d.push(val);
+  return d.sort();
+}
+// Applique/retire une désignation (titre) sur la tenue de Planning 2/3 à
+// une date donnée — utilisé par Candidatures et Initiations : la tenue
+// désignée voit son titre pris en charge, ce qui modifie donc le tableau
+// de Planning 2 (et, données partagées, celui de Planning 3).
+function _pl2Designer(ancienneDate,nouvelleDate,label){
+  var data=plLoad2();
+  if(ancienneDate && ancienneDate!==nouvelleDate){
+    var evAnc=data.events.filter(function(e){return e.date===ancienneDate;})[0];
+    if(evAnc && evAnc.titre===label) evAnc.titre='';
+  }
+  if(nouvelleDate){
+    var evNouv=data.events.filter(function(e){return e.date===nouvelleDate;})[0];
+    if(evNouv) evNouv.titre=label;
+  }
+  plSave2(data);
+}
 // ── Planning 2 : Candidatures (6 dates réservées = 2 candidatures × 3
 // dates) — Profane : Courrier / Enquête + Bandeau / Cérémonie. Autre
 // (affiliation, régularisation, réintégration) : Courrier / Enquête /
-// Cérémonie. Stockage indépendant (localStorage uniquement).
+// Cérémonie. La date choisie désigne une tenue déjà présente dans
+// Planning 2/3 (menu déroulant, comme dans Planning 1) et son titre est
+// pris en charge en conséquence.
 var PL2_CAND_KEY='planning2_candidatures';
 function pl2CandDefaut(){ return [{type:'profane',courrier:'',enquete:'',ceremonie:''},{type:'profane',courrier:'',enquete:'',ceremonie:''}]; }
 function pl2CandLoad(){
@@ -24538,13 +24572,30 @@ function pl2CandLoad(){
   return pl2CandDefaut();
 }
 function pl2CandSave(data){ try{localStorage.setItem(PL2_CAND_KEY,JSON.stringify(data));}catch(e){} }
+function pl2CandLabel(idx,champ,type){
+  if(champ==='courrier') return 'Candidature '+(idx+1)+' — Courrier';
+  if(champ==='enquete') return 'Candidature '+(idx+1)+' — '+(type==='autre'?'Enquête':'Enquête + Bandeau');
+  return 'Candidature '+(idx+1)+' — Cérémonie';
+}
 function pl2CandChangerType(idx,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
-  cands[idx].type=val; pl2CandSave(cands); adminPl2RenderCandidatures();
+  var ancienLabel=pl2CandLabel(idx,'enquete',cands[idx].type);
+  cands[idx].type=val;
+  pl2CandSave(cands);
+  // Le libellé de la 2e date dépend du type : on réapplique la désignation
+  // avec le nouveau libellé sur la tenue déjà choisie, s'il y en a une.
+  if(cands[idx].enquete) _pl2Designer(cands[idx].enquete,cands[idx].enquete,pl2CandLabel(idx,'enquete',val));
+  adminPl2RenderCandidatures();
+  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
 }
 function pl2CandChangerDate(idx,champ,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
-  cands[idx][champ]=val; pl2CandSave(cands);
+  var ancienneDate=cands[idx][champ]||'';
+  cands[idx][champ]=val;
+  pl2CandSave(cands);
+  _pl2Designer(ancienneDate,val,pl2CandLabel(idx,champ,cands[idx].type));
+  adminPl2RenderCandidatures();
+  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
 }
 function adminPl2RenderCandidatures(cid){
   cid=cid||'admin-pl2-candidatures';
@@ -24552,9 +24603,20 @@ function adminPl2RenderCandidatures(cid){
   var cands=pl2CandLoad();
   var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
   var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
-  var h='<div class="cfg-box" style="margin-top:18px;">';
+  var mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrCrit[d.getMonth()]+' '+d.getFullYear(); }
+  function selectDate(val,onchg){
+    var h2='<select onchange="'+onchg+'" style="'+inS+';min-width:160px;">';
+    h2+='<option value="">-- Aucune --</option>';
+    _pl2OptsAvecValeur(val).forEach(function(ds){
+      h2+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+fmtDate(ds)+'</option>';
+    });
+    h2+='</select>';
+    return h2;
+  }
+  var h='<div class="cfg-box">';
   h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Candidatures (6 dates)</h3>';
-  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 4px;font-style:italic;">2 candidatures réservées, chacune avec 3 dates. Profane : Courrier, Enquête + Bandeau, Cérémonie. Autre (affiliation, régularisation, réintégration) : Courrier, Enquête, Cérémonie.</p>';
+  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 4px;font-style:italic;">2 candidatures réservées, chacune avec 3 dates choisies parmi les tenues déjà présentes dans Planning 2/3. Profane : Courrier, Enquête + Bandeau, Cérémonie. Autre (affiliation, régularisation, réintégration) : Courrier, Enquête, Cérémonie.</p>';
   cands.forEach(function(cand,idx){
     var isProfane=cand.type!=='autre';
     h+='<div style="margin-top:14px;padding-top:14px;border-top:2mm solid var(--gold);">';
@@ -24564,17 +24626,18 @@ function adminPl2RenderCandidatures(cid){
     h+='<option value="profane"'+(isProfane?' selected':'')+'>Profane</option>';
     h+='<option value="autre"'+(!isProfane?' selected':'')+'>Autre (affiliation, régul., réint.)</option>';
     h+='</select></div>';
-    h+='<div><label style="'+lblS+'">Courrier</label><input type="date" value="'+(cand.courrier||'')+'" onchange="pl2CandChangerDate('+idx+',\'courrier\',this.value)" style="'+inS+'"></div>';
-    h+='<div><label style="'+lblS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</label><input type="date" value="'+(cand.enquete||'')+'" onchange="pl2CandChangerDate('+idx+',\'enquete\',this.value)" style="'+inS+'"></div>';
-    h+='<div><label style="'+lblS+'">Cérémonie</label><input type="date" value="'+(cand.ceremonie||'')+'" onchange="pl2CandChangerDate('+idx+',\'ceremonie\',this.value)" style="'+inS+'"></div>';
+    h+='<div><label style="'+lblS+'">Courrier</label>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)')+'</div>';
+    h+='<div><label style="'+lblS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</label>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)')+'</div>';
+    h+='<div><label style="'+lblS+'">Cérémonie</label>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)')+'</div>';
     h+='</div></div>';
   });
   h+='</div>';
   el.innerHTML=h;
 }
-// ── Planning 2 : Initiations (6 dates réservées) — chaque date est notée
-// (libellée) avant toute information de degré, puisqu'il s'agit ici de
-// simples réservations de créneaux, indépendantes des tenues existantes.
+// ── Planning 2 : Initiations (6 dates réservées) — chaque date choisie
+// (menu déroulant, comme dans Planning 1) désigne une tenue déjà
+// présente dans Planning 2/3, dont le titre est pris en charge ; le
+// libellé « Initiation N » est noté avant toute information de degré.
 var PL2_INIT_KEY='planning2_initiations';
 function pl2InitLoad(){
   try{ var s=localStorage.getItem(PL2_INIT_KEY); if(s){ var d=JSON.parse(s); if(d&&d.length===6) return d; } }catch(e){}
@@ -24582,7 +24645,13 @@ function pl2InitLoad(){
 }
 function pl2InitSave(dates){ try{localStorage.setItem(PL2_INIT_KEY,JSON.stringify(dates));}catch(e){} }
 function pl2InitChanger(idx,val){
-  var dates=pl2InitLoad(); dates[idx]=val; pl2InitSave(dates);
+  var dates=pl2InitLoad();
+  var ancienneDate=dates[idx]||'';
+  dates[idx]=val;
+  pl2InitSave(dates);
+  _pl2Designer(ancienneDate,val,'Initiation '+(idx+1));
+  adminPl2RenderInitiations();
+  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
 }
 function adminPl2RenderInitiations(cid){
   cid=cid||'admin-pl2-initiations';
@@ -24590,12 +24659,21 @@ function adminPl2RenderInitiations(cid){
   var dates=pl2InitLoad();
   var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
   var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
+  var mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrCrit[d.getMonth()]+' '+d.getFullYear(); }
   var h='<div class="cfg-box" style="margin-top:18px;">';
   h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Initiations (6 dates)</h3>';
-  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 14px;font-style:italic;">6 dates réservées pour des initiations, notées ici avant toute information de degré.</p>';
+  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 14px;font-style:italic;">6 dates réservées pour des initiations, choisies parmi les tenues déjà présentes dans Planning 2/3 ; le libellé (Initiation 1 à 6) est noté avant toute information de degré.</p>';
   h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
   for(var i=0;i<6;i++){
-    h+='<div><label style="'+lblS+'">Initiation '+(i+1)+'</label><input type="date" value="'+(dates[i]||'')+'" onchange="pl2InitChanger('+i+',this.value)" style="'+inS+'"></div>';
+    var val=dates[i]||'';
+    h+='<div><label style="'+lblS+'">Initiation '+(i+1)+'</label>';
+    h+='<select onchange="pl2InitChanger('+i+',this.value)" style="'+inS+';min-width:160px;">';
+    h+='<option value="">-- Aucune --</option>';
+    _pl2OptsAvecValeur(val).forEach(function(ds){
+      h+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+fmtDate(ds)+'</option>';
+    });
+    h+='</select></div>';
   }
   h+='</div></div>';
   el.innerHTML=h;
