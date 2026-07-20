@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.519-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.520-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25201,25 +25201,26 @@ function adminPl2RenderInitiations(cid){
   var h='<div class="cfg-box" style="margin-top:18px;padding-top:18px;border-top:2mm solid var(--gold);">';
   h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Initiations (6 dates)</h3>';
   h+='<p style="font-size:11px;color:var(--grey);margin:0 0 14px;font-style:italic;">6 dates réservées pour des initiations, choisies parmi les tenues déjà présentes dans Planning 2/3 ; le libellé (Initiation 1 à 6) est noté avant toute information de degré.</p>';
+  h+='<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;">';
   items.forEach(function(item,i){
     var val=item.date||'';
-    h+='<div style="margin-top:'+(i===0?'0':'14px')+';padding-top:'+(i===0?'0':'14px')+';'+(i===0?'':'border-top:1px solid rgba(184,146,42,.3);')+'">';
-    h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
-    h+='<div><label style="'+lblS+'">Initiation '+(i+1)+'</label>';
-    h+='<select onchange="pl2InitChangerDate('+i+',this.value)" style="'+inS+';min-width:160px;">';
+    h+='<div style="display:flex;flex-direction:column;gap:8px;min-width:150px;padding:'+(i===0?'0':'0 0 0 16px')+';'+(i===0?'':'border-left:1px solid rgba(184,146,42,.3);')+'">';
+    h+='<label style="'+lblS+'margin-bottom:0;">Initiation '+(i+1)+'</label>';
+    h+='<select onchange="pl2InitChangerDate('+i+',this.value)" style="'+inS+';width:100%;">';
     h+='<option value="">-- Aucune --</option>';
     _pl2OptsAvecValeur(val,'init:'+i).forEach(function(ds){
       h+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+fmtDate(ds)+'</option>';
     });
-    h+='</select></div>';
-    h+='<div><label style="'+lblS+'">Nom de l\'initié</label><input type="text" value="'+(item.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2InitChangerNom('+i+',this.value)" style="'+inS+'"></div>';
-    h+='<div><label style="'+lblS+'">Degré</label><select onchange="pl2InitChangerDegre('+i+',this.value)" style="'+inS+'">';
-    h+='<option value=""'+(!item.degre?' selected':'')+'>--</option>';
+    h+='</select>';
+    h+='<input type="text" value="'+(item.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2InitChangerNom('+i+',this.value)" style="'+inS+';width:100%;box-sizing:border-box;">';
+    h+='<select onchange="pl2InitChangerDegre('+i+',this.value)" style="'+inS+';width:100%;">';
+    h+='<option value=""'+(!item.degre?' selected':'')+'>-- Degré --</option>';
     ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(item.degre===dg?' selected':'')+'>'+dg+'</option>'; });
-    h+='</select></div>';
-    h+='<div><label style="'+lblS+'">Modèle de tenue</label>'+_pl2SelectModeles(item.modeleId,'pl2InitChangerModele('+i+',this.value)','Initiations')+'</div>';
-    h+='</div></div>';
+    h+='</select>';
+    h+='<div style="width:100%;">'+_pl2SelectModeles(item.modeleId,'pl2InitChangerModele('+i+',this.value)','Initiations')+'</div>';
+    h+='</div>';
   });
+  h+='</div>';
   h+='</div>';
   h+='<button onclick="admGenererPlanning3()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;margin-top:18px;">&#8594; Générer le Planning 3</button>';
   el.innerHTML=h;
