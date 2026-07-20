@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.506-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.507-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -2911,7 +2911,17 @@ function toast(m){var e=document.getElementById('toast');e.textContent=m;e.class
 // ============================================================
 // PARTIES EDITOR
 // ============================================================
-function cpP(src){var r=[];for(var i=0;i<src.length;i++)r.push({nom:src[i].nom||src[i].nom,dur:src[i].dur||src[i].duree||0,titre:src[i].titre||'',conf:src[i].conf||''});return r;}
+function cpP(src){
+  var r=[];
+  for(var i=0;i<src.length;i++){
+    var s=JSON.parse(JSON.stringify(src[i]||{}));
+    s.dur=s.dur||s.duree||0;
+    s.titre=s.titre||'';
+    s.conf=s.conf||'';
+    r.push(s);
+  }
+  return r;
+}
 
 function isPlancheOuSym(nom){
   var n=(nom||'').toLowerCase();
@@ -3165,6 +3175,8 @@ function peRender(cid,parties){
     var plancheSteps=p.plancheSteps||[];
     var isPr=!isCfgPe&&isProfane(p.nom);
     var profSteps=p.profSteps||[];
+    var profTypeUnique=!!p.profTypeUnique;
+    var profEtapeUnique=!!p.profEtapeUnique;
     var profAutre=(p.profAutre||'').replace(/"/g,'&quot;');
     var isAff=!isCfgPe&&isAffiliation(p.nom);
     var affSteps=p.affSteps||[];
@@ -3178,11 +3190,11 @@ function peRender(cid,parties){
     var deputeSteps=p.deputeSteps||[];
     var isCA=!isCfgPe&&isConseil(p.nom);
     var isElec=isElections(p.nom);
-    var elecSteps=p.elecSteps||[];
-    var isInst=isInstallCard(p.nom); var instSteps=p.instSteps||[];
-    var isInter=isInterventCard(p.nom); var interSteps=p.interSteps||[]; var interSujet=p.interSujet||''; var interIntervenant=p.interIntervenant||'';
-    var isCerCard=isCeremCard(p.nom); var cerCardSteps=p.cerCardSteps||[];
-    var isReunHT=isReunHTCard(p.nom); var reunSteps=p.reunSteps||[];
+    var elecSteps=p.elecSteps||[]; var elecUnique=!!p.elecUnique;
+    var isInst=isInstallCard(p.nom); var instSteps=p.instSteps||[]; var instUnique=!!p.instUnique;
+    var isInter=isInterventCard(p.nom); var interSteps=p.interSteps||[]; var interSujet=p.interSujet||''; var interIntervenant=p.interIntervenant||''; var interUnique=!!p.interUnique;
+    var isCerCard=isCeremCard(p.nom); var cerCardSteps=p.cerCardSteps||[]; var cerCardUnique=!!p.cerCardUnique;
+    var isReunHT=isReunHTCard(p.nom); var reunSteps=p.reunSteps||[]; var reunUnique=!!p.reunUnique;
     var caOdj=(p.caOdj||'').replace(/"/g,'&quot;');
     var caSujets=p.caSujets||[];
     var initDegre=(p.initDegre||'').replace(/"/g,'&quot;');
@@ -3217,11 +3229,11 @@ function peRender(cid,parties){
       h+='<div class="pe-dep-extra" style="display:none;"></div>';
       h+='<div class="pe-ca-extra" style="display:none;"></div>';
       h+='<div class="pe-elec-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
-      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+      h+=_peTypeHeaderHTML('Type','pe-elec-cb',elecUnique,i);
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;">';
       for(var ei=0;ei<elecData.length;ei++){
         var eSel=elecSteps.indexOf(elecData[ei].v)>=0?' checked':'';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-elec-cb" value="'+elecData[ei].v+'" data-dur="'+elecData[ei].dur+'"'+eSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peElecChange(this)">'+elecData[ei].v+' ('+elecData[ei].dur+' min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(elecUnique?'radio':'checkbox')+'" class="pe-elec-cb" value="'+elecData[ei].v+'" data-dur="'+elecData[ei].dur+'"'+(elecUnique?' name="pe-radio-pe-elec-cb-'+i+'"':'')+eSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peElecChange(this)">'+elecData[ei].v+' ('+elecData[ei].dur+' min)</label>';
       }
       h+='</div>';
       h+='</div>';
@@ -3238,11 +3250,11 @@ function peRender(cid,parties){
       h+='<div class="pe-ca-extra" style="display:none;"></div>';
       h+='<div class="pe-elec-extra" style="display:none;"></div>';
       h+='<div class="pe-inst-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
-      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+      h+=_peTypeHeaderHTML('Type','pe-inst-cb',instUnique,i);
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;">';
       for(var instIdx=0;instIdx<instData.length;instIdx++){
         var iSel=instSteps.indexOf(instData[instIdx].v)>=0?' checked':'';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-inst-cb" value="'+instData[instIdx].v+'" data-dur="'+instData[instIdx].dur+'"'+iSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peInstChange(this)">'+instData[instIdx].v+' ('+instData[instIdx].dur+' min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(instUnique?'radio':'checkbox')+'" class="pe-inst-cb" value="'+instData[instIdx].v+'" data-dur="'+instData[instIdx].dur+'"'+(instUnique?' name="pe-radio-pe-inst-cb-'+i+'"':'')+iSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peInstChange(this)">'+instData[instIdx].v+' ('+instData[instIdx].dur+' min)</label>';
       }
       h+='</div>';
       h+='</div>';
@@ -3260,11 +3272,11 @@ function peRender(cid,parties){
       h+='<div class="pe-elec-extra" style="display:none;"></div>';
       h+='<div class="pe-inst-extra" style="display:none;"></div>';
       h+='<div class="pe-inter-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
-      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+      h+=_peTypeHeaderHTML('Type','pe-inter-cb',interUnique,i);
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;">';
       for(var intIdx=0;intIdx<interData.length;intIdx++){
         var intSel=interSteps.indexOf(interData[intIdx].v)>=0?' checked':'';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-inter-cb" value="'+interData[intIdx].v+'" data-dur="'+interData[intIdx].dur+'"'+intSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peInterChange(this)">'+interData[intIdx].v+' ('+interData[intIdx].dur+' min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(interUnique?'radio':'checkbox')+'" class="pe-inter-cb" value="'+interData[intIdx].v+'" data-dur="'+interData[intIdx].dur+'"'+(interUnique?' name="pe-radio-pe-inter-cb-'+i+'"':'')+intSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peInterChange(this)">'+interData[intIdx].v+' ('+interData[intIdx].dur+' min)</label>';
       }
       h+='</div>';
       h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;">Sujet</div>';
@@ -3289,11 +3301,11 @@ function peRender(cid,parties){
       h+='<div class="pe-inst-extra" style="display:none;"></div>';
       h+='<div class="pe-inter-extra" style="display:none;"></div>';
       h+='<div class="pe-cer-card-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
-      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+      h+=_peTypeHeaderHTML('Type','pe-cer-card-cb',cerCardUnique,i);
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;">';
       for(var cerIdx=0;cerIdx<cerCardData.length;cerIdx++){
         var ccSel=cerCardSteps.indexOf(cerCardData[cerIdx].v)>=0?' checked':'';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-cer-card-cb" value="'+cerCardData[cerIdx].v+'" data-dur="'+cerCardData[cerIdx].dur+'"'+ccSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peCerCardChange(this)">'+cerCardData[cerIdx].v+' ('+cerCardData[cerIdx].dur+' min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(cerCardUnique?'radio':'checkbox')+'" class="pe-cer-card-cb" value="'+cerCardData[cerIdx].v+'" data-dur="'+cerCardData[cerIdx].dur+'"'+(cerCardUnique?' name="pe-radio-pe-cer-card-cb-'+i+'"':'')+ccSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peCerCardChange(this)">'+cerCardData[cerIdx].v+' ('+cerCardData[cerIdx].dur+' min)</label>';
       }
       h+='</div>';
       h+='</div>';
@@ -3313,11 +3325,11 @@ function peRender(cid,parties){
       h+='<div class="pe-inter-extra" style="display:none;"></div>';
       h+='<div class="pe-cer-card-extra" style="display:none;"></div>';
       h+='<div class="pe-reun-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
-      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+      h+=_peTypeHeaderHTML('Type','pe-reun-cb',reunUnique,i);
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;">';
       for(var reunIdx=0;reunIdx<reunData.length;reunIdx++){
         var rSel=reunSteps.indexOf(reunData[reunIdx].v)>=0?' checked':'';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-reun-cb" value="'+reunData[reunIdx].v+'" data-dur="'+reunData[reunIdx].dur+'"'+rSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peReunChange(this)">'+reunData[reunIdx].v+' ('+reunData[reunIdx].dur+' min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(reunUnique?'radio':'checkbox')+'" class="pe-reun-cb" value="'+reunData[reunIdx].v+'" data-dur="'+reunData[reunIdx].dur+'"'+(reunUnique?' name="pe-radio-pe-reun-cb-'+i+'"':'')+rSel+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peReunChange(this)">'+reunData[reunIdx].v+' ('+reunData[reunIdx].dur+' min)</label>';
       }
       h+='</div>';
       h+='</div>';
@@ -3390,20 +3402,20 @@ function peRender(cid,parties){
     } else if(isPr){
       h+='<div class="pe-pl-extra" style="display:none;"></div>';
       h+='<div class="pe-pr-extra" style="width:100%;margin-top:6px;padding-left:28px;">';
-      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Candidature — Type</div>';
+      h+=_peTypeHeaderHTML('Candidature — Type','pe-prof-type-cb',profTypeUnique,i);
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="profane" data-dur="15" '+(profSteps.indexOf('profane')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Profane</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="affiliation" data-dur="15" '+(profSteps.indexOf('affiliation')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Affiliation</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="integration" data-dur="15" '+(profSteps.indexOf('integration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Intégration</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="reintegration" data-dur="15" '+(profSteps.indexOf('reintegration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Réintégration</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="regularisation" data-dur="15" '+(profSteps.indexOf('regularisation')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Régularisation</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profTypeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-type-cb" value="profane" data-dur="15"'+(profTypeUnique?' name="pe-radio-pe-prof-type-cb-'+i+'"':'')+' '+(profSteps.indexOf('profane')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Profane</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profTypeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-type-cb" value="affiliation" data-dur="15"'+(profTypeUnique?' name="pe-radio-pe-prof-type-cb-'+i+'"':'')+' '+(profSteps.indexOf('affiliation')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Affiliation</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profTypeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-type-cb" value="integration" data-dur="15"'+(profTypeUnique?' name="pe-radio-pe-prof-type-cb-'+i+'"':'')+' '+(profSteps.indexOf('integration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Intégration</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profTypeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-type-cb" value="reintegration" data-dur="15"'+(profTypeUnique?' name="pe-radio-pe-prof-type-cb-'+i+'"':'')+' '+(profSteps.indexOf('reintegration')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Réintégration</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profTypeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-type-cb" value="regularisation" data-dur="15"'+(profTypeUnique?' name="pe-radio-pe-prof-type-cb-'+i+'"':'')+' '+(profSteps.indexOf('regularisation')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Régularisation</label>';
       h+='</div>';
-      h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Étape</div>';
+      h+=_peTypeHeaderHTML('Étape','pe-prof-etape-cb',profEtapeUnique,i);
       h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="candidature" data-dur="15" '+(profSteps.indexOf('candidature')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Candidature + vote (15 min)</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="enquete" data-dur="15" '+(profSteps.indexOf('enquete')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Enquête + vote (15 min)</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="bandeau" data-dur="30" '+(profSteps.indexOf('bandeau')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Bandeau + vote (30 min)</label>';
-      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="ceremonie" data-dur="30" '+(profSteps.indexOf('ceremonie')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Cérémonie (30 min)</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profEtapeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-etape-cb" value="candidature" data-dur="15"'+(profEtapeUnique?' name="pe-radio-pe-prof-etape-cb-'+i+'"':'')+' '+(profSteps.indexOf('candidature')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Candidature + vote (15 min)</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profEtapeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-etape-cb" value="enquete" data-dur="15"'+(profEtapeUnique?' name="pe-radio-pe-prof-etape-cb-'+i+'"':'')+' '+(profSteps.indexOf('enquete')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Enquête + vote (15 min)</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profEtapeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-etape-cb" value="bandeau" data-dur="30"'+(profEtapeUnique?' name="pe-radio-pe-prof-etape-cb-'+i+'"':'')+' '+(profSteps.indexOf('bandeau')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Bandeau + vote (30 min)</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+(profEtapeUnique?'radio':'checkbox')+'" class="pe-prof-cb pe-prof-etape-cb" value="ceremonie" data-dur="30"'+(profEtapeUnique?' name="pe-radio-pe-prof-etape-cb-'+i+'"':'')+' '+(profSteps.indexOf('ceremonie')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Cérémonie (30 min)</label>';
       h+='</div>';
       h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
       h+='<span style="font-size:11px;color:var(--grey);white-space:nowrap;">Nom</span>';
@@ -3749,24 +3761,39 @@ function peGet(cid){
     rs[i].querySelectorAll('.pe-planche-cb:checked').forEach(function(cb){plancheSteps.push(cb.value);});
     var plancheUniqueEl=rs[i].querySelector('.pe-planche-unique');
     var plancheUnique=plancheUniqueEl?plancheUniqueEl.checked:false;
-    // Élections : cases à cocher
+    // Élections : cases à cocher (ou boutons radio si figé)
     var elecSteps=[];
     rs[i].querySelectorAll('.pe-elec-cb:checked').forEach(function(cb){elecSteps.push(cb.value);});
+    var elecUniqueEl=rs[i].querySelector('.pe-unique-toggle[data-cls="pe-elec-cb"]');
+    var elecUnique=elecUniqueEl?elecUniqueEl.checked:false;
     var instSteps=[];
     rs[i].querySelectorAll('.pe-inst-cb:checked').forEach(function(cb){instSteps.push(cb.value);});
+    var instUniqueEl=rs[i].querySelector('.pe-unique-toggle[data-cls="pe-inst-cb"]');
+    var instUnique=instUniqueEl?instUniqueEl.checked:false;
     var interSteps=[];
     rs[i].querySelectorAll('.pe-inter-cb:checked').forEach(function(cb){interSteps.push(cb.value);});
+    var interUniqueEl=rs[i].querySelector('.pe-unique-toggle[data-cls="pe-inter-cb"]');
+    var interUnique=interUniqueEl?interUniqueEl.checked:false;
     var _interSujetEl=rs[i].querySelector('.pe-inter-sujet');
     var interSujet=_interSujetEl?_interSujetEl.value:'';
     var _interIntervenantEl=rs[i].querySelector('.pe-inter-intervenant');
     var interIntervenant=_interIntervenantEl?_interIntervenantEl.value:'';
     var cerCardSteps=[];
     rs[i].querySelectorAll('.pe-cer-card-cb:checked').forEach(function(cb){cerCardSteps.push(cb.value);});
+    var cerCardUniqueEl=rs[i].querySelector('.pe-unique-toggle[data-cls="pe-cer-card-cb"]');
+    var cerCardUnique=cerCardUniqueEl?cerCardUniqueEl.checked:false;
     var reunSteps=[];
     rs[i].querySelectorAll('.pe-reun-cb:checked').forEach(function(cb){reunSteps.push(cb.value);});
-    // Profane/Candidature : cases à cocher
+    var reunUniqueEl=rs[i].querySelector('.pe-unique-toggle[data-cls="pe-reun-cb"]');
+    var reunUnique=reunUniqueEl?reunUniqueEl.checked:false;
+    // Profane/Candidature : cases à cocher (deux groupes distincts, chacun
+    // figeable indépendamment : Type et Étape)
     var profCbs=rs[i].querySelectorAll('.pe-prof-cb:checked');
     if(profCbs.length){profSteps=[];profCbs.forEach(function(cb){profSteps.push(cb.value);});}
+    var profTypeUniqueEl=rs[i].querySelector('.pe-unique-toggle[data-cls="pe-prof-type-cb"]');
+    var profTypeUnique=profTypeUniqueEl?profTypeUniqueEl.checked:false;
+    var profEtapeUniqueEl=rs[i].querySelector('.pe-unique-toggle[data-cls="pe-prof-etape-cb"]');
+    var profEtapeUnique=profEtapeUniqueEl?profEtapeUniqueEl.checked:false;
     var symSelEl=rs[i].querySelector('.pe-sym-select');
     var degSelEl=rs[i].querySelector('.pe-deg-sel');
     var circulEl=rs[i].querySelector('.pe-circul,.pe-circul-cb');
@@ -3789,7 +3816,7 @@ function peGet(cid){
       cerVals.push(cb.value);
       if(cerStd.indexOf(cb.value)<0) cerCust.push(cb.value);
     });
-    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,plancheUnique:plancheUnique,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets,elecSteps:elecSteps,instSteps:instSteps,interSteps:interSteps,interSujet:interSujet,interIntervenant:interIntervenant,cerCardSteps:cerCardSteps,reunSteps:reunSteps});
+    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profTypeUnique:profTypeUnique,profEtapeUnique:profEtapeUnique,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,plancheUnique:plancheUnique,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets,elecSteps:elecSteps,elecUnique:elecUnique,instSteps:instSteps,instUnique:instUnique,interSteps:interSteps,interUnique:interUnique,interSujet:interSujet,interIntervenant:interIntervenant,cerCardSteps:cerCardSteps,cerCardUnique:cerCardUnique,reunSteps:reunSteps,reunUnique:reunUnique});
   }
   return r;
 }
@@ -4154,6 +4181,37 @@ function pePlancheUniqueToggle(toggle){
   var lbl=toggle.closest('label');
   if(lbl && lbl.childNodes[1]) lbl.childNodes[1].textContent=(toggle.checked?'🔒':'🔓')+' Un seul choix';
   pePlancheChange(toggle);
+}
+// En-tête générique "Type" + cadenas "Un seul choix" pour un groupe de
+// cases à cocher — réutilisé par tous les groupes Élections/Installation/
+// Intervention/Cérémonie(carte)/Réunion hors tenue/Profane-Candidature.
+function _peTypeHeaderHTML(label,cls,unique,idx){
+  return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px;">'
+    +'<div style="font-size:11px;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">'+label+'</div>'
+    +'<label style="font-size:11px;color:var(--grey);display:flex;align-items:center;gap:4px;cursor:pointer;" title="Un seul choix possible, une fois figé."><input type="checkbox" class="pe-unique-toggle" data-cls="'+cls+'" data-pe-idx="'+idx+'" '+(unique?'checked':'')+' style="margin-right:2px;accent-color:var(--gold);cursor:pointer;" onchange="peGroupUniqueToggle(this)">'+(unique?'🔒':'🔓')+' Un seul choix</label>'
+    +'</div>';
+}
+// Bascule générique un groupe de cases à cocher (classe donnée par
+// data-cls) entre plusieurs choix possibles et un seul choix figé
+// (boutons radio) — même principe que pePlancheUniqueToggle, mais
+// réutilisable pour n'importe quel groupe de la partie.
+function peGroupUniqueToggle(toggle){
+  var row=toggle.closest('.pe-row');
+  var cls=toggle.getAttribute('data-cls');
+  if(!row||!cls) return;
+  var boxes=Array.prototype.slice.call(row.querySelectorAll('.'+cls));
+  var idx=toggle.getAttribute('data-pe-idx')||('u'+Date.now());
+  if(toggle.checked){
+    var keepIdx=-1;
+    for(var bi=0;bi<boxes.length;bi++){ if(boxes[bi].checked){ keepIdx=bi; break; } }
+    boxes.forEach(function(b){ b.checked=false; b.type='radio'; b.name='pe-radio-'+cls+'-'+idx; });
+    if(keepIdx>=0) boxes[keepIdx].checked=true;
+  } else {
+    boxes.forEach(function(b){ b.type='checkbox'; b.removeAttribute('name'); });
+  }
+  var lbl=toggle.closest('label');
+  if(lbl && lbl.childNodes[1]) lbl.childNodes[1].textContent=(toggle.checked?'🔒':'🔓')+' Un seul choix';
+  if(boxes[0] && typeof boxes[0].onchange==='function') boxes[0].onchange.call(boxes[0]);
 }
 function peProfChange(cb){peStepsChange(cb,'.pe-prof-cb');}
 
