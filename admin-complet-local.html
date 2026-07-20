@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.498-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.500-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25076,7 +25076,38 @@ function adminPl2RenderInitiations(cid){
     h+='</div></div>';
   });
   h+='</div>';
+  h+='<button onclick="admGenererPlanning3()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;margin-top:18px;">&#8594; Générer le Planning 3</button>';
   el.innerHTML=h;
+}
+// Réapplique toutes les désignations Candidatures/Initiations actuellement
+// saisies (dates, modèles, degrés) sur les tenues de Planning 2/3 — même
+// résultat que ce qui se produit déjà automatiquement à chaque changement
+// d'un menu déroulant, mais en une seule fois, via un bouton explicite
+// « Générer le Planning 3 », comme pour Planning 1 et Planning 2.
+function _admAppliquerDesignationsP3(){
+  var cands=pl2CandLoad();
+  cands.forEach(function(cand,idx){
+    ['courrier','enquete','ceremonie'].forEach(function(champ){
+      var ds=cand[champ];
+      if(!ds) return;
+      _pl2Designer(ds,ds,pl2CandLabel(idx,champ,cand.type,cand.nom));
+      var modeleId=cand[PL2_CAND_MODELE_CHAMP[champ]];
+      if(modeleId) _pl2AppliquerModele(ds,modeleId);
+    });
+    if(cand.ceremonie) _pl2CandRetirerTypeCeremonie(cand.ceremonie);
+  });
+  var inits=pl2InitLoad();
+  inits.forEach(function(item,i){
+    if(!item.date) return;
+    _pl2Designer(item.date,item.date,pl2InitLabel(i,item.nom,item.degre));
+    if(item.modeleId) _pl2AppliquerModele(item.date,item.modeleId);
+    if(item.degre) _pl2AppliquerDegre(item.date,item.degre);
+  });
+}
+function admGenererPlanning3(){
+  _admAppliquerDesignationsP3();
+  _pl2RafraichirTout();
+  toast('Planning 3 généré.');
 }
 function adminPlRenderMorceaux(cid,store2){
   cid=cid||'admin-pl-morceaux-list';
@@ -25821,7 +25852,7 @@ function adminPlRenderCriteres(){
   h+='<button onclick="plViderPlanning()" style="background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#E74C3C;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;padding:4px 12px;border-radius:4px;cursor:pointer;">🗑 Nouveau planning</button>';
   h+='</div></div>';
   // Dates bornes
-  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px;align-items:flex-end;">';
+  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px;align-items:flex-end;padding-top:18px;border-top:2mm solid var(--gold);">';
   h+='<div><label style="'+lblS+'">Date début</label>';
   h+='<input type="date" id="adm-crit-date-debut" value="'+(c.dateDebut||'')+'" onchange="admProposerDateFin();admCritSave();_admRafraichirCriteresTout();" style="'+inS+'"></div>';
   h+='<div><label style="'+lblS+'">Date fin</label>';
@@ -26026,8 +26057,18 @@ function adminPlRenderCriteresP2(cid){
   h+='</div>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues au 1° déjà présentes dans le planning, lesquelles passer au 2°. Par défaut : 2 tenues avant la tenue au 3° correspondante (ou 3 si indisponible).</div>';
   h+='</div>';
+  h+='<button onclick="admGenererPlanning2()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;margin-top:18px;">&#8594; Générer le Planning 2</button>';
   h+='</div>';
   el.innerHTML=h;
+}
+// Bouton « Générer le Planning 2 » — applique les Dates spéciales et
+// Tenues au 2° aux tenues déjà présentes dans Planning 2/3 (même logique
+// que ce qui se produit automatiquement à chaque (ré)affichage du
+// panneau, mais déclenché explicitement, comme « Générer le Planning 1 »).
+function admGenererPlanning2(){
+  _admAppliquerDesignationsP2();
+  if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
+  toast('Planning 2 généré.');
 }
 function admProposerDateFin(){
   var dD=document.getElementById('adm-crit-date-debut');
