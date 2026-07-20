@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.486-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.487-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24808,8 +24808,8 @@ function _pl2SelectModeles(val,onchg,cat){
 // tenue (appliqués à la tenue de Cérémonie) sont saisis à part.
 var PL2_CAND_KEY='planning2_candidatures';
 function pl2CandDefaut(){ return [
-  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleId:''},
-  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleId:''}
+  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleIdCourrier:'',modeleIdEnquete:'',modeleIdCeremonie:''},
+  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleIdCourrier:'',modeleIdEnquete:'',modeleIdCeremonie:''}
 ]; }
 function pl2CandLoad(){
   try{
@@ -24817,7 +24817,15 @@ function pl2CandLoad(){
     if(s){
       var d=JSON.parse(s);
       if(d&&d.length){
-        d.forEach(function(c){ if(c.nom===undefined)c.nom=''; if(c.modeleId===undefined)c.modeleId=''; });
+        d.forEach(function(c){
+          if(c.nom===undefined)c.nom='';
+          // v487 — un modèle distinct par tenue (Courrier/Enquête/Cérémonie) au
+          // lieu d'un seul champ modeleId appliqué uniquement à la Cérémonie.
+          // Migration : l'ancien modeleId unique devient le modèle de Cérémonie.
+          if(c.modeleIdCeremonie===undefined) c.modeleIdCeremonie=c.modeleId||'';
+          if(c.modeleIdCourrier===undefined) c.modeleIdCourrier='';
+          if(c.modeleIdEnquete===undefined) c.modeleIdEnquete='';
+        });
         return d;
       }
     }
@@ -24840,13 +24848,15 @@ function pl2CandChangerType(idx,val){
   if(cands[idx].enquete) _pl2Designer(cands[idx].enquete,cands[idx].enquete,pl2CandLabel(idx,'enquete',val,cands[idx].nom));
   _pl2RafraichirTout();
 }
+var PL2_CAND_MODELE_CHAMP={courrier:'modeleIdCourrier',enquete:'modeleIdEnquete',ceremonie:'modeleIdCeremonie'};
 function pl2CandChangerDate(idx,champ,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
   var ancienneDate=cands[idx][champ]||'';
   cands[idx][champ]=val;
   pl2CandSave(cands);
   _pl2Designer(ancienneDate,val,pl2CandLabel(idx,champ,cands[idx].type,cands[idx].nom));
-  if(champ==='ceremonie' && val && cands[idx].modeleId) _pl2AppliquerModele(val,cands[idx].modeleId);
+  var modeleId=cands[idx][PL2_CAND_MODELE_CHAMP[champ]];
+  if(val && modeleId) _pl2AppliquerModele(val,modeleId);
   _pl2RafraichirTout();
 }
 function pl2CandChangerNom(idx,val){
@@ -24858,11 +24868,11 @@ function pl2CandChangerNom(idx,val){
   });
   _pl2RafraichirTout();
 }
-function pl2CandChangerModele(idx,val){
+function pl2CandChangerModele(idx,champ,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
-  cands[idx].modeleId=val;
+  cands[idx][PL2_CAND_MODELE_CHAMP[champ]]=val;
   pl2CandSave(cands);
-  if(cands[idx].ceremonie) _pl2AppliquerModele(cands[idx].ceremonie,val);
+  if(cands[idx][champ]) _pl2AppliquerModele(cands[idx][champ],val);
   _pl2RafraichirTout();
 }
 function adminPl2RenderCandidatures(cid){
@@ -24895,12 +24905,14 @@ function adminPl2RenderCandidatures(cid){
     h+='<option value="autre"'+(!isProfane?' selected':'')+'>Autre (affiliation, régul., réint.)</option>';
     h+='</select></div>';
     h+='<div><label style="'+lblS+'">Nom du candidat</label><input type="text" value="'+(cand.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2CandChangerNom('+idx+',this.value)" style="'+inS+'"></div>';
-    h+='<div><label style="'+lblS+'">Modèle de tenue</label>'+_pl2SelectModeles(cand.modeleId,'pl2CandChangerModele('+idx+',this.value)')+'</div>';
     h+='</div>';
     h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;margin-top:10px;">';
-    h+='<div><label style="'+lblS+'">Courrier</label>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)','cand:'+idx+':courrier')+'</div>';
-    h+='<div><label style="'+lblS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</label>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)','cand:'+idx+':enquete')+'</div>';
-    h+='<div><label style="'+lblS+'">Cérémonie</label>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)','cand:'+idx+':ceremonie')+'</div>';
+    h+='<div><label style="'+lblS+'">Courrier</label>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)','cand:'+idx+':courrier');
+    h+='<div style="margin-top:6px;">'+_pl2SelectModeles(cand.modeleIdCourrier,'pl2CandChangerModele('+idx+',\'courrier\',this.value)','Candidatures')+'</div></div>';
+    h+='<div><label style="'+lblS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</label>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)','cand:'+idx+':enquete');
+    h+='<div style="margin-top:6px;">'+_pl2SelectModeles(cand.modeleIdEnquete,'pl2CandChangerModele('+idx+',\'enquete\',this.value)','Candidatures')+'</div></div>';
+    h+='<div><label style="'+lblS+'">Cérémonie</label>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)','cand:'+idx+':ceremonie');
+    h+='<div style="margin-top:6px;">'+_pl2SelectModeles(cand.modeleIdCeremonie,'pl2CandChangerModele('+idx+',\'ceremonie\',this.value)','Cérémonies')+'</div></div>';
     h+='</div></div>';
   });
   h+='</div>';
