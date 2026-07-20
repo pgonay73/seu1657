@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.537-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.538-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25604,23 +25604,66 @@ function plProposSave(arr){
   if(window.fbSet) window.fbSet(PL_PROPOS_KEY,arr);
   if(typeof _autoBackupSiDue==='function') _autoBackupSiDue();
 }
-// Dates de tenues (Planning 1) comportant un morceau d'architecture
-// (Planche/Symbolisme) dans leur détail — mêmes données que l'onglet
-// « Morceaux d'architecture ».
-function _plProposDatesMorceaux(){
-  var data=plLoad();
-  var evts=_plFiltrerParPeriode((data.events||[]).slice());
-  return evts.filter(function(e){
-    return _plPartiesEffectives(e).some(function(p){return isPlancheOuSym(p.nom);});
-  }).map(function(e){return e.date;}).filter(function(d){return !!d;})
-    .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
+// Type d'une place Planche/Symbolisme encore disponible : reprend
+// _plMorceauType (steps déjà choisis), et à défaut se rabat sur le nom brut
+// de la partie (« Planche » / « Symbolisme ») — la plupart des places pas
+// encore pourvues n'ont pas encore de plancheSteps/symDegres renseignés.
+function _plProposTypeSlot(p){
+  var t=typeof _plMorceauType==='function'?_plMorceauType(p):'';
+  if(t) return t;
+  var n=(p.nom||'').toLowerCase();
+  var hasP=n.indexOf('planche')>=0, hasS=n.indexOf('symbol')>=0;
+  if(hasS&&!hasP) return 'S';
+  if(hasP&&!hasS) return 'P';
+  return '';
 }
-// Exclut des options les dates déjà prises par une AUTRE proposition, tout
-// en gardant la valeur déjà choisie pour la proposition en cours.
+// Places Planche/Symbolisme encore disponibles par date, à partir des
+// mêmes données que Planning 4 (Planning 2/3/4, uniquement les places non
+// pourvues) : {date: {nbP, nbS, nbInd}}.
+function _plProposMorceauxParDate(){
+  var data=plLoad2();
+  var evts=_plFiltrerParPeriode((data.events||[]).slice());
+  var out={};
+  evts.forEach(function(e){
+    if(!e.date) return;
+    var dispo=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom)&&!p.conf&&!p.titre;});
+    if(!dispo.length) return;
+    var nbP=0,nbS=0,nbInd=0;
+    dispo.forEach(function(p){
+      var t=_plProposTypeSlot(p);
+      if(t==='P') nbP++; else if(t==='S') nbS++; else nbInd++;
+    });
+    out[e.date]={nbP:nbP,nbS:nbS,nbInd:nbInd};
+  });
+  return out;
+}
+// Libellé du nombre et type de places disponibles à une date (ex. « 1
+// planche », « 2 planches », « 1 symbolisme », « 1 planche, 1 symbolisme »).
+function _plProposLabelPlaces(info){
+  if(!info) return '';
+  var parts=[];
+  if(info.nbP) parts.push(info.nbP+' planche'+(info.nbP>1?'s':''));
+  if(info.nbS) parts.push(info.nbS+' symbolisme'+(info.nbS>1?'s':''));
+  if(info.nbInd) parts.push(info.nbInd+' place'+(info.nbInd>1?'s':''));
+  return parts.join(', ');
+}
+// Dates comportant au moins une place Planche/Symbolisme encore disponible
+// en Planning 4.
+function _plProposDatesMorceaux(){
+  return Object.keys(_plProposMorceauxParDate()).sort();
+}
+// Exclut des options les dates dont toutes les places disponibles sont déjà
+// prises par d'AUTRES propositions (une date à 2 planches peut ainsi
+// recevoir 2 propositions différentes avant de disparaître de la liste),
+// tout en gardant la valeur déjà choisie pour la proposition en cours.
 function _plProposDatesDisponibles(val,monId){
-  var prisesParAutres={};
-  plProposLoad().forEach(function(p){ if(p.id!==monId && p.date) prisesParAutres[p.date]=true; });
-  var d=_plProposDatesMorceaux().filter(function(ds){ return !prisesParAutres[ds]; });
+  var infos=_plProposMorceauxParDate();
+  var comptes={};
+  plProposLoad().forEach(function(p){ if(p.id!==monId && p.date) comptes[p.date]=(comptes[p.date]||0)+1; });
+  var d=Object.keys(infos).filter(function(ds){
+    var cap=infos[ds].nbP+infos[ds].nbS+infos[ds].nbInd;
+    return (comptes[ds]||0)<cap;
+  });
   if(val && d.indexOf(val)<0) d.push(val);
   return d.sort();
 }
@@ -25722,6 +25765,7 @@ function adminPlRenderPropositions(cid){
     return;
   }
   var props=plProposLoad();
+  var _plProposInfosDates=_plProposMorceauxParDate();
   var parFrere={};
   props.forEach(function(p){ if(!parFrere[p.frere]) parFrere[p.frere]=[]; parFrere[p.frere].push(p); });
   var inS='padding:6px 9px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12.5px;';
@@ -25782,10 +25826,11 @@ function adminPlRenderPropositions(cid){
           h+='</select>';
         }
         h+='</div>';
-        h+='<div style="width:130px;flex-shrink:0;"><select onchange="plProposChangerDate(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+        h+='<div style="width:190px;flex-shrink:0;"><select onchange="plProposChangerDate(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
         h+='<option value=""'+(!p.date?' selected':'')+'>-- Aucune --</option>';
         _plProposDatesDisponibles(p.date,p.id).forEach(function(ds){
-          h+='<option value="'+ds+'"'+(p.date===ds?' selected':'')+'>'+_plProposFmtDate(ds)+'</option>';
+          var _lblPlaces=_plProposLabelPlaces(_plProposInfosDates[ds]);
+          h+='<option value="'+ds+'"'+(p.date===ds?' selected':'')+'>'+_plProposFmtDate(ds)+(_lblPlaces?' — '+_lblPlaces:'')+'</option>';
         });
         h+='</select></div>';
         h+='<div style="width:44px;flex-shrink:0;"><select onchange="plProposChangerOrigine(&quot;'+p.id+'&quot;,this.value)" title="Origine du sujet : F = Frère (idée propre), L = Liste (banque de sujets)" style="'+inS+';width:100%;padding:6px 2px;text-align:center;">';
