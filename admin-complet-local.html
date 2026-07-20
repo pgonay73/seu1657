@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.494-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.495-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14250,8 +14250,7 @@ function renderOffice(n){
     c+='</div>';
     // ─ L1.B : Planning 2 — Détail des tenues (pour l'instant, copie conforme de Planning 1) ─
     c+='<div id="admin-pl-l1-sans" style="display:none;">';
-    c+='<div id="admin-pl2-candidatures"></div>';
-    c+='<div id="admin-pl2-initiations"></div>';
+    c+='<div id="admin-pl-panel-criteres-p2"></div>';
     c+='<div class="cfg-box" style="margin-top:18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 2 / Spécificité de la loge</h3>';
@@ -14264,7 +14263,9 @@ function renderOffice(n){
     c+='</div></div>';
     // ─ L1.B2 : Planning 3 (pour l'instant, copie conforme de Planning 2) ─
     c+='<div id="admin-pl-l1-planning3" style="display:none;">';
-    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<div id="admin-pl2-candidatures"></div>';
+    c+='<div id="admin-pl2-initiations"></div>';
+    c+='<div class="cfg-box" style="margin-top:18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 3</h3>';
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour l\'instant, copie conforme de Planning 2 (mêmes tenues, mêmes colonnes).</p>';
@@ -16561,8 +16562,8 @@ function adminPlL1Tab(name,btn){
     var mb=document.getElementById('admin-pl-tab-procedure');
     if(mb) adminPlTab('procedure',mb);
   }
-  if(name==='sans'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning2-list',true); adminPl2RenderCandidatures(); adminPl2RenderInitiations(); },0); }
-  if(name==='planning3'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning3-list',true); },0); }
+  if(name==='sans'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCriteresP2('admin-pl-panel-criteres-p2'); },0); }
+  if(name==='planning3'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning3-list',true); adminPl2RenderCandidatures(); adminPl2RenderInitiations(); },0); }
   if(name==='planning4'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderMorceaux('admin-pl-planning4-list',true); },0); }
   if(name==='planches'){
     var db=document.getElementById('admin-pl-tab-sujets');
@@ -24680,7 +24681,7 @@ function adminPlRenderCreation(cid,store2){
         h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);">';
         var _ferieP1=e.date?plJourFerie(e.date):'';
         var _dateExtra=store2?'':'if(typeof _admSuivreDeplacementDate3e===\'function\')_admSuivreDeplacementDate3e(&quot;'+e.id+'&quot;,&quot;'+(e.date||'')+'&quot;,this.value);';
-        var _critRefresh=store2?'':'if(typeof adminPlRenderCriteres===\'function\')adminPlRenderCriteres();';
+        var _critRefresh=store2?'':'if(typeof _admRafraichirCriteresTout===\'function\')_admRafraichirCriteresTout();';
         h+='<td style="padding:6px;"><div style="display:flex;align-items:center;gap:4px;"><input type="date" value="'+(e.date||'')+'" onchange="'+_dateExtra+'plChampSimpleChanger'+sfx+'(&quot;'+e.id+'&quot;,\'date\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;,'+(store2?'true':'false')+');'+_critRefresh+'" style="'+inpD+'width:100%;">'+(_ferieP1?'<span title="'+_ferieP1+'" style="font-size:13px;flex-shrink:0;">⚠️</span>':'')+'</div></td>';
         h+='<td style="padding:6px;"><input type="time" value="'+(e.heure||'')+'" onchange="plChampSimpleChanger'+sfx+'(&quot;'+e.id+'&quot;,\'heure\',this.value)" style="'+inpD+'width:100%;"></td>';
         h+='<td style="padding:6px;"><select onchange="plChampSimpleChanger'+sfx+'(&quot;'+e.id+'&quot;,\'degre\',this.value);adminPlRenderCreation(&quot;'+cid+'&quot;,'+(store2?'true':'false')+');" style="'+inpD+'width:100%;">';
@@ -25693,6 +25694,55 @@ function plImprimerSans(bornes){
   _printHtml(h,'Planning de la Loge — '+loge);
 }
 // ── Admin : Critères de sélection ─────────────────────────────────────────
+// v495 — Helpers partagés entre adminPlRenderCriteres() (Planning 1 :
+// bornes, jour/semaine, modèle par défaut, Tenues au 3°) et
+// adminPlRenderCriteresP2() (Planning 2 : Dates spéciales, Tenues au 2°),
+// pour que les deux panneaux, désormais dans des onglets différents,
+// puissent chacun calculer les mêmes exclusions croisées de dates.
+var _ADM_MFR_CRIT=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+function _fmtDateCrit(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+_ADM_MFR_CRIT[d.getMonth()]+' '+d.getFullYear(); }
+// Installation et Inspecteur peuvent partager la même date (fusion en
+// « Inspecteur + Installation ») — ils ne s'excluent donc pas l'un l'autre
+// dans les menus déroulants, contrairement aux autres paires.
+function _admPeuventPartagerDate(id1,id2){
+  var paire={'spec:dateInstallation':1,'spec:dateInspecteur':1};
+  return !!(paire[id1] && paire[id2]);
+}
+// Options d'un menu déroulant : dates disponibles moins celles déjà prises
+// par une autre désignation (tous panneaux confondus, via
+// _admListeDesignations), en garantissant que la valeur déjà enregistrée
+// pour CE menu reste toujours proposée (et donc conservée à l'enregistrement
+// suivant), même si elle sort par ailleurs de la liste des dates disponibles.
+function _admOptionsDisponibles(c, dates, val, monId){
+  var prisesParAutres={};
+  _admListeDesignations(c).forEach(function(x){
+    if(x.id===monId || _admPeuventPartagerDate(monId,x.id)) return;
+    prisesParAutres[x.date]=true;
+  });
+  var d=dates.filter(function(ds){ return !prisesParAutres[ds]; });
+  if(val && d.indexOf(val)<0) d.push(val);
+  return d.sort();
+}
+// Dates de tenues au 1° disponibles pour les désignations (Dates spéciales,
+// Tenues au 2°/3°) : tenues déjà présentes dans le planning + dates
+// théoriques de récurrence, dans les bornes définies.
+function _admPlanDatesDisponibles(c){
+  return (plLoad().events||[])
+    .filter(function(e){ return (e.degre||'1°')==='1°'; })
+    .map(function(e){return e.date;}).filter(function(d){return !!d;})
+    .concat(_admDatesRecurrentes(c))
+    .filter(function(d){ if(c.dateDebut&&d<c.dateDebut) return false; if(c.dateFin&&d>c.dateFin) return false; return true; })
+    .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
+}
+// Rafraîchit les deux panneaux de critères (Planning 1 et Planning 2) — les
+// deux se partagent le même stockage (plCriteresLoad) et les mêmes
+// exclusions croisées de dates ; un changement dans l'un doit se refléter
+// dans l'autre, même s'il n'est pas l'onglet actuellement affiché (les deux
+// panneaux existent en permanence dans la page, seulement masqués).
+function _admRafraichirCriteresTout(){
+  if(typeof adminPlRenderCriteres==='function') adminPlRenderCriteres();
+  if(typeof adminPlRenderCriteresP2==='function') adminPlRenderCriteresP2();
+}
 function adminPlRenderCriteres(){
   var el=document.getElementById('admin-pl-panel-criteres');
   if(!el) return;
@@ -25715,14 +25765,14 @@ function adminPlRenderCriteres(){
   // Dates bornes
   h+='<div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:22px;align-items:flex-end;">';
   h+='<div><label style="'+lblS+'">Date début</label>';
-  h+='<input type="date" id="adm-crit-date-debut" value="'+(c.dateDebut||'')+'" onchange="admProposerDateFin();admCritSave();adminPlRenderCriteres();" style="'+inS+'"></div>';
+  h+='<input type="date" id="adm-crit-date-debut" value="'+(c.dateDebut||'')+'" onchange="admProposerDateFin();admCritSave();_admRafraichirCriteresTout();" style="'+inS+'"></div>';
   h+='<div><label style="'+lblS+'">Date fin</label>';
-  h+='<input type="date" id="adm-crit-date-fin" value="'+(c.dateFin||'')+'" onchange="admCritSave();adminPlRenderCriteres();" style="'+inS+'"></div>';
+  h+='<input type="date" id="adm-crit-date-fin" value="'+(c.dateFin||'')+'" onchange="admCritSave();_admRafraichirCriteresTout();" style="'+inS+'"></div>';
   h+='</div>';
   // Jour + semaines
   h+='<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;margin-bottom:22px;padding-top:18px;border-top:2mm solid var(--gold);">';
   h+='<div><label style="'+lblS+'">Jour de la semaine</label>';
-  h+='<select id="adm-crit-jour" onchange="admCritSave();" style="'+inS+'">';
+  h+='<select id="adm-crit-jour" onchange="admCritSave();_admRafraichirCriteresTout();" style="'+inS+'">';
   for(var i=0;i<joursOpts.length;i++){
     h+='<option value="'+joursOpts[i].v+'"'+(c.jour===joursOpts[i].v?' selected':'')+'>'+joursOpts[i].l+'</option>';
   }
@@ -25764,58 +25814,9 @@ function adminPlRenderCriteres(){
   h+='</select>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé lors de la génération automatique des tenues.</div>';
   h+='</div>';
-  // Dates spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
-  // on désigne, via un menu déroulant, laquelle des tenues déjà présentes
-  // dans le planning correspond à chacune.
-  var _mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
-  function _fmtDateCrit(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+_mFrCrit[d.getMonth()]+' '+d.getFullYear(); }
-  var _planDates=(plLoad().events||[])
-    .filter(function(e){ return (e.degre||'1°')==='1°'; })
-    .map(function(e){return e.date;}).filter(function(d){return !!d;})
-    .filter(function(d){ if(c.dateDebut&&d<c.dateDebut) return false; if(c.dateFin&&d>c.dateFin) return false; return true; })
-    .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
+  var _planDates=_admPlanDatesDisponibles(c);
   var _dates5=_admDates5emeSemaine();
   var _ov3=c.datesTroisiemeOverrides||{};
-  function _admToutesDesignations(){ return _admListeDesignations(c); }
-  // Installation et Inspecteur peuvent partager la même date (fusion en
-  // « Inspecteur + Installation ») — ils ne s'excluent donc pas l'un
-  // l'autre dans les menus déroulants, contrairement aux autres paires.
-  function _admPeuventPartagerDate(id1,id2){
-    var paire={'spec:dateInstallation':1,'spec:dateInspecteur':1};
-    return !!(paire[id1] && paire[id2]);
-  }
-  // Options d'un menu déroulant : dates disponibles moins celles déjà
-  // prises par une autre désignation, en garantissant que la valeur déjà
-  // enregistrée pour CE menu reste toujours proposée (et donc conservée à
-  // l'enregistrement suivant), même si elle sort par ailleurs de la liste
-  // des dates disponibles (bornes resserrées, tenue repassée à un autre
-  // degré, etc.).
-  function _admOptionsDisponibles(dates, val, monId){
-    var prisesParAutres={};
-    _admToutesDesignations().forEach(function(x){
-      if(x.id===monId || _admPeuventPartagerDate(monId,x.id)) return;
-      prisesParAutres[x.date]=true;
-    });
-    var d=dates.filter(function(ds){ return !prisesParAutres[ds]; });
-    if(val && d.indexOf(val)<0) d.push(val);
-    return d.sort();
-  }
-  h+='<div style="margin-bottom:22px;padding-top:18px;border-top:2mm solid var(--gold);">';
-  h+='<label style="'+lblS+'margin-bottom:12px;">Dates spéciales (impératif)</label>';
-  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
-  ADM_DATES_SPECIALES.forEach(function(sp){
-    var valSp=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
-    h+='<div><label style="'+lblS+'">'+sp.titre+'</label>';
-    h+='<select id="'+sp.champ+'" data-touched="'+(c[sp.key]?'1':'0')+'" onchange="this.setAttribute(&quot;data-touched&quot;,&quot;1&quot;);admCritSave();adminPlRenderCriteres();" style="'+inS+';min-width:160px;">';
-    h+='<option value="">-- Aucune --</option>';
-    _admOptionsDisponibles(_planDates,valSp,'spec:'+sp.key).forEach(function(ds){
-      h+='<option value="'+ds+'"'+(valSp===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
-    });
-    h+='</select></div>';
-  });
-  h+='</div>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues déjà présentes dans le planning, laquelle correspond à chacune de ces tenues-clés.</div>';
-  h+='</div>';
   // Tenues au 3° issues de la 5e semaine du mois : date calculée
   // automatiquement, modifiable au besoin.
   var _mFrLong=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -25830,9 +25831,9 @@ function adminPlRenderCriteres(){
       var _an=d5.mois.split('-')[0];
       var val=_ov3[d5.mois]||d5.date;
       h+='<div><label style="'+lblS+'">'+_mFrLong[_mo]+' '+_an+'</label>';
-      h+='<select data-mois="'+d5.mois+'" data-touched="'+(_ov3[d5.mois]?'1':'0')+'" class="adm-crit-3e-date" onchange="this.setAttribute(&quot;data-touched&quot;,&quot;1&quot;);admCritSave();adminPlRenderCriteres();" style="'+inS+';min-width:160px;">';
+      h+='<select data-mois="'+d5.mois+'" data-touched="'+(_ov3[d5.mois]?'1':'0')+'" class="adm-crit-3e-date" onchange="this.setAttribute(&quot;data-touched&quot;,&quot;1&quot;);admCritSave();_admRafraichirCriteresTout();" style="'+inS+';min-width:160px;">';
       h+='<option value="">-- Aucune --</option>';
-      _admOptionsDisponibles(_planDates,val,'3e:'+d5.mois).forEach(function(ds){
+      _admOptionsDisponibles(c,_planDates,val,'3e:'+d5.mois).forEach(function(ds){
         h+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
       });
       h+='</select></div>';
@@ -25841,34 +25842,73 @@ function adminPlRenderCriteres(){
     h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Date calculée automatiquement (5e occurrence du jour choisi) ; modifiable si besoin. Actif uniquement si « 5e semaine → 3° » est cochée ci-dessus.</div>';
   }
   h+='</div>';
+  h+='<div style="margin-bottom:22px;">';
+  h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Générer le Planning 1</button>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères annuels ci-dessus et les ajoute au Planning 1. Les dates déjà présentes ne sont pas écrasées.</div>';
+  h+='</div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+// v495 — Dates spéciales (Installation, Inspecteur, St Jean d'hiver,
+// Élection) et Tenues au 2°, déplacées de Planning 1 vers Planning 2 :
+// mêmes données (plCriteresLoad/admCritSave), même logique d'exclusion
+// croisée de dates (partagée via les helpers globaux ci-dessus), mais
+// affichées dans le panneau de Planning 2 plutôt que dans Critères annuels.
+function adminPlRenderCriteresP2(cid){
+  cid=cid||'admin-pl-panel-criteres-p2';
+  var el=document.getElementById(cid);
+  if(!el) return;
+  var c=plCriteresLoad();
+  var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
+  var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
+  var _planDates=_admPlanDatesDisponibles(c);
+  var _dates5=_admDates5emeSemaine();
+  var _ov3=c.datesTroisiemeOverrides||{};
+  var h='<div class="cfg-box">';
+  h+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 18px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Critères annuels — Dates spéciales &amp; Tenues au 2°</h3>';
+  // Dates spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
+  // on désigne, via un menu déroulant, laquelle des tenues déjà présentes
+  // dans le planning correspond à chacune.
+  h+='<div style="margin-bottom:22px;">';
+  h+='<label style="'+lblS+'margin-bottom:12px;">Dates spéciales (impératif)</label>';
+  h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
+  ADM_DATES_SPECIALES.forEach(function(sp){
+    var valSp=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
+    h+='<div><label style="'+lblS+'">'+sp.titre+'</label>';
+    h+='<select id="'+sp.champ+'" data-touched="'+(c[sp.key]?'1':'0')+'" onchange="this.setAttribute(&quot;data-touched&quot;,&quot;1&quot;);admCritSave();_admRafraichirCriteresTout();" style="'+inS+';min-width:160px;">';
+    h+='<option value="">-- Aucune --</option>';
+    _admOptionsDisponibles(c,_planDates,valSp,'spec:'+sp.key).forEach(function(ds){
+      h+='<option value="'+ds+'"'+(valSp===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
+    });
+    h+='</select></div>';
+  });
+  h+='</div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues déjà présentes dans le planning, laquelle correspond à chacune de ces tenues-clés.</div>';
+  h+='</div>';
   // Tenues au 2°, désignées via menu déroulant parmi les dates disponibles
   // (mêmes dates que pour les dates spéciales : tenues au 1° dans les
   // bornes) — associées positionnellement aux tenues au 3° : par défaut,
   // 2 tenues avant la tenue au 3° correspondante si disponible, sinon 3.
   var _dates3eListe=_dates5.map(function(d5){ return _ov3[d5.mois]||d5.date; });
-  h+='<div style="margin-bottom:22px;padding-top:18px;border-top:2mm solid var(--gold);">';
+  h+='<div style="margin-bottom:0;padding-top:18px;border-top:2mm solid var(--gold);">';
   h+='<label style="'+lblS+'margin-bottom:12px;">Tenues au 2° (conseillé)</label>';
   h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
   ADM_DATES_2EME.forEach(function(sp,idx2e){
     var monId='2e:'+sp.key;
     var prisesParAutres={};
-    _admToutesDesignations().forEach(function(x){ if(x.id!==monId) prisesParAutres[x.date]=true; });
+    _admListeDesignations(c).forEach(function(x){ if(x.id!==monId) prisesParAutres[x.date]=true; });
     var defautSp=_admDate2emeParDefaut(_dates3eListe[idx2e],prisesParAutres);
     var valSp=c[sp.key]||defautSp;
     h+='<div><label style="'+lblS+'">'+sp.titre+'</label>';
-    h+='<select id="'+sp.champ+'" data-touched="'+(c[sp.key]?'1':'0')+'" onchange="this.setAttribute(&quot;data-touched&quot;,&quot;1&quot;);admCritSave();adminPlRenderCriteres();" style="'+inS+';min-width:160px;">';
+    h+='<select id="'+sp.champ+'" data-touched="'+(c[sp.key]?'1':'0')+'" onchange="this.setAttribute(&quot;data-touched&quot;,&quot;1&quot;);admCritSave();_admRafraichirCriteresTout();" style="'+inS+';min-width:160px;">';
     h+='<option value="">-- Aucune --</option>';
-    _admOptionsDisponibles(_planDates,valSp,monId).forEach(function(ds){
+    _admOptionsDisponibles(c,_planDates,valSp,monId).forEach(function(ds){
       h+='<option value="'+ds+'"'+(valSp===ds?' selected':'')+'>'+_fmtDateCrit(ds)+'</option>';
     });
     h+='</select></div>';
   });
   h+='</div>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues au 1° déjà présentes dans le planning, lesquelles passer au 2°. Par défaut : 2 tenues avant la tenue au 3° correspondante (ou 3 si indisponible).</div>';
-  h+='</div>';
-  h+='<div style="margin-bottom:22px;">';
-  h+='<button onclick="admTransfererAuPlanning()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;">&#8594; Générer le Planning 1</button>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Génère toutes les tenues correspondant aux critères annuels ci-dessus et les ajoute au Planning 1. Les dates déjà présentes ne sont pas écrasées.</div>';
   h+='</div>';
   h+='</div>';
   el.innerHTML=h;
@@ -26052,6 +26092,49 @@ function _admSequenceOccurrences(){
     else cur=new Date(y,mo+1,1);
   }
   return out;
+}
+// Calcule, uniquement à partir des critères de récurrence (jour de semaine,
+// semaines du mois, bornes de dates), la liste des dates théoriquement
+// disponibles pour les tenues au 1° — indépendamment du fait que ces tenues
+// aient déjà été générées dans le planning ou non. Même logique que la
+// génération dans admTransfererAuPlanning(), sans créer aucune tenue : sert
+// à proposer des dates dans les menus déroulants (Dates spéciales, Tenues au
+// 2°...) dès que les bornes/le jour sont renseignés, sans attendre un clic
+// sur « Générer le Planning 1 ».
+function _admDatesRecurrentes(c){
+  var dates=[];
+  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
+  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
+  var semaines=c.semaines||[];
+  if(!perDeb||!perFin||jourCrit<0) return dates;
+  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+  var cur=new Date(debut.getTime());
+  while(cur<=fin){
+    var y=cur.getFullYear(), mo=cur.getMonth();
+    var occs=[];
+    for(var day=1;day<=31;day++){
+      var dd=new Date(y,mo,day);
+      if(dd.getMonth()!==mo) break;
+      var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+      if(js===jourCrit) occs.push(new Date(dd.getTime()));
+    }
+    for(var oi=0;oi<occs.length;oi++){
+      var occ=occs[oi], numSem=oi+1, include=(semaines.length===0);
+      if(!include){
+        for(var si=0;si<semaines.length;si++){
+          if(semaines[si]===5){ if(numSem===5&&occs.length===5) include=true; }
+          else { if(semaines[si]===numSem) include=true; }
+        }
+      }
+      if(include&&occ>=debut&&occ<=fin){
+        var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
+        dates.push(ds);
+      }
+    }
+    if(mo===11) cur=new Date(y+1,0,1);
+    else cur=new Date(y,mo+1,1);
+  }
+  return dates;
 }
 // Calcule la date par défaut d'une tenue-clé (Installation, Inspecteur,
 // St Jean, Élection) : la N-ième occurrence (rang) du jour de semaine
@@ -26296,7 +26379,7 @@ function admTransfererAuPlanning(){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
     if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
-    if(typeof adminPlRenderCriteres==='function') adminPlRenderCriteres();
+    if(typeof _admRafraichirCriteresTout==='function') _admRafraichirCriteresTout();
     var msg='';
     if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';
     if(titreAj>0) msg+=(msg?' ':'')+titreAj+' tenue'+(titreAj>1?'s':'')+' spéciale'+(titreAj>1?'s':'')+' désignée'+(titreAj>1?'s':'')+'.';
