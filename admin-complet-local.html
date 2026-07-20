@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.505-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.506-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -3340,17 +3340,23 @@ function peRender(cid,parties){
         h+='</select>';
         h+='</div>';
       } else if((p.nom||'').toLowerCase().trim()==='planche'||(p.nom||'').toLowerCase().trim()==='planche et symbolisme'||(p.nom||'').toLowerCase().indexOf('morceau')>=0||(p.nom||'').toLowerCase().indexOf('architecture')>=0){
+        var plancheUnique=!!p.plancheUnique;
+        var plType=plancheUnique?'radio':'checkbox';
+        var plName=plancheUnique?' name="pe-planche-radio-'+i+'"':'';
         h+='<div style="width:100%;margin-top:4px;">';
         // Ligne 1 : Planche (15) et Minute de symbolisme (10)
-        h+='<div style="font-size:11px;color:var(--grey);font-weight:600;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+        h+='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px;">';
+        h+='<div style="font-size:11px;color:var(--grey);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Type</div>';
+        h+='<label style="font-size:11px;color:var(--grey);display:flex;align-items:center;gap:4px;cursor:pointer;" title="Un seul type sélectionnable à la fois, une fois figé."><input type="checkbox" class="pe-planche-unique" data-pe-idx="'+i+'" '+(plancheUnique?'checked':'')+' style="margin-right:2px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheUniqueToggle(this)">'+(plancheUnique?'🔒':'🔓')+' Un seul choix</label>';
+        h+='</div>';
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="symbolisme" data-dur="5" '+(plancheSteps.indexOf('symbolisme')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Symbolisme (5 min)</label>';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="planche" data-dur="10" '+(plancheSteps.indexOf('planche')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Planche (10 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+plType+'" class="pe-planche-cb" value="symbolisme" data-dur="5"'+plName+' '+(plancheSteps.indexOf('symbolisme')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Symbolisme (5 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+plType+'" class="pe-planche-cb" value="planche" data-dur="10"'+plName+' '+(plancheSteps.indexOf('planche')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Planche (10 min)</label>';
         h+='</div>';
         // Ligne 2 : Impressions et Passage+vote
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="impressions" data-dur="10" '+(plancheSteps.indexOf('impressions')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Impressions (10 min)</label>';
-        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-planche-cb" value="passage-vote" data-dur="30" '+(plancheSteps.indexOf('passage-vote')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Passage + vote (30 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+plType+'" class="pe-planche-cb" value="impressions" data-dur="10"'+plName+' '+(plancheSteps.indexOf('impressions')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Impressions (10 min)</label>';
+        h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="'+plType+'" class="pe-planche-cb" value="passage-vote" data-dur="30"'+plName+' '+(plancheSteps.indexOf('passage-vote')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="pePlancheChange(this)">Passage + vote (30 min)</label>';
         h+='</div>';
         // Ligne 3 : Parole
         h+='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px;">';
@@ -3738,9 +3744,11 @@ function peGet(cid){
     // Député : cases à cocher
     var deputeSteps=[];
     rs[i].querySelectorAll('.pe-dep-cb:checked').forEach(function(cb){deputeSteps.push(cb.value);});
-    // Planche/Architecture : cases à cocher
+    // Planche/Architecture : cases à cocher (ou boutons radio si figé sur un seul choix)
     var plancheSteps=[];
     rs[i].querySelectorAll('.pe-planche-cb:checked').forEach(function(cb){plancheSteps.push(cb.value);});
+    var plancheUniqueEl=rs[i].querySelector('.pe-planche-unique');
+    var plancheUnique=plancheUniqueEl?plancheUniqueEl.checked:false;
     // Élections : cases à cocher
     var elecSteps=[];
     rs[i].querySelectorAll('.pe-elec-cb:checked').forEach(function(cb){elecSteps.push(cb.value);});
@@ -3781,7 +3789,7 @@ function peGet(cid){
       cerVals.push(cb.value);
       if(cerStd.indexOf(cb.value)<0) cerCust.push(cb.value);
     });
-    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets,elecSteps:elecSteps,instSteps:instSteps,interSteps:interSteps,interSujet:interSujet,interIntervenant:interIntervenant,cerCardSteps:cerCardSteps,reunSteps:reunSteps});
+    r.push({nom:nomEl?nomEl.value:'',dur:parseInt(durEl?durEl.value:0)||0,titre:titreEl?titreEl.value:'',conf:confEl?confEl.value:'',nomProfane:nomProfaneEl?nomProfaneEl.value:'',profSteps:profSteps,profAutre:profAutreEl?profAutreEl.value:'',nomAffilie:nomAffilieEl?nomAffilieEl.value:'',affSteps:affSteps,choixCeremonie:cerVals,cerCustom:cerCust,tenueSpec:tenueSpec,initDegre:initDegre,initNom:initNom,symDegres:symDegres,plancheSteps:plancheSteps,plancheUnique:plancheUnique,circulParole:circulParole,collegeSteps:collegeSteps,vmSteps:vmSteps,deputeSteps:deputeSteps,caOdj:caOdjEl?caOdjEl.value:'',caSujets:caSujets,elecSteps:elecSteps,instSteps:instSteps,interSteps:interSteps,interSujet:interSujet,interIntervenant:interIntervenant,cerCardSteps:cerCardSteps,reunSteps:reunSteps});
   }
   return r;
 }
@@ -4122,6 +4130,30 @@ function pePlancheChange(cb){
   peTotalUpdate();
   var list=row.closest('.pe-list');
   if(list&&list.id==='pe-defaut')peSaveDefaut();
+}
+// Bascule le groupe "Type" (Symbolisme/Planche/Impressions/Passage+vote)
+// d'une partie Planche/Morceau d'architecture entre plusieurs choix
+// possibles (cases à cocher) et un seul choix figé (boutons radio) : une
+// fois figé, une seule valeur peut être sélectionnée à la fois.
+function pePlancheUniqueToggle(toggle){
+  var row=toggle.closest('.pe-row');
+  var boxes=Array.prototype.slice.call(row.querySelectorAll('.pe-planche-cb'));
+  var idx=toggle.getAttribute('data-pe-idx')||('u'+Date.now());
+  if(toggle.checked){
+    // Repère la première case déjà cochée AVANT toute conversion : passer
+    // plusieurs cases cochées en boutons radio du même groupe déclenche
+    // sinon des décochages automatiques du navigateur, dans un ordre
+    // imprévisible.
+    var keepIdx=-1;
+    for(var bi=0;bi<boxes.length;bi++){ if(boxes[bi].checked){ keepIdx=bi; break; } }
+    boxes.forEach(function(b){ b.checked=false; b.type='radio'; b.name='pe-planche-radio-'+idx; });
+    if(keepIdx>=0) boxes[keepIdx].checked=true;
+  } else {
+    boxes.forEach(function(b){ b.type='checkbox'; b.removeAttribute('name'); });
+  }
+  var lbl=toggle.closest('label');
+  if(lbl && lbl.childNodes[1]) lbl.childNodes[1].textContent=(toggle.checked?'🔒':'🔓')+' Un seul choix';
+  pePlancheChange(toggle);
 }
 function peProfChange(cb){peStepsChange(cb,'.pe-prof-cb');}
 
