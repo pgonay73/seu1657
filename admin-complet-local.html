@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.489-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.490-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24874,6 +24874,11 @@ function pl2CandChangerModele(idx,champ,val){
   cands[idx][PL2_CAND_MODELE_CHAMP[champ]]=val;
   pl2CandSave(cands);
   if(cands[idx][champ]) _pl2AppliquerModele(cands[idx][champ],val);
+  // La tenue de Cérémonie d'une candidature n'est jamais un Jubilé/St Jean/
+  // Tenue funèbre : on retire cette partie générique "Type de cérémonie" du
+  // détail, qu'elle vienne du modèle appliqué ci-dessus ou d'une saisie
+  // antérieure — l'étape de candidature (case juste en dessous) suffit.
+  if(champ==='ceremonie' && cands[idx].ceremonie) _pl2CandRetirerTypeCeremonie(cands[idx].ceremonie);
   _pl2RafraichirTout();
 }
 // Étape de la tenue de Cérémonie (Candidature) : trouve (ou crée) la partie
@@ -24885,6 +24890,18 @@ function _pl2CandTrouverPartieProfane(ev){
   var part=ev.detail.filter(function(p){return isProfane(p.nom);})[0];
   if(!part){ part={nom:'PROFANE',dur:15,profSteps:[]}; ev.detail.push(part); }
   return part;
+}
+// Retire du détail d'une tenue la partie générique "Type de cérémonie"
+// (Jubilé / St Jean / Tenue funèbre / Préparation) : sans objet pour une
+// tenue de Cérémonie de Candidature.
+function _pl2CandRetirerTypeCeremonie(ds){
+  if(!ds) return;
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.date===ds;})[0];
+  if(!ev||!ev.detail||!ev.detail.length) return;
+  var avant=ev.detail.length;
+  ev.detail=ev.detail.filter(function(p){return !isCeremonie(p.nom);});
+  if(ev.detail.length!==avant){ ev._pl2Touche=true; plSave2(data); }
 }
 function _pl2CandEtapeCeremonie(ds){
   if(!ds) return '';
@@ -24904,6 +24921,7 @@ function pl2CandChangerEtapeCeremonie(idx,val){
   var durEtape={candidature:15,enquete:15,bandeau:30,ceremonie:30};
   part.profSteps=val?[val]:[];
   if(val) part.dur=durEtape[val];
+  ev.detail=ev.detail.filter(function(p){return p===part||!isCeremonie(p.nom);});
   ev._pl2Touche=true;
   plSave2(data);
   _pl2RafraichirTout();
