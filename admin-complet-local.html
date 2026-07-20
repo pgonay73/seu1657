@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.495-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.496-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25849,15 +25849,73 @@ function adminPlRenderCriteres(){
   h+='</div>';
   el.innerHTML=h;
 }
+// v496 — Applique les désignations Dates spéciales / Tenues au 2° aux
+// tenues déjà présentes dans le magasin de Planning 2/3 (plLoad2), en
+// miroir de ce que faisait auparavant admTransfererAuPlanning() pour
+// Planning 1 — mais SANS créer de nouvelle tenue (Planning 2 ne génère
+// rien : il ne fait que désigner des tenues déjà là, comme Candidatures/
+// Initiations). Marque _pl2Touche pour protéger la désignation d'un
+// écrasement ultérieur par la synchronisation depuis Planning 1.
+function _admAppliquerDesignationsP2(){
+  var c=plCriteresLoad()||{};
+  var data=plLoad2(); if(!data.events) data.events=[];
+  var titreAj=0, modAj=0, deg2Aj=0;
+
+  var _dInstall=c.dateInstallation||_admDateOccurrence(9,2), _dInspect=c.dateInspecteur||_admDateOccurrence(9,2);
+  var _memeDateInstallInspect=!!(_dInstall && _dInstall===_dInspect);
+  var _modCombine=_memeDateInstallInspect?_admModeleParMotsCles(['inspecteur','installation']):null;
+  var _titreCombine='Inspecteur + Installation Collège + VM + Député';
+  ADM_DATES_SPECIALES.forEach(function(sp){
+    var ds=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
+    if(!ds) return;
+    var ev=data.events.filter(function(e){return e.date===ds;})[0];
+    if(!ev) return;
+    var estInstallOuInspect=(sp.key==='dateInstallation'||sp.key==='dateInspecteur');
+    var titreAppliq=(_memeDateInstallInspect&&estInstallOuInspect)?_titreCombine:sp.titre;
+    var modTrouve=(_memeDateInstallInspect&&estInstallOuInspect)?_modCombine:_admModeleParMotsCles(sp.motsCles);
+    if(ev.titre!==titreAppliq){ ev.titre=titreAppliq; ev._pl2Touche=true; titreAj++; }
+    if(modTrouve && ev.modeleId!==modTrouve.id){ ev.modeleId=modTrouve.id; ev.detail=[]; ev._pl2Touche=true; modAj++; }
+  });
+
+  var mdef2=getModeleParDegre('2°');
+  var _dates5T=_admDates5emeSemaine();
+  var _ov3T=c.datesTroisiemeOverrides||{};
+  var _dates3eListeT=_dates5T.map(function(d5){ return _ov3T[d5.mois]||d5.date; });
+  ADM_DATES_2EME.forEach(function(sp,idx2eT){
+    var monId='2e:'+sp.key;
+    var ds=c[sp.key]||'';
+    if(!ds){
+      var prises={};
+      _admListeDesignations(c).forEach(function(x){ if(x.id!==monId) prises[x.date]=true; });
+      ds=_admDate2emeParDefaut(_dates3eListeT[idx2eT], prises);
+    }
+    if(!ds) return;
+    var ev=data.events.filter(function(e){return e.date===ds;})[0];
+    if(ev && ev.degre!=='2°'){
+      ev.degre='2°';
+      if(mdef2){ ev.modeleId=mdef2.id; ev.titre=mdef2.nom; ev.detail=[]; }
+      ev._pl2Touche=true;
+      deg2Aj++;
+    }
+  });
+
+  if(titreAj>0||modAj>0||deg2Aj>0){
+    plSave2(data);
+    if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
+  }
+}
 // v495 — Dates spéciales (Installation, Inspecteur, St Jean d'hiver,
 // Élection) et Tenues au 2°, déplacées de Planning 1 vers Planning 2 :
 // mêmes données (plCriteresLoad/admCritSave), même logique d'exclusion
 // croisée de dates (partagée via les helpers globaux ci-dessus), mais
 // affichées dans le panneau de Planning 2 plutôt que dans Critères annuels.
+// S'applique aux tenues de Planning 2/3 dès que ce panneau est
+// (ré)affiché (voir _admAppliquerDesignationsP2).
 function adminPlRenderCriteresP2(cid){
   cid=cid||'admin-pl-panel-criteres-p2';
   var el=document.getElementById(cid);
   if(!el) return;
+  if(typeof _admAppliquerDesignationsP2==='function') _admAppliquerDesignationsP2();
   var c=plCriteresLoad();
   var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
   var lblS='display:block;font-size:11px;color:var(--grey);margin-bottom:5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
@@ -26287,65 +26345,14 @@ function admTransfererAuPlanning(){
   var existByDate={};
   data.events.forEach(function(e){existByDate[e.date]=true;});
 
-  var added=0, skipped=0, updated=0, heureAj=0, specAj=0, titreAj=0, modAj=0;
+  var added=0, skipped=0, updated=0, heureAj=0;
 
-  // Tenues spéciales (Installation, Inspecteur, St Jean d'hiver, Élection) :
-  // la date est choisie parmi les tenues déjà présentes dans le planning
-  // (menu déroulant), on marque donc cette tenue comme étant la tenue-clé
-  // désignée (titre imposé), on complète l'heure si elle manquait, et on
-  // lui applique le modèle de tenue correspondant. Si Installation et
-  // Inspecteur tombent à la même date, on utilise le modèle combiné
-  // "Inspecteur + Installation" plutôt que les modèles individuels.
-  var _dInstall=c.dateInstallation||_admDateOccurrence(9,2), _dInspect=c.dateInspecteur||_admDateOccurrence(9,2);
-  var _memeDateInstallInspect=!!(_dInstall && _dInstall===_dInspect);
-  var _modCombine=_memeDateInstallInspect?_admModeleParMotsCles(['inspecteur','installation']):null;
-  var _titreCombine='Inspecteur + Installation Collège + VM + Député';
-  ADM_DATES_SPECIALES.forEach(function(sp){
-    var ds=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
-    if(!ds) return;
-    var estInstallOuInspect=(sp.key==='dateInstallation'||sp.key==='dateInspecteur');
-    var titreAppliq=(_memeDateInstallInspect&&estInstallOuInspect)?_titreCombine:sp.titre;
-    var ev=data.events.filter(function(e){return e.date===ds;})[0];
-    var modTrouve=(_memeDateInstallInspect&&estInstallOuInspect)?_modCombine:_admModeleParMotsCles(sp.motsCles);
-    if(ev){
-      if(!ev.heure){ ev.heure=heure; heureAj++; }
-      if(ev.titre!==titreAppliq){ ev.titre=titreAppliq; titreAj++; }
-      if(modTrouve && ev.modeleId!==modTrouve.id){ ev.modeleId=modTrouve.id; ev.detail=[]; modAj++; }
-    } else {
-      data.events.push({
-        id:'pl'+Date.now()+'_'+sp.key, date:ds, heure:heure, titre:titreAppliq,
-        degre:'1°', modeleId:modTrouve?modTrouve.id:(mdef?mdef.id:''), detail:[]
-      });
-      existByDate[ds]=true;
-      added++; specAj++;
-    }
-  });
-
-  // Tenues au 2°, désignées via menu déroulant : la tenue au 1° existant à
-  // cette date passe au 2°, avec le modèle de tenue correspondant. À
-  // défaut de sélection explicite, on propose 2 tenues avant la tenue au
-  // 3° correspondante (positionnellement) si disponible, sinon 3.
-  var deg2Aj=0;
-  var mdef2=getModeleParDegre('2°');
-  var _dates5T=_admDates5emeSemaine();
-  var _ov3T=c.datesTroisiemeOverrides||{};
-  var _dates3eListeT=_dates5T.map(function(d5){ return _ov3T[d5.mois]||d5.date; });
-  ADM_DATES_2EME.forEach(function(sp,idx2eT){
-    var monId='2e:'+sp.key;
-    var ds=c[sp.key]||'';
-    if(!ds){
-      var prises={};
-      _admListeDesignations(c).forEach(function(x){ if(x.id!==monId) prises[x.date]=true; });
-      ds=_admDate2emeParDefaut(_dates3eListeT[idx2eT], prises);
-    }
-    if(!ds) return;
-    var ev=data.events.filter(function(e){return e.date===ds;})[0];
-    if(ev && ev.degre!=='2°'){
-      ev.degre='2°';
-      if(mdef2){ ev.modeleId=mdef2.id; ev.titre=mdef2.nom; ev.detail=[]; }
-      deg2Aj++;
-    }
-  });
+  // v496 — Dates spéciales et Tenues au 2° ne sont plus appliquées ici :
+  // Planning 1 ne tient compte que des critères affichés au-dessus de son
+  // propre tableau (bornes, jour/semaine, modèle par défaut, Tenues au 3°).
+  // Dates spéciales et Tenues au 2° sont désormais affichées au-dessus du
+  // tableau de Planning 2 et s'appliquent uniquement à ses propres tenues
+  // (voir _admAppliquerDesignationsP2).
 
   nouvelles.forEach(function(item){
     var ds=item.date;
@@ -26375,23 +26382,20 @@ function admTransfererAuPlanning(){
     added++;
   });
 
-  if(added>0||updated>0||heureAj>0||titreAj>0||modAj>0||deg2Aj>0){
+  if(added>0||updated>0||heureAj>0){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
     if(typeof adminPlRenderCreation==='function') adminPlRenderCreation('admin-pl-creation-list');
     if(typeof _admRafraichirCriteresTout==='function') _admRafraichirCriteresTout();
     var msg='';
     if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';
-    if(titreAj>0) msg+=(msg?' ':'')+titreAj+' tenue'+(titreAj>1?'s':'')+' spéciale'+(titreAj>1?'s':'')+' désignée'+(titreAj>1?'s':'')+'.';
-    if(modAj>0) msg+=(msg?' ':'')+modAj+' modèle'+(modAj>1?'s':'')+' de tenue appliqué'+(modAj>1?'s':'')+'.';
-    if(deg2Aj>0) msg+=(msg?' ':'')+deg2Aj+' tenue'+(deg2Aj>1?'s':'')+' passée'+(deg2Aj>1?'s':'')+' au 2°.';
     if(heureAj>0) msg+=(msg?' ':'')+heureAj+' heure'+(heureAj>1?'s':'')+' complétée'+(heureAj>1?'s':'')+' sur des tenues déjà présentes.';
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
     var restantes=skipped-updated-heureAj;
     if(restantes>0) msg+=' ('+restantes+' date'+(restantes>1?'s déjà présentes sans changement':' déjà présente sans changement')+')';
     toast(msg||'Planning mis à jour.');
-  } else if(!nouvelles.length && !specAj){
-    toast('⚠ Aucune date générée : renseignez les critères de récurrence (jour de semaine + dates début/fin) ou au moins une date spéciale.');
+  } else if(!nouvelles.length){
+    toast('⚠ Aucune date générée : renseignez les critères de récurrence (jour de semaine + dates début/fin).');
   } else {
     toast('Toutes les dates ('+skipped+') sont déjà présentes dans le planning, avec une heure déjà renseignée.');
   }
