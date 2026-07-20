@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.503-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.505-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24757,9 +24757,17 @@ function _pl2ToutesDesignations(){
   pl2InitLoad().forEach(function(item,idx){ if(item.date) m.push({id:'init:'+idx, date:item.date}); });
   return m;
 }
+// Toutes les désignations de dates confondues (Dates spéciales, Tenues au
+// 2°/3° de Planning 2, Candidatures + Initiations de Planning 3) : une
+// même date, une fois prise par l'une, ne doit plus être proposée dans les
+// menus déroulants des autres, dans aucun des deux panneaux.
+function _admToutesDesignationsGlobal(){
+  var c=plCriteresLoad()||{};
+  return (typeof _admListeDesignations==='function'?_admListeDesignations(c):[]).concat(_pl2ToutesDesignations());
+}
 function _pl2OptsAvecValeur(val,monId){
   var prisesParAutres={};
-  _pl2ToutesDesignations().forEach(function(x){ if(x.id!==monId) prisesParAutres[x.date]=true; });
+  _admToutesDesignationsGlobal().forEach(function(x){ if(x.id!==monId) prisesParAutres[x.date]=true; });
   var d=_pl2DatesDisponibles().filter(function(ds){ return !prisesParAutres[ds]; });
   if(val && d.indexOf(val)<0) d.push(val);
   return d.sort();
@@ -24971,19 +24979,11 @@ function adminPl2RenderCandidatures(cid){
     h+='</select></div>';
     h+='<div><label style="'+lblS+'">Nom du candidat</label><input type="text" value="'+(cand.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2CandChangerNom('+idx+',this.value)" style="'+inS+'"></div>';
     h+='</div>';
-    var lblInlS='font-size:11px;color:var(--grey);font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;min-width:110px;';
-    h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;">';
-    h+='<span style="'+lblInlS+'">Courrier</span>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)','cand:'+idx+':courrier');
-    h+=_pl2SelectModeles(cand.modeleIdCourrier,'pl2CandChangerModele('+idx+',\'courrier\',this.value)','Candidatures');
-    h+='</div>';
-    h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">';
-    h+='<span style="'+lblInlS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</span>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)','cand:'+idx+':enquete');
-    h+=_pl2SelectModeles(cand.modeleIdEnquete,'pl2CandChangerModele('+idx+',\'enquete\',this.value)','Candidatures');
-    h+='</div>';
-    h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">';
-    h+='<span style="'+lblInlS+'">Cérémonie</span>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)','cand:'+idx+':ceremonie');
-    h+=_pl2SelectModeles(cand.modeleIdCeremonie,'pl2CandChangerModele('+idx+',\'ceremonie\',this.value)','Candidatures');
-    h+='</div>';
+    var lblInlS='font-size:11px;color:var(--grey);font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;';
+    h+='<div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:12px;">';
+    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">Courrier</span>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)','cand:'+idx+':courrier')+'</span>';
+    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</span>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)','cand:'+idx+':enquete')+'</span>';
+    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">Cérémonie</span>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)','cand:'+idx+':ceremonie')+'</span>';
     h+='</div>';
   });
   h+='</div>';
@@ -25808,7 +25808,7 @@ function _admPeuventPartagerDate(id1,id2){
 // suivant), même si elle sort par ailleurs de la liste des dates disponibles.
 function _admOptionsDisponibles(c, dates, val, monId){
   var prisesParAutres={};
-  _admListeDesignations(c).forEach(function(x){
+  _admListeDesignations(c).concat(typeof _pl2ToutesDesignations==='function'?_pl2ToutesDesignations():[]).forEach(function(x){
     if(x.id===monId || _admPeuventPartagerDate(monId,x.id)) return;
     prisesParAutres[x.date]=true;
   });
