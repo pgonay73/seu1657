@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.487-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.488-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -3397,6 +3397,7 @@ function peRender(cid,parties){
       h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="candidature" data-dur="15" '+(profSteps.indexOf('candidature')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Candidature + vote (15 min)</label>';
       h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="enquete" data-dur="15" '+(profSteps.indexOf('enquete')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Enquête + vote (15 min)</label>';
       h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="bandeau" data-dur="30" '+(profSteps.indexOf('bandeau')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Bandeau + vote (30 min)</label>';
+      h+='<label style="font-size:12px;color:var(--text);display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="pe-prof-cb" value="ceremonie" data-dur="30" '+(profSteps.indexOf('ceremonie')>=0?'checked':'')+' style="margin-right:4px;accent-color:var(--gold);cursor:pointer;" onchange="peProfChange(this)">Cérémonie (30 min)</label>';
       h+='</div>';
       h+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">';
       h+='<span style="font-size:11px;color:var(--grey);white-space:nowrap;">Nom</span>';
@@ -4305,7 +4306,7 @@ function getModeleParDegre(deg){
 function partieDetail(p){
   // Retourne un texte court résumant le contenu spécial d'une partie
   var plLabels={'imp-app':'Imp.App.','planche-1':'Pl.1°','planche-2':'Pl.2°','planche-3':'Pl.3°','passage-vote-2':'Pass.2°+v','passage-vote-3':'Pass.3°+v','sym-1':'Sym.1°','sym-2':'Sym.2°','sym-3':'Sym.3°','au1':'Au1°','au1-parole':'Au1°+p','pass2-vote':'Pass.2°+v','au2-parole':'Au2°+p','pass3-vote':'Pass.3°+v','au3-parole':'Au3°+p','symbolisme':'Sym.','passage-vote':'Pass.+v','planche':'Pl.'};
-  var prLabels={candidature:'Cand.',enquete:'Enq.',bandeau:'Band.',autre:'Autre'};
+  var prLabels={candidature:'Cand.',enquete:'Enq.',bandeau:'Band.',ceremonie:'Cérém.',autre:'Autre'};
   var affLabels={presentation:'Prés.',enquete:'Enq.',ceremonie:'Cér.'};
   var colLabels={election:'Élec.',installation:'Inst.'};
   var initLabels={'au 1':'1°','au 2':'2°','au 3':'3°'};
@@ -4433,7 +4434,7 @@ function tcHTML(t, moisLabel, forceVM, hideDate){
     }
     if(isProfane(pr[i].nom)){
       if(pr[i].profSteps&&pr[i].profSteps.length){
-        var prLabels={candidature:'Candidature+vote',enquete:'Enquête+vote',bandeau:'Bandeau+vote',autre:'Autre'};
+        var prLabels={candidature:'Candidature+vote',enquete:'Enquête+vote',bandeau:'Bandeau+vote',ceremonie:'Cérémonie',autre:'Autre'};
         var prTxt=pr[i].profSteps.map(function(s){return prLabels[s]||s;}).join(', ');
         ph+='<span style="color:#FFFFFF;font-size:11px;font-weight:600;margin-left:4px;">&#128100; '+prTxt+'</span>';
       }
