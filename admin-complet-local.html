@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.511-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.512-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22503,7 +22503,7 @@ function plOpenForm(id){
     }
     if(!parties||!parties.length) parties=cpP(D.parDefaut||[]);
   } else {
-    parties=e.detail&&e.detail.length?e.detail:cpP(D.parDefaut||[]);
+    parties=typeof _plPartiesEffectives==='function'?_plPartiesEffectives(e):(e.detail&&e.detail.length?e.detail:cpP(D.parDefaut||[]));
   }
   peRender('pe-pl-form', parties);
   fw.style.display='block';
@@ -22769,8 +22769,10 @@ function plOuvrirDetailTenue(eid,store2){
   var d = new Date((evt.date||'')+'T12:00:00');
   var ds = d.getDate()+' '+mois[d.getMonth()]+' '+d.getFullYear();
   if(titreEl) titreEl.textContent = ds + ' — ' + (evt.titre||'Tenue');
-  // Charger les parties du détail (stockées dans evt.detail)
-  var parties = evt.detail && evt.detail.length ? evt.detail : cpP(D.parDefaut||[]);
+  // Charger les parties du détail (stockées dans evt.detail, sinon celles
+  // du modèle assigné à la tenue — comme _plPartiesEffectives — et non le
+  // détail générique par défaut, qui ignorait le modèle choisi).
+  var parties = typeof _plPartiesEffectives==='function'?_plPartiesEffectives(evt):(evt.detail&&evt.detail.length?evt.detail:cpP(D.parDefaut||[]));
   // Charger le titre personnalisé (par défaut : nom du modèle assigné à la tenue)
   var _deg0=evt.degre||'1°';
   var _modRef0=evt.modeleId?(D.modeles||[]).filter(function(m){return m.id===evt.modeleId;})[0]:null;
@@ -24887,7 +24889,17 @@ function _pl2AppliquerModele(date,modeleId){
   if(!date||!modeleId) return;
   var data=plLoad2();
   var ev=data.events.filter(function(e){return e.date===date;})[0];
-  if(ev){ ev.modeleId=modeleId; ev.detail=[]; ev._pl2Touche=true; plSave2(data); }
+  if(ev){
+    var mod=typeof getModele==='function'?getModele(modeleId):null;
+    ev.modeleId=modeleId;
+    // Matérialise le détail depuis le modèle plutôt que de le vider : un
+    // détail générique déjà présent (rempli avant l'assignation d'un
+    // modèle) resterait sinon figé indéfiniment au lieu de refléter le
+    // modèle désigné ici.
+    ev.detail=mod?cpP(mod.parties||[]):[];
+    ev._pl2Touche=true;
+    plSave2(data);
+  }
 }
 // Applique le degré (1°/2°/3°) d'une Initiation à la tenue de Planning 2/3
 // désignée à cette date.
@@ -26120,7 +26132,11 @@ function _admAppliquerDesignationsP2(){
     var modExplicite=(sp.modeleKey&&c[sp.modeleKey])?getModele(c[sp.modeleKey]):null;
     var modTrouve=(_memeDateInstallInspect&&estInstallOuInspect)?_modCombine:(modExplicite||_admModeleParMotsCles(sp.motsCles));
     if(ev.titre!==titreAppliq){ ev.titre=titreAppliq; ev._pl2Touche=true; titreAj++; }
-    if(modTrouve && ev.modeleId!==modTrouve.id){ ev.modeleId=modTrouve.id; ev.detail=[]; ev._pl2Touche=true; modAj++; }
+    // Toujours (re)matérialiser le détail depuis le modèle trouvé, même si
+    // modeleId n'a pas changé : sinon un détail générique déjà présent
+    // (rempli avant qu'un modèle ne soit assigné) resterait figé pour
+    // toujours, au lieu de refléter le modèle désigné ici.
+    if(modTrouve){ ev.modeleId=modTrouve.id; ev.detail=cpP(modTrouve.parties||[]); ev._pl2Touche=true; modAj++; }
   });
 
   var mdef2=c.modele2eme?getModele(c.modele2eme):getModeleParDegre('2°');
@@ -26137,11 +26153,12 @@ function _admAppliquerDesignationsP2(){
     }
     if(!ds) return;
     var ev=data.events.filter(function(e){return e.date===ds;})[0];
-    if(ev && ev.degre!=='2°'){
+    if(ev){
+      var degAvant=ev.degre;
       ev.degre='2°';
-      if(mdef2){ ev.modeleId=mdef2.id; ev.titre=mdef2.nom; ev.detail=[]; }
+      if(mdef2){ ev.modeleId=mdef2.id; ev.titre=mdef2.nom; ev.detail=cpP(mdef2.parties||[]); }
       ev._pl2Touche=true;
-      deg2Aj++;
+      if(degAvant!=='2°') deg2Aj++;
     }
   });
 
@@ -26257,6 +26274,7 @@ function admCritSave(){
     modeleInstallation:(document.getElementById('modeleInstallation')||{}).value||'',
     modeleInspecteur:(document.getElementById('modeleInspecteur')||{}).value||'',
     modeleStJean:(document.getElementById('modeleStJean')||{}).value||'',
+    modeleElection:(document.getElementById('modeleElection')||{}).value||'',
     modeleInstallInspectCombine:(document.getElementById('modeleInstallInspectCombine')||{}).value||'',
     modele2eme:(document.getElementById('modele2eme')||{}).value||'',
     cinqiemeSurTrois:_chk5?_chk5.checked:false
@@ -26301,7 +26319,7 @@ function admResetCriteres(){
   var dH=document.getElementById('adm-crit-heure'); if(dH) dH.value='';
   var dM=document.getElementById('adm-crit-modele'); if(dM) dM.value='';
   var dM3=document.getElementById('adm-crit-modele3'); if(dM3) dM3.value='';
-  ['modeleInstallation','modeleInspecteur','modeleStJean','modeleInstallInspectCombine','modele2eme'].forEach(function(id){
+  ['modeleInstallation','modeleInspecteur','modeleStJean','modeleElection','modeleInstallInspectCombine','modele2eme'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value='';
   });
   ADM_DATES_SPECIALES.forEach(function(sp){
@@ -26333,7 +26351,7 @@ var ADM_DATES_SPECIALES=[
   {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation Collège + VM + Député', motsCles:['installation'], moisCible:9,  rang:2, modeleKey:'modeleInstallation'},
   {key:'dateInspecteur',   champ:'adm-crit-date-inspecteur',   titre:'Inspecteur',                          motsCles:['inspecteur'],   moisCible:9,  rang:2, modeleKey:'modeleInspecteur'},
   {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver",                     motsCles:['jean'],         moisCible:11, rang:2, modeleKey:'modeleStJean'},
-  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège',                    motsCles:['election'],     moisCible:5,  rang:2}
+  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection Collège',                    motsCles:['election'],     moisCible:5,  rang:2, modeleKey:'modeleElection'}
 ];
 // Tenues au 2°, désignées parmi les dates disponibles (tenues au 1° déjà
 // présentes dans le planning) — 3 emplacements facultatifs.
