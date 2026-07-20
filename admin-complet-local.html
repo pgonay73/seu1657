@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.526-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.527-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25095,7 +25095,7 @@ function adminPl2RenderCandidatures(cid){
   var mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrCrit[d.getMonth()]+' '+d.getFullYear(); }
   function selectDate(val,onchg,monId){
-    var h2='<select onchange="'+onchg+'" style="'+inS+';min-width:160px;">';
+    var h2='<select onchange="'+onchg+'" style="'+inS+';width:120px;">';
     h2+='<option value="">-- Aucune --</option>';
     _pl2OptsAvecValeur(val,monId).forEach(function(ds){
       h2+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+fmtDate(ds)+'</option>';
@@ -25110,16 +25110,16 @@ function adminPl2RenderCandidatures(cid){
     var isProfane=cand.type!=='autre';
     var lblInlS='font-size:11px;color:var(--grey);font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;';
     h+='<div style="margin-top:14px;padding-top:14px;'+(idx===0?'':'border-top:1px solid rgba(184,146,42,.3);')+'">';
-    h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">';
-    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">Candidature '+(idx+1)+' — Type</span>';
-    h+='<select onchange="pl2CandChangerType('+idx+',this.value)" style="'+inS+'">';
+    h+='<div style="display:flex;gap:10px;flex-wrap:nowrap;align-items:center;overflow-x:auto;">';
+    h+='<span style="display:flex;gap:6px;align-items:center;flex-shrink:0;"><span style="'+lblInlS+'">Candidature '+(idx+1)+' — Type</span>';
+    h+='<select onchange="pl2CandChangerType('+idx+',this.value)" style="'+inS+';width:90px;">';
     h+='<option value="profane"'+(isProfane?' selected':'')+'>Profane</option>';
-    h+='<option value="autre"'+(!isProfane?' selected':'')+'>Autre (affiliation, régul., réint.)</option>';
+    h+='<option value="autre"'+(!isProfane?' selected':'')+'>Autre</option>';
     h+='</select></span>';
-    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">Nom</span><input type="text" value="'+(cand.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2CandChangerNom('+idx+',this.value)" style="'+inS+'"></span>';
-    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">Courrier</span>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)','cand:'+idx+':courrier')+'</span>';
-    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">'+(isProfane?'Enquête + Bandeau':'Enquête')+'</span>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)','cand:'+idx+':enquete')+'</span>';
-    h+='<span style="display:flex;gap:8px;align-items:center;"><span style="'+lblInlS+'">Cérémonie</span>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)','cand:'+idx+':ceremonie')+'</span>';
+    h+='<span style="display:flex;gap:6px;align-items:center;flex-shrink:0;"><span style="'+lblInlS+'">Nom</span><input type="text" value="'+(cand.nom||'').replace(/"/g,'&quot;')+'" placeholder="Nom..." onblur="pl2CandChangerNom('+idx+',this.value)" style="'+inS+';width:100px;"></span>';
+    h+='<span style="display:flex;gap:6px;align-items:center;flex-shrink:0;"><span style="'+lblInlS+'">Courrier</span>'+selectDate(cand.courrier,'pl2CandChangerDate('+idx+',\'courrier\',this.value)','cand:'+idx+':courrier')+'</span>';
+    h+='<span style="display:flex;gap:6px;align-items:center;flex-shrink:0;"><span style="'+lblInlS+'">'+(isProfane?'Enq.+Band.':'Enquête')+'</span>'+selectDate(cand.enquete,'pl2CandChangerDate('+idx+',\'enquete\',this.value)','cand:'+idx+':enquete')+'</span>';
+    h+='<span style="display:flex;gap:6px;align-items:center;flex-shrink:0;"><span style="'+lblInlS+'">Cérémonie</span>'+selectDate(cand.ceremonie,'pl2CandChangerDate('+idx+',\'ceremonie\',this.value)','cand:'+idx+':ceremonie')+'</span>';
     h+='</div>';
     h+='</div>';
   });
