@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.508-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.509-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24956,20 +24956,56 @@ function pl2CandChangerType(idx,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
   cands[idx].type=val;
   pl2CandSave(cands);
-  // Le libellé de la 2e date dépend du type : on réapplique la désignation
-  // avec le nouveau libellé sur la tenue déjà choisie, s'il y en a une.
-  if(cands[idx].enquete) _pl2Designer(cands[idx].enquete,cands[idx].enquete,pl2CandLabel(idx,'enquete',val,cands[idx].nom));
+  // Le libellé de la 2e date, et le modèle qui lui correspond, dépendent du
+  // type : on les réapplique sur la tenue déjà choisie, s'il y en a une.
+  if(cands[idx].enquete){
+    _pl2Designer(cands[idx].enquete,cands[idx].enquete,pl2CandLabel(idx,'enquete',val,cands[idx].nom));
+    var mod=_pl2ModeleCandidature('enquete',val);
+    if(mod) _pl2AppliquerModele(cands[idx].enquete,mod.id);
+  }
   _pl2RafraichirTout();
 }
 var PL2_CAND_MODELE_CHAMP={courrier:'modeleIdCourrier',enquete:'modeleIdEnquete',ceremonie:'modeleIdCeremonie'};
+// Modèle de tenue appliqué automatiquement à une désignation de Candidature
+// (Courrier/Enquête/Cérémonie), recherché par mots-clés dans le nom des
+// modèles de la catégorie « Candidatures » — pas de choix manuel, comme
+// pour les Dates spéciales de Planning 2.
+function _pl2ModeleCandidature(champ,type){
+  var mods=(D.modeles||[]).filter(function(m){return m.categorie==='Candidatures';});
+  function trouver(mots,exclure){
+    for(var i=0;i<mods.length;i++){
+      var n=_plSansAccents(mods[i].nom);
+      var ok=true;
+      for(var k=0;k<mots.length;k++){ if(n.indexOf(mots[k])<0){ ok=false; break; } }
+      if(ok && exclure && n.indexOf(exclure)>=0) ok=false;
+      if(ok) return mods[i];
+    }
+    return null;
+  }
+  if(champ==='courrier') return trouver(['lettre']);
+  if(champ==='ceremonie') return trouver(['ceremonie']);
+  if(champ==='enquete') return type==='profane'?trouver(['enquete','bandeau']):trouver(['enquete'],'bandeau');
+  return null;
+}
+// Modèle de tenue appliqué automatiquement à une désignation d'Initiation
+// (catégorie « Initiations »), sauf si un modèle a déjà été choisi
+// manuellement dans le menu déroulant.
+function _pl2ModeleInitiation(){
+  var mods=(D.modeles||[]).filter(function(m){return m.categorie==='Initiations';});
+  for(var i=0;i<mods.length;i++){
+    if(_plSansAccents(mods[i].nom).indexOf('initiation')>=0) return mods[i];
+  }
+  return mods[0]||null;
+}
 function pl2CandChangerDate(idx,champ,val){
   var cands=pl2CandLoad(); if(!cands[idx]) return;
   var ancienneDate=cands[idx][champ]||'';
   cands[idx][champ]=val;
   pl2CandSave(cands);
   _pl2Designer(ancienneDate,val,pl2CandLabel(idx,champ,cands[idx].type,cands[idx].nom));
-  var modeleId=cands[idx][PL2_CAND_MODELE_CHAMP[champ]];
-  if(val && modeleId) _pl2AppliquerModele(val,modeleId);
+  var mod=_pl2ModeleCandidature(champ,cands[idx].type);
+  if(val && mod) _pl2AppliquerModele(val,mod.id);
+  if(champ==='ceremonie' && val) _pl2CandRetirerTypeCeremonie(val);
   _pl2RafraichirTout();
 }
 function pl2CandChangerNom(idx,val){
@@ -25107,6 +25143,12 @@ function pl2InitChangerDate(idx,val){
   var items=pl2InitLoad(); if(!items[idx]) return;
   var ancienneDate=items[idx].date||'';
   items[idx].date=val;
+  // Sans modèle déjà choisi manuellement, on applique par défaut le modèle
+  // d'Initiation (catégorie « Initiations »).
+  if(!items[idx].modeleId){
+    var modAuto=typeof _pl2ModeleInitiation==='function'?_pl2ModeleInitiation():null;
+    if(modAuto) items[idx].modeleId=modAuto.id;
+  }
   pl2InitSave(items);
   _pl2Designer(ancienneDate,val,pl2InitLabel(idx,items[idx].nom,items[idx].degre));
   if(val && items[idx].modeleId) _pl2AppliquerModele(val,items[idx].modeleId);
@@ -25183,18 +25225,24 @@ function _admAppliquerDesignationsP3(){
       var ds=cand[champ];
       if(!ds) return;
       _pl2Designer(ds,ds,pl2CandLabel(idx,champ,cand.type,cand.nom));
-      var modeleId=cand[PL2_CAND_MODELE_CHAMP[champ]];
-      if(modeleId) _pl2AppliquerModele(ds,modeleId);
+      var mod=typeof _pl2ModeleCandidature==='function'?_pl2ModeleCandidature(champ,cand.type):null;
+      if(mod) _pl2AppliquerModele(ds,mod.id);
     });
     if(cand.ceremonie) _pl2CandRetirerTypeCeremonie(cand.ceremonie);
   });
   var inits=pl2InitLoad();
+  var initsMaj=false;
   inits.forEach(function(item,i){
     if(!item.date) return;
+    if(!item.modeleId){
+      var modAuto=typeof _pl2ModeleInitiation==='function'?_pl2ModeleInitiation():null;
+      if(modAuto){ item.modeleId=modAuto.id; initsMaj=true; }
+    }
     _pl2Designer(item.date,item.date,pl2InitLabel(i,item.nom,item.degre));
     if(item.modeleId) _pl2AppliquerModele(item.date,item.modeleId);
     if(item.degre) _pl2AppliquerDegre(item.date,item.degre);
   });
+  if(initsMaj) pl2InitSave(inits);
 }
 function admGenererPlanning3(){
   _admAppliquerDesignationsP3();
