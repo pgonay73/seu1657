@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-19.496-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.497-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14254,7 +14254,7 @@ function renderOffice(n){
     c+='<div class="cfg-box" style="margin-top:18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 2 / Spécificité de la loge</h3>';
-    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour l\'instant, copie conforme de Planning 1 (mêmes tenues, mêmes colonnes). Les planches, candidats et conférenciers viendront ici dans une étape ultérieure.</p>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour l\'instant, copie conforme de Planning 1 (mêmes tenues, mêmes colonnes). Les candidatures et initiations se saisissent au Planning 3.</p>';
     c+='</div>';
     c+='<button onclick="plTenueAdd2({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-planning2-list\',true);" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
     c+='<button onclick="plNavToAdminL1(\'planning3\')" style="background:transparent;border:1px solid rgba(184,146,42,.6);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:8px;">Passer au Planning 3 →</button>';
@@ -14282,7 +14282,7 @@ function renderOffice(n){
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Planning 4 — Morceaux d\'architecture</h3>';
-    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Mêmes tenues que Planning 3 (données partagées), affichage limité aux parties Planche / Symbolisme de chaque tenue.</p>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Places encore disponibles pour un morceau d\'architecture (Symbolisme ou Planche), en fonction des tenues saisies aux Planning 2 et 3.</p>';
     c+='</div>';
     c+='</div>';
     c+='<div id="admin-pl-planning4-list"></div>';
@@ -16564,7 +16564,7 @@ function adminPlL1Tab(name,btn){
   }
   if(name==='sans'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCriteresP2('admin-pl-panel-criteres-p2'); },0); }
   if(name==='planning3'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderCreation('admin-pl-planning3-list',true); adminPl2RenderCandidatures(); adminPl2RenderInitiations(); },0); }
-  if(name==='planning4'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderMorceaux('admin-pl-planning4-list',true); },0); }
+  if(name==='planning4'){ setTimeout(function(){ _plEnsureStore2Seeded(); adminPlRenderMorceauxDisponibles('admin-pl-planning4-list',true); },0); }
   if(name==='planches'){
     var db=document.getElementById('admin-pl-tab-sujets');
     if(db) adminPlTab('sujets',db);
@@ -25133,6 +25133,53 @@ function adminPlRenderMorceaux(cid,store2){
         h+=_plCarteAnnuelleHTML(bucket.anneeLabel,anneeAcc,4);
         anneeAcc=[];
       }
+    });
+    h+='</tbody></table>';
+  }
+  el.innerHTML=h;
+}
+// Planning 4 : uniquement les places encore disponibles (non pourvues) pour
+// un morceau d'architecture, en précisant s'il s'agit de Symbolisme ou de
+// Planche. Ne modifie pas adminPlRenderMorceaux (qui reste utilisée telle
+// quelle par l'onglet « Morceaux d'architecture » de Planning 1).
+function adminPlRenderMorceauxDisponibles(cid,store2){
+  cid=cid||'admin-pl-planning4-list';
+  var el=document.getElementById(cid); if(!el) return;
+  var data=store2?plLoad2():plLoad();
+  var evts=_plFiltrerParPeriode((data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');}));
+  var jFr=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  var mFr=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDate(ds){ if(!ds) return '—'; var d=new Date(ds+'T12:00:00'); return jFr[d.getDay()]+' '+d.getDate()+' '+mFr[d.getMonth()]+' '+d.getFullYear(); }
+  var lignes=[];
+  evts.forEach(function(e){
+    var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom)&&!p.conf&&!p.titre;});
+    parties.forEach(function(p){
+      lignes.push({e:e,p:p});
+    });
+  });
+  var h='';
+  if(!lignes.length){
+    h='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucune place disponible pour un morceau d\'architecture sur la période.</p>';
+  } else {
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px;">';
+    h+='<thead><tr style="border-bottom:2px solid var(--gold);">';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Date</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:55px;">Degré</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Modèle</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Place disponible</th>';
+    h+='</tr></thead><tbody>';
+    lignes.forEach(function(ln,i){
+      var e=ln.e, p=ln.p;
+      var type=_plMorceauType(p);
+      var lbl=type==='S'?'Symbolisme':(type==='P'?'Planche':'—');
+      var couleur=type==='S'?'#C080D0':'#33DD66';
+      var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
+      h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;">';
+      h+='<td style="padding:8px;color:var(--gold2);font-weight:600;white-space:nowrap;">'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+'</td>';
+      h+='<td style="padding:8px;">'+(e.degre||'1°')+'</td>';
+      h+='<td style="padding:8px;color:rgba(184,146,42,.85);">'+_plModeleNom(e)+'</td>';
+      h+='<td style="padding:8px;"><strong style="color:'+couleur+';">'+lbl+'</strong></td>';
+      h+='</tr>';
     });
     h+='</tbody></table>';
   }
