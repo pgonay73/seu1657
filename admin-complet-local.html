@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.513-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.514-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25666,7 +25666,7 @@ function adminPlRenderPropositions(cid){
         h+='</select></div>';
         h+='<div style="width:130px;flex-shrink:0;"><select onchange="plProposChangerType(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
         h+='<option value=""'+(!p.type?' selected':'')+'>--</option>';
-        h+='<option value="symbolisme"'+(p.type==='symbolisme'?' selected':'')+'>Minute symbolique</option>';
+        h+='<option value="symbolisme"'+(p.type==='symbolisme'?' selected':'')+'>Symbolisme</option>';
         h+='<option value="planche"'+(p.type==='planche'?' selected':'')+'>Planche</option>';
         h+='</select></div>';
         h+='<div style="width:290px;flex-shrink:0;">';
@@ -25737,7 +25737,7 @@ function imprimerListePropositionsPlanches(){
   D.freres.slice().sort(fSortNom).forEach(function(f){
     var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
     (parFrere[nomFrere]||[]).forEach(function(p){
-      var typeTxt=p.type==='symbolisme'?'Minute symbolique':(p.type==='planche'?'Planche':'—');
+      var typeTxt=p.type==='symbolisme'?'Symbolisme':(p.type==='planche'?'Planche':'—');
       var detTxt='';
       if(p.type==='planche'){
         var det=[];
