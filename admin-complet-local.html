@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.515-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.516-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26055,33 +26055,13 @@ function adminPlRenderCriteres(){
   h+='</label>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;margin-left:24px;">Applicable lors du transfert au planning.</div>';
   h+='</div>';
-  // Modèle de tenue au 1°
-  h+='<div style="margin-bottom:22px;padding-top:18px;border-top:2mm solid var(--gold);">';
-  h+='<label style="'+lblS+'">Modèle de tenue au 1°</label>';
-  h+='<select id="adm-crit-modele" onchange="admCritSave();" style="'+inS+';min-width:220px;">';
-  h+='<option value="">-- Aucun (heuristique) --</option>';
-  if(D.modeles&&D.modeles.length){
-    for(var mi=0;mi<D.modeles.length;mi++){
-      var mm=D.modeles[mi];
-      h+='<option value="'+mm.id+'"'+(c.modeleDefaut===mm.id?' selected':'')+'>'+mm.nom+'</option>';
-    }
-  }
-  h+='</select>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé pour les tenues au 1° générées par récurrence.</div>';
-  h+='</div>';
-  // Modèle de tenue au 3°
-  h+='<div style="margin-bottom:22px;">';
-  h+='<label style="'+lblS+'">Modèle de tenue au 3°</label>';
-  h+='<select id="adm-crit-modele3" onchange="admCritSave();" style="'+inS+';min-width:220px;">';
-  h+='<option value="">-- Aucun (heuristique) --</option>';
-  if(D.modeles&&D.modeles.length){
-    for(var mi3=0;mi3<D.modeles.length;mi3++){
-      var mm3=D.modeles[mi3];
-      h+='<option value="'+mm3.id+'"'+(c.modeleTroisieme===mm3.id?' selected':'')+'>'+mm3.nom+'</option>';
-    }
-  }
-  h+='</select>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:5px;">Utilisé pour les tenues au 3° (5<sup>e</sup> semaine du mois).</div>';
+  // Modèles de tenue (1° et 3°) : pas de choix manuel, le modèle est
+  // toujours celui dont le nom correspond au degré (ex. « TENUE AU 1 »,
+  // « TENUE AU 3 »), via getModeleDefaut()/getModeleParDegre('3°').
+  var _mdef1Aff=getModeleDefaut(), _mdef3Aff=getModeleParDegre('3°');
+  h+='<div style="margin-bottom:22px;padding-top:18px;border-top:2mm solid var(--gold);display:flex;gap:32px;flex-wrap:wrap;">';
+  h+='<div><label style="'+lblS+'">Modèle de tenue au 1°</label><div style="color:var(--gold2);font-weight:600;">'+(_mdef1Aff?_mdef1Aff.nom:'—')+'</div></div>';
+  h+='<div><label style="'+lblS+'">Modèle de tenue au 3°</label><div style="color:var(--gold2);font-weight:600;">'+(_mdef3Aff?_mdef3Aff.nom:'—')+'</div></div>';
   h+='</div>';
   var _planDates=_admPlanDatesDisponibles(c);
   var _dates5=_admDates5emeSemaine();
@@ -26281,8 +26261,6 @@ function admCritSave(){
     jour:(document.getElementById('adm-crit-jour')||{}).value||'',
     heure:(document.getElementById('adm-crit-heure')||document.getElementById('pl-crit-heure')||{}).value||'',
     semaines:_plCritSemaines.slice(),
-    modeleDefaut:(document.getElementById('adm-crit-modele')||{}).value||'',
-    modeleTroisieme:(document.getElementById('adm-crit-modele3')||{}).value||'',
     modeleInstallation:(document.getElementById('modeleInstallation')||{}).value||'',
     modeleInspecteur:(document.getElementById('modeleInspecteur')||{}).value||'',
     modeleStJean:(document.getElementById('modeleStJean')||{}).value||'',
@@ -26329,8 +26307,6 @@ function admResetCriteres(){
   var dF=document.getElementById('adm-crit-date-fin'); if(dF) dF.value='';
   var dJ=document.getElementById('adm-crit-jour'); if(dJ) dJ.value='';
   var dH=document.getElementById('adm-crit-heure'); if(dH) dH.value='';
-  var dM=document.getElementById('adm-crit-modele'); if(dM) dM.value='';
-  var dM3=document.getElementById('adm-crit-modele3'); if(dM3) dM3.value='';
   ['modeleInstallation','modeleInspecteur','modeleStJean','modeleElection','modeleInstallInspectCombine','modele2eme'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value='';
   });
@@ -26613,10 +26589,9 @@ function admTransfererAuPlanning(){
   var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
   var semaines=c.semaines||[];
   var heure=c.heure||'19:30';
-  var modeleId=c.modeleDefaut||'';
 
-  var mdef=modeleId?getModele(modeleId):getModeleDefaut();
-  var mdef3=c.modeleTroisieme?getModele(c.modeleTroisieme):getModeleParDegre('3°');
+  var mdef=getModeleDefaut();
+  var mdef3=getModeleParDegre('3°');
 
   // Génération récurrente par jour de semaine (uniquement si les critères
   // de récurrence sont renseignés — les dates spéciales ci-dessous
