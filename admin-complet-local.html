@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.502-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.503-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24812,18 +24812,16 @@ function _pl2SelectModeles(val,onchg,cat){
   h2+='</select>';
   return h2;
 }
-// ── Planning 2 : Candidatures (6 dates réservées = 2 candidatures × 3
-// dates) — Profane : Courrier / Enquête + Bandeau / Cérémonie. Autre
-// (affiliation, régularisation, réintégration) : Courrier / Enquête /
-// Cérémonie. La date choisie désigne une tenue déjà présente dans
-// Planning 2/3 (menu déroulant, comme dans Planning 1) et son titre est
-// pris en charge en conséquence. Le nom du candidat et le modèle de
-// tenue (appliqués à la tenue de Cérémonie) sont saisis à part.
+// ── Planning 2 : Candidatures (6 candidatures réservées × 3 dates
+// chacune = 18 dates) — Profane : Courrier / Enquête + Bandeau /
+// Cérémonie. Autre (affiliation, régularisation, réintégration) :
+// Courrier / Enquête / Cérémonie. La date choisie désigne une tenue déjà
+// présente dans Planning 2/3 (menu déroulant, comme dans Planning 1) et
+// son titre est pris en charge en conséquence. Le nom du candidat et le
+// modèle de tenue (appliqués à la tenue de Cérémonie) sont saisis à part.
 var PL2_CAND_KEY='planning2_candidatures';
-function pl2CandDefaut(){ return [
-  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleIdCourrier:'',modeleIdEnquete:'',modeleIdCeremonie:''},
-  {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleIdCourrier:'',modeleIdEnquete:'',modeleIdCeremonie:''}
-]; }
+function _pl2CandVide(){ return {type:'profane',courrier:'',enquete:'',ceremonie:'',nom:'',modeleIdCourrier:'',modeleIdEnquete:'',modeleIdCeremonie:''}; }
+function pl2CandDefaut(){ var a=[]; for(var i=0;i<6;i++)a.push(_pl2CandVide()); return a; }
 function pl2CandLoad(){
   try{
     var s=localStorage.getItem(PL2_CAND_KEY);
@@ -24839,6 +24837,10 @@ function pl2CandLoad(){
           if(c.modeleIdCourrier===undefined) c.modeleIdCourrier='';
           if(c.modeleIdEnquete===undefined) c.modeleIdEnquete='';
         });
+        // v503 — passage de 2 à 6 candidatures réservées : complète les
+        // tableaux déjà enregistrés (avec moins de 6 entrées) sans toucher
+        // aux candidatures déjà saisies.
+        while(d.length<6) d.push(_pl2CandVide());
         return d;
       }
     }
@@ -24956,11 +24958,11 @@ function adminPl2RenderCandidatures(cid){
     return h2;
   }
   var h='<div class="cfg-box">';
-  h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Candidatures (6 dates)</h3>';
-  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 4px;font-style:italic;">2 candidatures réservées, chacune avec 3 dates choisies parmi les tenues déjà présentes dans Planning 2/3. Profane : Courrier, Enquête + Bandeau, Cérémonie. Autre (affiliation, régularisation, réintégration) : Courrier, Enquête, Cérémonie.</p>';
+  h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Candidatures (18 dates)</h3>';
+  h+='<p style="font-size:11px;color:var(--grey);margin:0 0 4px;font-style:italic;">6 candidatures réservées, chacune avec 3 dates choisies parmi les tenues déjà présentes dans Planning 2/3. Profane : Courrier, Enquête + Bandeau, Cérémonie. Autre (affiliation, régularisation, réintégration) : Courrier, Enquête, Cérémonie.</p>';
   cands.forEach(function(cand,idx){
     var isProfane=cand.type!=='autre';
-    h+='<div style="margin-top:14px;padding-top:14px;border-top:2mm solid var(--gold);">';
+    h+='<div style="margin-top:14px;padding-top:14px;'+(idx===0?'border-top:2mm solid var(--gold);':'border-top:1px solid rgba(184,146,42,.3);')+'">';
     h+='<div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-end;">';
     h+='<div><label style="'+lblS+'">Candidature '+(idx+1)+' — Type</label>';
     h+='<select onchange="pl2CandChangerType('+idx+',this.value)" style="'+inS+'">';
@@ -25053,7 +25055,7 @@ function adminPl2RenderInitiations(cid){
   var inS='padding:7px 10px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:13px;';
   var mFrCrit=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrCrit[d.getMonth()]+' '+d.getFullYear(); }
-  var h='<div class="cfg-box" style="margin-top:18px;">';
+  var h='<div class="cfg-box" style="margin-top:18px;padding-top:18px;border-top:2mm solid var(--gold);">';
   h+='<h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Initiations (6 dates)</h3>';
   h+='<p style="font-size:11px;color:var(--grey);margin:0 0 14px;font-style:italic;">6 dates réservées pour des initiations, choisies parmi les tenues déjà présentes dans Planning 2/3 ; le libellé (Initiation 1 à 6) est noté avant toute information de degré.</p>';
   items.forEach(function(item,i){
@@ -25195,9 +25197,7 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
   var lignes=[];
   evts.forEach(function(e){
     var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom)&&!p.conf&&!p.titre;});
-    parties.forEach(function(p){
-      lignes.push({e:e,p:p});
-    });
+    if(parties.length) lignes.push({e:e,parties:parties});
   });
   var h='';
   if(!lignes.length){
@@ -25208,19 +25208,23 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Date</th>';
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:55px;">Degré</th>';
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Modèle</th>';
-    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Place disponible</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Places disponibles</th>';
     h+='</tr></thead><tbody>';
     lignes.forEach(function(ln,i){
-      var e=ln.e, p=ln.p;
-      var type=_plMorceauType(p);
-      var lbl=type==='S'?'Symbolisme':(type==='P'?'Planche':'—');
-      var couleur=type==='S'?'#C080D0':'#33DD66';
+      var e=ln.e;
       var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
       h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;">';
       h+='<td style="padding:8px;color:var(--gold2);font-weight:600;white-space:nowrap;">'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+'</td>';
       h+='<td style="padding:8px;">'+(e.degre||'1°')+'</td>';
       h+='<td style="padding:8px;color:rgba(184,146,42,.85);">'+_plModeleNom(e)+'</td>';
-      h+='<td style="padding:8px;"><strong style="color:'+couleur+';">'+lbl+'</strong></td>';
+      h+='<td style="padding:8px;">';
+      ln.parties.forEach(function(p){
+        var type=_plMorceauType(p);
+        var lbl=type==='S'?'Symbolisme':(type==='P'?'Planche':'—');
+        var couleur=type==='S'?'#C080D0':'#33DD66';
+        h+='<div style="margin-bottom:4px;"><strong style="color:'+couleur+';">'+lbl+'</strong></div>';
+      });
+      h+='</td>';
       h+='</tr>';
     });
     h+='</tbody></table>';
