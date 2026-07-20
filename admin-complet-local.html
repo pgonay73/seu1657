@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.539-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.540-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -22262,6 +22262,31 @@ function _degreDepuisModele(m){
   if(/1\s*°|au\s*1|premier|1er|apprenti/.test(n)) return '1°';
   return null;
 }
+// Appelé à chaque (ré)génération de planning : fait suivre le modèle de
+// tenue lorsqu'une modification manuelle du degré (après une génération
+// précédente) laisse un modèle qui ne correspond plus au degré réel de la
+// tenue (ex : tenue générée au 1° avec le modèle « TENUE AU 1 », puis
+// repassée manuellement au 2° — le modèle restait « TENUE AU 1 » tant
+// qu'on ne le changeait pas aussi à la main). Ne touche jamais un modèle
+// dont le nom ne permet pas de déduire un degré (modèle personnalisé, ou
+// catégorie Candidatures/Élections/Installations/Cérémonies/etc.).
+function _plSyncModelesAvecDegre(data){
+  var n=0;
+  (data.events||[]).forEach(function(ev){
+    if(!ev.modeleId||!ev.degre) return;
+    var modActuel=getModele(ev.modeleId);
+    var degModele=modActuel?_degreDepuisModele(modActuel):null;
+    if(!degModele||degModele===ev.degre) return;
+    var mCorrect=getModeleParDegre(ev.degre);
+    if(!mCorrect||mCorrect.id===ev.modeleId) return;
+    ev.modeleId=mCorrect.id;
+    ev.detail=cpP(mCorrect.parties||[]);
+    if(!ev._titreManuel) ev.titre=mCorrect.nom;
+    ev._pl2Touche=true;
+    n++;
+  });
+  return n;
+}
 function plTitreChanger(eid,val){
   var data=plLoad();
   for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._titreManuel=(val.trim()!=='');break;}}
@@ -25282,8 +25307,13 @@ function _admAppliquerDesignationsP3(){
 }
 function admGenererPlanning3(){
   _admAppliquerDesignationsP3();
+  // Fait suivre le modèle des tenues dont le degré a été changé à la main
+  // depuis la dernière génération (le modèle assigné ne correspondait plus).
+  var data3=plLoad2();
+  var syncAj=_plSyncModelesAvecDegre(data3);
+  if(syncAj>0) plSave2(data3);
   _pl2RafraichirTout();
-  toast('Planning 3 généré.');
+  toast('Planning 3 généré.'+(syncAj>0?' '+syncAj+' modèle'+(syncAj>1?'s':'')+' mis à jour suite à un changement de degré.':''));
 }
 function adminPlRenderMorceaux(cid,store2){
   cid=cid||'admin-pl-morceaux-list';
@@ -26377,8 +26407,13 @@ function adminPlRenderCriteresP2(cid){
 // panneau, mais déclenché explicitement, comme « Générer le Planning 1 »).
 function admGenererPlanning2(){
   _admAppliquerDesignationsP2();
+  // Fait suivre le modèle des tenues dont le degré a été changé à la main
+  // depuis la dernière génération (le modèle assigné ne correspondait plus).
+  var data2=plLoad2();
+  var syncAj=_plSyncModelesAvecDegre(data2);
+  if(syncAj>0) plSave2(data2);
   if(typeof adminPlRenderCreation==='function'){ adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCreation('admin-pl-planning3-list',true); }
-  toast('Planning 2 généré.');
+  toast('Planning 2 généré.'+(syncAj>0?' '+syncAj+' modèle'+(syncAj>1?'s':'')+' mis à jour suite à un changement de degré.':''));
 }
 function admProposerDateFin(){
   var dD=document.getElementById('adm-crit-date-debut');
@@ -26799,7 +26834,11 @@ function admTransfererAuPlanning(){
     added++;
   });
 
-  if(added>0||updated>0||heureAj>0||modeleAj>0){
+  // Fait suivre le modèle des tenues dont le degré a été changé à la main
+  // depuis la dernière génération (le modèle assigné ne correspondait plus).
+  var syncAj=_plSyncModelesAvecDegre(data);
+
+  if(added>0||updated>0||heureAj>0||modeleAj>0||syncAj>0){
     data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
     plSave(data);
     if(typeof adminPlRenderCreation==='function'){
@@ -26814,7 +26853,8 @@ function admTransfererAuPlanning(){
     if(heureAj>0) msg+=(msg?' ':'')+heureAj+' heure'+(heureAj>1?'s':'')+' complétée'+(heureAj>1?'s':'')+' sur des tenues déjà présentes.';
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
     if(modeleAj>0) msg+=(msg?' ':'')+modeleAj+' modèle'+(modeleAj>1?'s':'')+' complété'+(modeleAj>1?'s':'')+' sur des tenues déjà présentes.';
-    var restantes=skipped-updated-heureAj-modeleAj;
+    if(syncAj>0) msg+=(msg?' ':'')+syncAj+' modèle'+(syncAj>1?'s':'')+' mis à jour suite à un changement de degré.';
+    var restantes=Math.max(0,skipped-updated-heureAj-modeleAj-syncAj);
     if(restantes>0) msg+=' ('+restantes+' date'+(restantes>1?'s déjà présentes sans changement':' déjà présente sans changement')+')';
     toast(msg||'Planning mis à jour.');
   } else if(!nouvelles.length){
