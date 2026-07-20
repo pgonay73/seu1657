@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.514-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.515-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25578,6 +25578,18 @@ function plProposChangerFlag(id,champ,val){
   p[champ]=val;
   plProposSave(arr);
 }
+// Choix unique parmi Parole/Impression/Passage au 2°/Passage au 3° (menu
+// déroulant) : un seul de ces indicateurs peut être actif à la fois.
+function plProposChangerSousType(id,val){
+  var arr=plProposLoad();
+  var p=arr.filter(function(x){return x.id===id;})[0];
+  if(!p) return;
+  p.parole=(val==='parole');
+  p.impression=(val==='impression');
+  p.passage2=(val==='passage2');
+  p.passage3=(val==='passage3');
+  plProposSave(arr);
+}
 function plProposChangerSujet(id,val){
   var arr=plProposLoad();
   var p=arr.filter(function(x){return x.id===id;})[0];
@@ -25646,40 +25658,41 @@ function adminPlRenderPropositions(cid){
     return 0;
   });
   var ordered=avecPlanche.concat(sansPlanche);
-  var cbS='font-size:11px;color:var(--text);display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;';
   var mFrProp=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function _plProposFmtDate(ds){ if(!ds) return ''; var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrProp[d.getMonth()]+' '+d.getFullYear(); }
   var h='<div class="cfg-box">';
   h+='<div style="display:flex;gap:10px;padding:6px 8px;border-bottom:2px solid var(--gold);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;flex-wrap:wrap;">';
-  h+='<div style="width:180px;flex-shrink:0;">Frère</div><div style="width:70px;flex-shrink:0;">Degré</div><div style="width:130px;flex-shrink:0;">Type</div><div style="width:290px;flex-shrink:0;">Si planche</div><div style="width:160px;flex-shrink:0;">Date</div><div style="width:44px;flex-shrink:0;" title="Origine du sujet : Frère ou Liste">Orig.</div><div style="flex:1;min-width:180px;display:flex;gap:6px;"><span style="flex:1;">Sujet libre</span><span style="flex:1;">Ou sujet de la banque</span></div><div style="width:60px;flex-shrink:0;"></div>';
+  h+='<div style="width:140px;flex-shrink:0;">Frère</div><div style="width:55px;flex-shrink:0;">Degré</div><div style="width:100px;flex-shrink:0;">Type</div><div style="width:150px;flex-shrink:0;">Si planche</div><div style="width:130px;flex-shrink:0;">Date</div><div style="width:44px;flex-shrink:0;" title="Origine du sujet : Frère ou Liste">Orig.</div><div style="flex:1;min-width:180px;display:flex;gap:6px;"><span style="flex:1;">Sujet libre</span><span style="flex:1;">Ou sujet de la banque</span></div><div style="width:60px;flex-shrink:0;"></div>';
   h+='</div>';
   ordered.forEach(function(fr,fi){
     var mesProps=fr.props.length?fr.props:[null];
     mesProps.forEach(function(p,pi){
       var bg=fi%2===0?'rgba(255,255,255,.02)':'transparent';
       h+='<div style="display:flex;gap:10px;align-items:center;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';flex-wrap:wrap;">';
-      h+='<div style="width:180px;flex-shrink:0;color:var(--gold2);font-weight:600;">'+(pi===0?fr.nomFrere:'')+'</div>';
+      h+='<div style="width:140px;flex-shrink:0;color:var(--gold2);font-weight:600;">'+(pi===0?fr.nomFrere:'')+'</div>';
       if(p){
-        h+='<div style="width:70px;flex-shrink:0;"><select onchange="plProposChangerDegre(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+        h+='<div style="width:55px;flex-shrink:0;"><select onchange="plProposChangerDegre(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
         h+='<option value=""'+(!p.degre?' selected':'')+'>--</option>';
         ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(p.degre===dg?' selected':'')+'>'+dg+'</option>'; });
         h+='</select></div>';
-        h+='<div style="width:130px;flex-shrink:0;"><select onchange="plProposChangerType(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+        h+='<div style="width:100px;flex-shrink:0;"><select onchange="plProposChangerType(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
         h+='<option value=""'+(!p.type?' selected':'')+'>--</option>';
         h+='<option value="symbolisme"'+(p.type==='symbolisme'?' selected':'')+'>Symbolisme</option>';
         h+='<option value="planche"'+(p.type==='planche'?' selected':'')+'>Planche</option>';
         h+='</select></div>';
-        h+='<div style="width:290px;flex-shrink:0;">';
+        h+='<div style="width:150px;flex-shrink:0;">';
         if(p.type==='planche'){
-          h+='<div style="display:flex;flex-wrap:wrap;gap:8px;">';
-          h+='<label style="'+cbS+'"><input type="checkbox" '+(p.parole?'checked':'')+' onchange="plProposChangerFlag(&quot;'+p.id+'&quot;,\'parole\',this.checked)" style="accent-color:var(--gold);cursor:pointer;">Parole</label>';
-          h+='<label style="'+cbS+'"><input type="checkbox" '+(p.impression?'checked':'')+' onchange="plProposChangerFlag(&quot;'+p.id+'&quot;,\'impression\',this.checked)" style="accent-color:var(--gold);cursor:pointer;">Impression</label>';
-          h+='<label style="'+cbS+'"><input type="checkbox" '+(p.passage2?'checked':'')+' onchange="plProposChangerFlag(&quot;'+p.id+'&quot;,\'passage2\',this.checked)" style="accent-color:var(--gold);cursor:pointer;">Passage au 2°</label>';
-          h+='<label style="'+cbS+'"><input type="checkbox" '+(p.passage3?'checked':'')+' onchange="plProposChangerFlag(&quot;'+p.id+'&quot;,\'passage3\',this.checked)" style="accent-color:var(--gold);cursor:pointer;">Passage au 3°</label>';
-          h+='</div>';
+          var _sousType=p.parole?'parole':(p.impression?'impression':(p.passage2?'passage2':(p.passage3?'passage3':'')));
+          h+='<select onchange="plProposChangerSousType(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+          h+='<option value=""'+(!_sousType?' selected':'')+'>--</option>';
+          h+='<option value="parole"'+(_sousType==='parole'?' selected':'')+'>Parole</option>';
+          h+='<option value="impression"'+(_sousType==='impression'?' selected':'')+'>Impression</option>';
+          h+='<option value="passage2"'+(_sousType==='passage2'?' selected':'')+'>Passage au 2°</option>';
+          h+='<option value="passage3"'+(_sousType==='passage3'?' selected':'')+'>Passage au 3°</option>';
+          h+='</select>';
         }
         h+='</div>';
-        h+='<div style="width:160px;flex-shrink:0;"><select onchange="plProposChangerDate(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+        h+='<div style="width:130px;flex-shrink:0;"><select onchange="plProposChangerDate(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
         h+='<option value=""'+(!p.date?' selected':'')+'>-- Aucune --</option>';
         _plProposDatesDisponibles(p.date,p.id).forEach(function(ds){
           h+='<option value="'+ds+'"'+(p.date===ds?' selected':'')+'>'+_plProposFmtDate(ds)+'</option>';
@@ -25704,7 +25717,7 @@ function adminPlRenderPropositions(cid){
         if(pi===mesProps.length-1) h+='<button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une autre proposition pour ce frère" style="background:none;border:none;color:rgba(184,146,42,.8);cursor:pointer;font-size:14px;padding:2px;">➕</button>';
         h+='</div>';
       } else {
-        h+='<div style="width:70px;flex-shrink:0;"></div><div style="width:130px;flex-shrink:0;"></div><div style="width:290px;flex-shrink:0;"></div><div style="width:160px;flex-shrink:0;"></div><div style="width:44px;flex-shrink:0;"></div>';
+        h+='<div style="width:55px;flex-shrink:0;"></div><div style="width:100px;flex-shrink:0;"></div><div style="width:150px;flex-shrink:0;"></div><div style="width:130px;flex-shrink:0;"></div><div style="width:44px;flex-shrink:0;"></div>';
         h+='<div style="flex:1;min-width:180px;"></div>';
         h+='<div style="width:60px;flex-shrink:0;display:flex;justify-content:flex-end;"><button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une proposition" style="background:none;border:none;color:rgba(184,146,42,.8);cursor:pointer;font-size:14px;padding:2px;">➕</button></div>';
       }
