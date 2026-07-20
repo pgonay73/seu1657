@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.536-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-20.537-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25356,6 +25356,57 @@ function adminPlRenderMorceaux(cid,store2){
   }
   el.innerHTML=h;
 }
+// Propositions de planches (banque par frère) encore disponibles pour être
+// affectées à une place libre en Planning 4 : celles ayant un sujet saisi et
+// pas déjà affectées — ou dont l'affectation précédente ne correspond plus à
+// rien de réel dans le planning (créneau vidé entretemps), auquel cas la
+// proposition redevient disponible.
+function _plProposDisponibles(){
+  return plProposLoad().filter(function(p){
+    if(!p.sujet) return false;
+    if(!p.assigneEventId) return true;
+    var evs=(plLoad2().events||[]).concat((plLoad().events||[]));
+    var ev=evs.filter(function(e){return e.id===p.assigneEventId;})[0];
+    if(!ev) return true;
+    var encore=(ev.detail||[]).some(function(x){return x.conf===p.frere&&x.titre===p.sujet;});
+    return !encore;
+  });
+}
+// Affecte une proposition de planche (frère + sujet) à la place libre
+// n° slotIdx (0-based, parmi les places encore disponibles de cette tenue)
+// d'une tenue de Planning 2/3/4 (store2) ou Planning 1 (store).
+function plProposAssignerSlot(propId,eid,store2,slotIdx){
+  if(!propId) return;
+  var props=plProposLoad();
+  var prop=props.filter(function(x){return x.id===propId;})[0];
+  if(!prop||!prop.sujet){ toast('Choisissez une proposition avec un sujet renseigné.'); return; }
+  var data=store2?plLoad2():plLoad();
+  var ev=data.events.filter(function(e){return e.id===eid;})[0];
+  if(!ev) return;
+  if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
+  var vides=[];
+  for(var i=0;i<ev.detail.length;i++){
+    var p=ev.detail[i];
+    if(isPlancheOuSym(p.nom)&&!p.conf&&!p.titre) vides.push(i);
+  }
+  var idx=vides[slotIdx];
+  if(idx===undefined) return;
+  var slot=ev.detail[idx];
+  slot.conf=prop.frere;
+  slot.titre=prop.sujet;
+  if(prop.type==='symbolisme'){
+    if(prop.degre) slot.symDegres=[prop.degre];
+  } else if(!slot.plancheSteps||!slot.plancheSteps.length){
+    slot.plancheSteps=['planche'];
+  }
+  ev._pl2Touche=true;
+  if(store2) plSave2(data); else plSave(data);
+  prop.date=ev.date;
+  prop.assigneEventId=eid;
+  plProposSave(props);
+  toast('✓ '+prop.frere+' — '+prop.sujet+' affecté à la tenue du '+(ev.date||''));
+  adminPlRenderMorceauxDisponibles('admin-pl-planning4-list',store2);
+}
 // Planning 4 : uniquement les places encore disponibles (non pourvues) pour
 // un morceau d'architecture, en précisant s'il s'agit de Symbolisme ou de
 // Planche. Ne modifie pas adminPlRenderMorceaux (qui reste utilisée telle
@@ -25373,6 +25424,7 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
     var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom)&&!p.conf&&!p.titre;});
     if(parties.length) lignes.push({e:e,parties:parties});
   });
+  var propsDispo=_plProposDisponibles();
   var h='';
   if(!lignes.length){
     h='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucune place disponible pour un morceau d\'architecture sur la période.</p>';
@@ -25382,7 +25434,7 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Date</th>';
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:55px;">Degré</th>';
     h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Modèle</th>';
-    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Places disponibles</th>';
+    h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Places disponibles — affecter une proposition de planche</th>';
     h+='</tr></thead><tbody>';
     lignes.forEach(function(ln,i){
       var e=ln.e;
@@ -25395,11 +25447,20 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
       (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
       h+='</select></td>';
       h+='<td style="padding:8px;">';
-      ln.parties.forEach(function(p){
+      ln.parties.forEach(function(p,pi){
         var type=_plMorceauType(p);
         var lbl=type==='S'?'Symbolisme':(type==='P'?'Planche':'—');
         var couleur=type==='S'?'#C080D0':'#33DD66';
-        h+='<div style="margin-bottom:4px;"><strong style="color:'+couleur+';">'+lbl+'</strong></div>';
+        h+='<div style="margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
+        h+='<strong style="color:'+couleur+';white-space:nowrap;">'+lbl+'</strong>';
+        h+='<select onchange="plProposAssignerSlot(this.value,&quot;'+e.id+'&quot;,'+(store2?'true':'false')+','+pi+')" style="padding:4px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11.5px;max-width:280px;">';
+        h+='<option value="">-- Affecter une proposition --</option>';
+        propsDispo.forEach(function(pr){
+          var typeTxt=pr.type==='symbolisme'?'S':(pr.type==='planche'?'P':'?');
+          h+='<option value="'+pr.id+'">['+typeTxt+'] '+pr.frere+' — '+pr.sujet+'</option>';
+        });
+        h+='</select>';
+        h+='</div>';
       });
       h+='</td>';
       h+='</tr>';
@@ -25533,6 +25594,7 @@ function plProposLoad(){
       if(p.passage3===undefined) p.passage3=false;
       if(p.date===undefined) p.date='';
       if(p.origine===undefined) p.origine='';
+      if(p.assigneEventId===undefined) p.assigneEventId='';
     });
     return d;
   }catch(e){return[];}
@@ -25742,12 +25804,12 @@ function adminPlRenderPropositions(cid){
         h+='</div>';
         h+='<div style="width:60px;flex-shrink:0;display:flex;gap:4px;justify-content:flex-end;">';
         h+='<button onclick="if(confirm(\'Supprimer cette proposition ?\'))plProposSupprimer(&quot;'+p.id+'&quot;)" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;padding:2px;">🗑</button>';
-        if(pi===mesProps.length-1) h+='<button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une autre proposition pour ce frère" style="background:none;border:none;color:rgba(184,146,42,.8);cursor:pointer;font-size:14px;padding:2px;">➕</button>';
+        if(pi===mesProps.length-1) h+='<button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une autre proposition pour ce frère" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:4px;color:#fff;cursor:pointer;font-size:16px;font-weight:700;line-height:1;padding:4px 8px;">➕</button>';
         h+='</div>';
       } else {
         h+='<div style="width:55px;flex-shrink:0;"></div><div style="width:100px;flex-shrink:0;"></div><div style="width:150px;flex-shrink:0;"></div><div style="width:130px;flex-shrink:0;"></div><div style="width:44px;flex-shrink:0;"></div>';
         h+='<div style="flex:1;min-width:180px;"></div>';
-        h+='<div style="width:60px;flex-shrink:0;display:flex;justify-content:flex-end;"><button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une proposition" style="background:none;border:none;color:rgba(184,146,42,.8);cursor:pointer;font-size:14px;padding:2px;">➕</button></div>';
+        h+='<div style="width:60px;flex-shrink:0;display:flex;justify-content:flex-end;"><button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une proposition" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:4px;color:#fff;cursor:pointer;font-size:16px;font-weight:700;line-height:1;padding:4px 8px;">➕</button></div>';
       }
       h+='</div>';
     });
