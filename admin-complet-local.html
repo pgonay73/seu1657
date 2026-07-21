@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.577-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.578-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14461,13 +14461,12 @@ function renderOffice(n){
     c+=_plNavFixeHtml('planning4','Étape 4','complet','Étape 6');
     c+='</div></div>';
     // ─ L1.H : Étape 6 / Planning complet — vue d'ensemble en lecture seule
-    // de toutes les tenues (Étapes 1 à 4), plus un rappel du mercato des
-    // planches (Étape 5) ─
+    // de toutes les tenues (Étapes 1 à 4) ─
     c+='<div id="admin-pl-l1-complet" style="display:none;">';
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
     c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 6 / Planning complet</h3>';
-    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Vue d\'ensemble de toutes les tenues de la période, modifiable pour une dernière correction : degré, modèle, titre et détail (planches, symbolismes, désignations) issus des Étapes 1 à 4. Le mercato des planches (Étape 5) est rappelé plus bas.</p>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Vue d\'ensemble de toutes les tenues de la période, modifiable pour une dernière correction : degré, modèle, titre et détail (planches, symbolismes, désignations) issus des Étapes 1 à 4.</p>';
     c+='</div>';
     c+='<div style="display:flex;gap:8px;flex-shrink:0;margin-left:16px;">';
     c+='<button onclick="_plCompletAjouterTenue()" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;">+ Ajouter une tenue</button>';
@@ -14476,8 +14475,6 @@ function renderOffice(n){
     c+='</div>';
     c+='<div id="admin-pl-complet-list"></div>';
     c+='</div>';
-    c+='<div class="cfg-box" style="margin-top:18px;"><h3 style="font-size:16px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Étape 5 / Le mercato des planches (rappel)</h3></div>';
-    c+='<div id="admin-pl-complet-mercato"></div>';
     c+=_plNavFixeHtml('propositions','Étape 5','','');
     c+='</div>';
     c+='</div>';
@@ -16662,7 +16659,7 @@ function adminPlL1Tab(name,btn){
   if(name==='planches'){ setTimeout(function(){ var e=document.getElementById('admin-pl-sujets-list'); if(e) plSujetsRenderInto(e); },0); }
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
   if(name==='propositions'){ setTimeout(function(){ adminPlRenderPropositions('admin-pl-propositions-list'); },0); }
-  if(name==='complet'){ setTimeout(function(){ adminPlRenderComplet('admin-pl-complet-list'); adminPlRenderPropositions('admin-pl-complet-mercato'); },0); }
+  if(name==='complet'){ setTimeout(function(){ adminPlRenderComplet('admin-pl-complet-list'); },0); }
   if(name==='creation'){ setTimeout(function(){ adminPlRenderCreation('admin-pl-creation-list'); adminPlRenderCriteres(); },0); }
 }
 // ── Planning L2 sub-tabs ───────────────────────────────────────────────
