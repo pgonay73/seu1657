@@ -747,7 +747,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil 1° Surveillant autonome, hors-ligne">1° Surveillant autonome — v2026-07-21.427</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil 1° Surveillant autonome, hors-ligne">1° Surveillant autonome — v2026-07-21.428</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -1610,7 +1610,6 @@ try {
           var _fbNv=localStorage.getItem('admin_nav_visib');
           if(_fbNv){var _fbNvd=JSON.parse(_fbNv);var _fbNvCh=false;
             if(_fbNvd.hasOwnProperty('planning')){delete _fbNvd['planning'];_fbNvCh=true;}
-            if(_fbNvd['planning-libre']===false){delete _fbNvd['planning-libre'];_fbNvCh=true;}
             if(_fbNvCh){localStorage.setItem('admin_nav_visib',JSON.stringify(_fbNvd));if(window.fbSet)window.fbSet('admin_nav_visib',_fbNvd);}
           }
         }catch(e_nv){}
@@ -11031,10 +11030,7 @@ try{
 load();
   // v113 — nettoyage au démarrage (données corrompues par versions précédentes)
   try{
-    // 1. Forcer Planning Libre visible (annuler mauvaise migration admin_nav_visib)
-    var _nv=localStorage.getItem('admin_nav_visib');
-    if(_nv){var _nvd=JSON.parse(_nv);if(_nvd['planning-libre']===false){delete _nvd['planning-libre'];localStorage.setItem('admin_nav_visib',JSON.stringify(_nvd));}}
-    // 2. Migration v110-v111 supprimée en v163 : les événements gen_ sont
+    // Migration v110-v111 supprimée en v163 : les événements gen_ sont
     // désormais légitimes (générés par "Transférer au planning" et doGenAuto).
   }catch(e_clean){console.warn('cleanup v113:',e_clean);}
   // v118 — fusion D.tenues → planning_libre_data (migration progressive par ID)
@@ -16324,8 +16320,6 @@ function adminLoadNavVisib(){
     var d=s?JSON.parse(s):{};
     var _ch=false;
     if(d.hasOwnProperty('planning')){delete d['planning'];_ch=true;}
-    // v119 — planning-libre ne doit jamais être masqué (correction valeur Firebase corrompue)
-    if(d['planning-libre']===false){delete d['planning-libre'];_ch=true;}
     if(_ch){localStorage.setItem('admin_nav_visib',JSON.stringify(d));if(window.fbSet)window.fbSet('admin_nav_visib',d);}
     if(!d['off-vm']||!Array.isArray(d['off-vm'])||!d['off-vm'].length) d['off-vm']=['planning','suivi-tenue','sujets'];
     return d;
