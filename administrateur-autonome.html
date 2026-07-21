@@ -747,7 +747,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Administrateur autonome, hors-ligne">Administrateur autonome — v2026-07-21.430</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Administrateur autonome, hors-ligne">Administrateur autonome — v2026-07-21.431</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -6470,18 +6470,13 @@ function imprimerAccueil(){
     var el=document.getElementById('accueil-news'+n);
     if(el&&el.textContent.trim()) addSection('News '+n, el.textContent);
   });
-  var cartes=[
-    {id:'accueil-carte-app',   title:'Réunions Apprentis'},
-    {id:'accueil-carte-comp',  title:'Réunions Compagnons'},
-    {id:'accueil-carte-ca',    title:'CA'},
-    {id:'accueil-carte-planche', title:'Planche tracée'},
-    {id:'accueil-carte-correspondance', title:'Correspondance'},
-    {id:'accueil-carte-playlist', title:'Playlist'},
-    {id:'accueil-carte-agapes', title:'Agapes'}
-  ];
-  cartes.forEach(function(c){
-    var el=document.getElementById(c.id);
-    if(el&&el.style.display!=='none'&&el.textContent.trim()) addSection(c.title, el.textContent.trim());
+  // v584 corrigé : reprend toutes les cartes définies (_ACCUEIL_CARTES_DEF),
+  // au lieu d'une liste figée à 7 entrées qui ignorait silencieusement les
+  // cartes ajoutées depuis (Vénérable Maître, Hospitalier, Orateur, Expert,
+  // Trésorier, Député) même quand elles étaient visibles et remplies à l'écran.
+  (_ACCUEIL_CARTES_DEF||[]).forEach(function(c){
+    var el=document.getElementById('accueil-carte-'+c.key);
+    if(el&&el.style.display!=='none'&&el.textContent.trim()) addSection(c.titre, el.textContent.trim());
   });
   var pres=document.getElementById('accueil-presences');
   if(pres&&pres.style.display!=='none'){
