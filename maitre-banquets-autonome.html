@@ -487,6 +487,10 @@ input, select, textarea { color: #1E3660; }
     // jamais être réinjectée nulle part.
     var _estFantome=function(t){return !!(t && t.date==='2026-09-04' && (t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);};
     if(embedded && embedded.tenues){ embedded.tenues=embedded.tenues.filter(function(t){return !_estFantome(t);}); }
+    // v474 (propagé depuis l'admin) — mémorise si ce chargement est une
+    // toute première ouverture pour ce fichier (utile pour proposer une
+    // restauration automatique de sauvegarde plus bas).
+    window._freshInstall = !localStorage.getItem('planningTenues');
     if (!localStorage.getItem('planningTenues')) {
       localStorage.setItem('planningTenues', JSON.stringify(embedded));
     }
@@ -743,7 +747,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Maître des Banquets autonome, hors-ligne">Maître des Banquets autonome — v2026-07-21.425</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Maître des Banquets autonome, hors-ligne">Maître des Banquets autonome — v2026-07-21.426</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -1846,6 +1850,7 @@ function save(){
   // Sync Firebase
   if(window.fbSet) window.fbSet('planningTenues', D);
   scheduleAutoSave();
+  if(typeof _autoBackupSiDue==='function') _autoBackupSiDue();
 }
 
 // ============================================================
@@ -11164,6 +11169,37 @@ function renderTenuesSpec(){
 // ============================================================
 // EXPORT / IMPORT
 // ============================================================
+// v474 (propagé depuis l'admin) — Sauvegarde automatique + proposition de
+// restauration automatique. Contexte : un nouveau fichier envoyé à l'officier
+// est souvent renommé par le navigateur ("(1)", "(2)"...), donc une nouvelle
+// origine avec un localStorage vide : toutes les données saisies dans la
+// version précédente semblent avoir disparu. Ceci déclenche automatiquement
+// une proposition de restauration au démarrage, et une sauvegarde JSON
+// périodique pour toujours avoir un fichier récent à disposition.
+function _autoBackupSiDue(){
+  try{
+    var last=parseInt(localStorage.getItem('_derniereAutoSauvegardeTs'),10)||0;
+    if(Date.now()-last<15*60*1000) return;
+    localStorage.setItem('_derniereAutoSauvegardeTs',String(Date.now()));
+    exportData();
+  }catch(e){}
+}
+function _fermerPromptRestaurationAuto(){
+  var el=document.getElementById('ov-restore-auto');
+  if(el) el.classList.remove('open');
+  try{ localStorage.setItem('_freshInstallVu','1'); }catch(e){}
+}
+function _restaurationAutoChoisie(input){
+  _fermerPromptRestaurationAuto();
+  importData(input);
+}
+window.addEventListener('load',function(){
+  if(!window._freshInstall) return;
+  setTimeout(function(){
+    var el=document.getElementById('ov-restore-auto');
+    if(el) el.classList.add('open');
+  },500);
+});
 function exportData(){
   // Forcer la sauvegarde de D et TR2 dans localStorage avant l'export. save()
   // (plutôt qu'une écriture directe) garantit l'horodatage de la sauvegarde,
@@ -24932,4 +24968,19 @@ if('serviceWorker' in navigator){
 </script>
 <!-- Bouton Enregistrer fixe pour le formulaire de tenue -->
 <button id="pl-form-fixed-save" onclick="plSaveForm()" style="display:none;position:fixed;bottom:20px;left:20px;z-index:9999;background:var(--gold,#B8922A);color:#000;border:none;border-radius:6px;padding:10px 18px;font-family:Raleway,sans-serif;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.4);">✓ Enregistrer</button>
+<div class="overlay" id="ov-restore-auto">
+  <div class="modal sm">
+    <div class="mhead">
+      <h2>Nouvelle version détectée</h2>
+    </div>
+    <div class="mbody">
+      <p style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:14px;">Ce fichier ne contient aucune donnée pour l'instant. Si vous avez déjà utilisé le logiciel, restaurez votre dernière sauvegarde (fichier .json téléchargé via le bouton 📥 Backup) pour retrouver toutes vos données.</p>
+      <input type="file" id="restore-auto-input" accept=".json" style="display:none;" onchange="_restaurationAutoChoisie(this)">
+    </div>
+    <div class="mfoot">
+      <button class="btn btn-outline" onclick="_fermerPromptRestaurationAuto()">Nouvelle installation, continuer sans restaurer</button>
+      <button class="btn btn-gold" onclick="document.getElementById('restore-auto-input').click()">📤 Choisir ma sauvegarde</button>
+    </div>
+  </div>
+</div>
 </body></html>
