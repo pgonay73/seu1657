@@ -743,7 +743,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Vénérable Maître autonome, hors-ligne">Vénérable Maître autonome — v2026-07-21.424</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Vénérable Maître autonome, hors-ligne">Vénérable Maître autonome — v2026-07-21.425</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -13932,14 +13932,6 @@ function renderOffice(n){
     c+='</div></div>';
     // ─ L1.C : Programmation des planches ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
-    c+='<div style="display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.2);margin-bottom:14px;flex-wrap:wrap;">';
-    c+='<button class="cfg-tab active" id="admin-pl-tab-sujets" onclick="adminPlTab(\'sujets\',this)" style="'+_l2S+'">Sujets des planches</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-suivi" onclick="adminPlTab(\'suivi\',this)" style="'+_l2S+'">Suivi par frère</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-suivi-tenue" onclick="adminPlTab(\'suivi-tenue\',this)" style="'+_l2S+'">Suivi par tenue</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-dispos" onclick="adminPlTab(\'dispos\',this)" style="'+_l2S+'">📋 Dispos P/S</button>';
-    c+='<button class="cfg-tab" id="admin-pl-tab-avec" onclick="plNavToAdminL1(\'avec\')" style="'+_l2S+'">📊 Planning des tenues avec planches</button>';
-    c+='</div>';
-    c+='<div id="admin-pl-panel-sujets" style="display:none;">';
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Sujets des planches</h3>';
     c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">Banque de sujets classés par degré — utilisés dans le suivi des planches.</p>';
     c+='<div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">';
@@ -13947,37 +13939,7 @@ function renderOffice(n){
     c+='<button onclick="plImporterSujetsDuPlanning()" style="background:rgba(68,114,196,.15);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:4px 12px;">⬇ Importer depuis le planning</button>';
     c+='</div>';
     c+='<div id="admin-pl-sujets-list"></div>';
-    c+='</div></div>';
-    c+='<div id="admin-pl-panel-suivi" style="display:none;">';
-    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Suivi des planches par frère</h3>';
-    c+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">';
-    c+='<span style="font-size:11px;color:rgba(255,255,255,.45);">Aller vers :</span>';
-    c+='<button onclick="plNavVers(\'suivi-tenue\')" style="background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.3);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Suivi par tenue →</button>';
-    c+='<button onclick="plNavVers(\'ref\')" style="background:rgba(68,114,196,.1);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Planning de référence →</button>';
-    c+='<button onclick="plSynchroniserSuiviDepuisPlanning()" style="background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:4px;color:#3ECF8E;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;margin-left:auto;" title="Relit tout le planning et met à jour le suivi par frère et par tenue en conséquence.">🔄 Synchroniser depuis le planning</button>';
-    c+='<button onclick="plSuiviNettoyer()" style="background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.5);border-radius:4px;color:#FF9900;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;" title="Supprime les entrées orphelines (frère non reconnu) et libère les références à des tenues supprimées.">🧹 Nettoyer</button>';
-    c+='<button onclick="plDiagnosticConferenciers(prompt(\'Nom du frère à chercher (ou laisser vide pour tous) :\',\'\')||\'\')" style="background:rgba(130,170,255,.12);border:1px solid rgba(130,170,255,.5);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;" title="Liste (sans rien modifier) les conférenciers trouvés dans le planning et leur état de synchronisation.">🔍 Diagnostic</button>';
     c+='</div>';
-    c+='<div id="admin-pl-suivi-list"></div>';
-    c+='</div></div>';
-    c+='<div id="admin-pl-panel-suivi-tenue" style="display:none;">';
-    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Suivi des planches par tenue</h3>';
-    c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:14px;">Tenues triées par date — assignation de planches et symbolismes par frère.</p>';
-    c+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">';
-    c+='<span style="font-size:11px;color:rgba(255,255,255,.45);">Aller vers :</span>';
-    c+='<button onclick="plNavVers(\'suivi\')" style="background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.3);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Suivi par frère →</button>';
-    c+='<button onclick="plNavVers(\'ref\')" style="background:rgba(68,114,196,.1);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Planning de référence →</button>';
-    c+='<button onclick="plSynchroniserSuiviDepuisPlanning()" style="background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:4px;color:#3ECF8E;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;margin-left:auto;" title="Relit tout le planning et met à jour le suivi par frère et par tenue en conséquence.">🔄 Synchroniser depuis le planning</button>';
-    c+='<button onclick="plSuiviNettoyer()" style="background:rgba(255,153,0,.12);border:1px solid rgba(255,153,0,.5);border-radius:4px;color:#FF9900;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;" title="Supprime les entrées orphelines (frère non reconnu) et libère les références à des tenues supprimées.">🧹 Nettoyer</button>';
-    c+='<button onclick="plDiagnosticConferenciers(prompt(\'Nom du frère à chercher (ou laisser vide pour tous) :\',\'\')||\'\')" style="background:rgba(130,170,255,.12);border:1px solid rgba(130,170,255,.5);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:3px 10px;" title="Liste (sans rien modifier) les conférenciers trouvés dans le planning et leur état de synchronisation.">🔍 Diagnostic</button>';
-    c+='</div>';
-    c+='<div id="admin-pl-suivi-tenue-list"></div>';
-    c+='</div></div>';
-    c+='<div id="admin-pl-panel-dispos" style="display:none;">';
-    c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Disponibilités — Planches & Symbolismes</h3>';
-    c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:10px;">Tenues avec créneaux P ou S — assignés (suivi frères) ou libres (modules disponibles).</p>';
-    c+='<div id="admin-pl-planches-recap"></div>';
-    c+='</div></div>';
     c+='</div>';
     // ─ L1.D : Planning des tenues avec planches ─
     c+='<div id="admin-pl-l1-avec" style="display:none;">';
@@ -14001,11 +13963,6 @@ function renderOffice(n){
     c+='<button onclick="plImprimerAvecBornes()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;">🖨 Imprimer</button>';
     c+='<button onclick="plConsoliderPlanning()" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;" title="Consolide et fige ce planning.">🔒 Valider</button>';
     c+='</div>';
-    c+='</div>';
-    c+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">';
-    c+='<span style="font-size:11px;color:rgba(255,255,255,.45);">Aller vers :</span>';
-    c+='<button onclick="plNavVers(\'suivi\')" style="background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.3);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Suivi par frère →</button>';
-    c+='<button onclick="plNavVers(\'suivi-tenue\')" style="background:rgba(184,146,42,.1);border:1px solid rgba(184,146,42,.3);border-radius:4px;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:600;padding:3px 10px;">Suivi par tenue →</button>';
     c+='</div>';
     c+='<div id="admin-pl-ref-list"></div>';
     c+='</div></div>';
@@ -16194,16 +16151,13 @@ function adminPlL1Tab(name,btn){
     if(mb) adminPlTab('procedure',mb);
   }
   if(name==='sans'){ setTimeout(function(){ adminPlRenderSans('admin-pl-sans-list'); },0); }
-  if(name==='planches'){
-    var db=document.getElementById('admin-pl-tab-sujets');
-    if(db) adminPlTab('sujets',db);
-  }
+  if(name==='planches'){ setTimeout(function(){ var e=document.getElementById('admin-pl-sujets-list'); if(e) plSujetsRenderInto(e); },0); }
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
   if(name==='ref'){ setTimeout(function(){ adminPlRenderRef('admin-pl-ref-list'); },0); }
 }
 // ── Planning L2 sub-tabs ───────────────────────────────────────────────
 function adminPlTab(name, btn){
-  var subTabs=['modeles','detail','tenuesImp','tenuesCons','suivi','suivi-tenue','planning','dispos','sujets','procedure','criteres'];
+  var subTabs=['modeles','detail','tenuesImp','tenuesCons','planning','sujets','procedure','criteres'];
   var subBtns=document.querySelectorAll('#admin-pl-l1-prog .cfg-tab, #admin-pl-l1-planches .cfg-tab');
   for(var i=0;i<subBtns.length;i++) subBtns[i].classList.remove('active');
   if(btn) btn.classList.add('active');
@@ -16225,20 +16179,11 @@ function adminPlTab(name, btn){
   },0);
   if(name==='tenuesImp') setTimeout(tiRender,0);
   if(name==='tenuesCons') setTimeout(tcRender,0);
-  if(name==='suivi') setTimeout(function(){ plSuiviRender('admin-pl-suivi-list'); },0);
-  if(name==='suivi-tenue') setTimeout(function(){ plSuiviParTenueRender('admin-pl-suivi-tenue-list'); },0);
-  if(name==='dispos') setTimeout(function(){ plRenderPlanchesRecap('admin-pl-planches-recap'); },0);
   if(name==='sujets') setTimeout(function(){ var e=document.getElementById('admin-pl-sujets-list'); if(e) plSujetsRenderInto(e); },0);
 }
 function plNavVers(section){
   if(section==='ref'){
     adminPlL1Tab('ref',document.getElementById('admin-pl-l1-btn-ref'));
-  } else if(section==='suivi'){
-    adminPlL1Tab('planches',document.getElementById('admin-pl-l1-btn-planches'));
-    setTimeout(function(){ adminPlTab('suivi',document.getElementById('admin-pl-tab-suivi')); },30);
-  } else if(section==='suivi-tenue'){
-    adminPlL1Tab('planches',document.getElementById('admin-pl-l1-btn-planches'));
-    setTimeout(function(){ adminPlTab('suivi-tenue',document.getElementById('admin-pl-tab-suivi-tenue')); },30);
   }
 }
 
