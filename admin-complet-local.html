@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.565-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.566-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24798,6 +24798,33 @@ function _plDetailPartieChanger2(eid,idx,field,val){
   ev._pl2Touche=true;
   plSave2(data);
 }
+// Supprime une étape (partie) d'une tenue, dans le magasin Planning 2/3.
+function _plDetailPartieDel2(eid,idx){
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.id===eid;})[0];
+  if(!ev) return;
+  if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
+  if(idx<0||idx>=ev.detail.length) return;
+  ev.detail.splice(idx,1);
+  ev._pl2Touche=true;
+  plSave2(data);
+  if(!window._plCompletOpen) window._plCompletOpen={};
+  window._plCompletOpen[eid]=true;
+  _plCompletRenderUneTenue(eid);
+}
+// Ajoute une étape (partie) vierge à une tenue, dans le magasin Planning 2/3.
+function _plDetailPartieAdd2(eid){
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.id===eid;})[0];
+  if(!ev) return;
+  if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
+  ev.detail.push({nom:'Nouvelle étape',dur:15,conf:'',titre:''});
+  ev._pl2Touche=true;
+  plSave2(data);
+  if(!window._plCompletOpen) window._plCompletOpen={};
+  window._plCompletOpen[eid]=true;
+  _plCompletRenderUneTenue(eid);
+}
 // Construit la carte HTML (éditable) d'une tenue pour l'Étape 6.
 function _plCompletCardHtml(e){
   var deg=e.degre||'1°';
@@ -24859,9 +24886,11 @@ function _plCompletCardHtml(e){
       h+='<span style="font-size:10px;color:rgba(255,255,255,.4);">min</span>';
       h+='<input type="text" list="pl-complet-freres" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:150px;">';
       h+='<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet / titre" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:150px;">';
+      h+='<button onclick="_plDetailPartieDel2(&quot;'+eid+'&quot;,'+idx+')" title="Supprimer cette étape" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:3px 7px;flex-shrink:0;">🗑</button>';
       h+='</div>';
     });
   }
+  h+='<button onclick="_plDetailPartieAdd2(&quot;'+eid+'&quot;)" style="margin-top:8px;background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:4px;color:#3ECF8E;cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;font-weight:700;padding:4px 10px;">+ Ajouter une étape</button>';
   h+='</div>';
   h+='</div>';
   return h;
@@ -24880,9 +24909,15 @@ function _plCompletRenderUneTenue(eid){
 function adminPlRenderComplet(cid){
   cid=cid||'admin-pl-complet-list';
   var el=document.getElementById(cid); if(!el) return;
+  // v563 corrigé : ne PAS appeler ici _admAppliquerDesignationsP2 ni
+  // _plNettoyerModelesOrphelins — ces deux fonctions réappliquent sans
+  // condition les désignations de l'Étape 2 (Dates spéciales/Tenues au 2°)
+  // et le modèle standard, ce qui écrasait silencieusement une correction
+  // manuelle faite ici (ex : degré repassé au 3° et planche affectée,
+  // effacés au réaffichage suivant de cet onglet). L'Étape 6 doit se
+  // contenter d'afficher/corriger l'état actuel, sans jamais le réécrire
+  // toute seule.
   if(typeof _plEnsureStore2Seeded==='function') _plEnsureStore2Seeded();
-  if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins();
-  if(typeof _admAppliquerDesignationsP2==='function') _admAppliquerDesignationsP2();
   var data=plLoad2();
   var evts=_plFiltrerParPeriode((data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');}));
   if(!evts.length){
