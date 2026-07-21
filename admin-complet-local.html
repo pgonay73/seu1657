@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.552-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.553-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14285,10 +14285,10 @@ function renderOffice(n){
     c+='<button id="admin-pl-l1-btn-sans" onclick="adminPlL1Tab(\'sans\',this)" style="'+_l1I+'">2️⃣ Planning 2 / Dates spéciales, Tenues au 2°</button>';
     c+='<button id="admin-pl-l1-btn-planning3" onclick="adminPlL1Tab(\'planning3\',this)" style="'+_l1I+'">3️⃣ Planning 3 / Candidatures, Initiations</button>';
     c+='<button id="admin-pl-l1-btn-planning4" onclick="adminPlL1Tab(\'planning4\',this)" style="'+_l1I+'">4️⃣ Planning 4 / Disponibilité architecture</button>';
+    c+='<button id="admin-pl-l1-btn-propositions" onclick="adminPlL1Tab(\'propositions\',this)" style="'+_l1I+'">📝 Le mercato des planches</button>';
     c+='<button id="admin-pl-l1-btn-planches" onclick="adminPlL1Tab(\'planches\',this)" style="'+_l1I+'">📐 Banque d\'architecture</button>';
     c+='<button id="admin-pl-l1-btn-avec" onclick="adminPlL1Tab(\'avec\',this)" style="'+_l1I+'">📊 Planning des tenues avec planches</button>';
     c+='<button id="admin-pl-l1-btn-ref" onclick="adminPlL1Tab(\'ref\',this)" style="'+_l1I+'">📌 Planning de référence</button>';
-    c+='<button id="admin-pl-l1-btn-propositions" onclick="adminPlL1Tab(\'propositions\',this)" style="'+_l1I+'">📝 Le mercato des planches</button>';
     c+='</div>';
     // ─ L1.0 : Planning 1 — squelette du planning (thème + modèle uniquement) ─
     c+='<div id="admin-pl-l1-creation" style="display:none;">';
@@ -14374,7 +14374,7 @@ function renderOffice(n){
     c+='</div>';
     c+='</div>';
     c+='<div id="admin-pl-planning4-list"></div>';
-    c+=_plNavFixeHtml('planning3','Planning 3','','');
+    c+=_plNavFixeHtml('planning3','Planning 3','','','propositions','📝 Le mercato des planches');
     c+='</div></div>';
     // ─ L1.C : Banque d'architecture ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
@@ -24548,9 +24548,9 @@ function plRenderAdminNav(containerId){
       {id:'sans',      label:'2️⃣ Planning 2 / Dates spéciales, Tenues au 2°'},
       {id:'planning3', label:'3️⃣ Planning 3 / Candidatures, Initiations'},
       {id:'planning4', label:'4️⃣ Planning 4 / Disponibilité architecture'},
+      {id:'propositions', label:'📝 Le mercato des planches'},
       {id:'planches',  label:"📐 Banque d'architecture"},
-      {id:'ref',       label:'📌 Planning de référence'},
-      {id:'propositions', label:'📝 Le mercato des planches'}
+      {id:'ref',       label:'📌 Planning de référence'}
     ];
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
@@ -27158,10 +27158,14 @@ function plNavToAdminL1(id){
 // droite de l'écran, qui reste visible même en scrollant dans une longue
 // liste de tenues. prevId/nextId = '' pour masquer le bouton correspondant
 // (Planning 1 n'a pas de précédent, Planning 4 n'a pas de suivant).
-function _plNavFixeHtml(prevId,prevLabel,nextId,nextLabel){
+// extraId/extraLabel (optionnels) ajoutent un bouton de raccourci
+// supplémentaire, entre précédent et suivant (ex. accès direct au Mercato
+// des planches depuis Planning 4).
+function _plNavFixeHtml(prevId,prevLabel,nextId,nextLabel,extraId,extraLabel){
   var bS='font-family:Raleway,sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;border-radius:5px;cursor:pointer;padding:8px 16px;box-shadow:0 2px 12px rgba(0,0,0,.4);';
   var h='<div style="position:fixed;bottom:18px;right:18px;z-index:500;display:flex;gap:8px;">';
   if(prevId) h+='<button onclick="plNavToAdminL1(&quot;'+prevId+'&quot;)" style="'+bS+'background:rgba(30,54,96,.95);border:1px solid rgba(184,146,42,.6);color:var(--gold2);">← '+prevLabel+'</button>';
+  if(extraId) h+='<button onclick="plNavToAdminL1(&quot;'+extraId+'&quot;)" style="'+bS+'background:rgba(29,138,90,.95);border:1px solid rgba(29,138,90,.9);color:#fff;">'+extraLabel+'</button>';
   if(nextId) h+='<button onclick="plNavToAdminL1(&quot;'+nextId+'&quot;)" style="'+bS+'background:rgba(184,146,42,.95);border:1px solid rgba(184,146,42,.9);color:#1a1206;">'+nextLabel+' →</button>';
   h+='</div>';
   return h;
