@@ -707,6 +707,16 @@ function loginVerif(){
   _loginHash(mdp).then(function(hash){
     if(hash === _LOGIN_HASH){
       try{ sessionStorage.setItem(_LOGIN_SESSION_KEY,'1'); }catch(e){}
+      // Connecte aussi le compte Firebase partagé, avec ce même mot de passe
+      // (voir _authReadyPromise plus bas) : sans ça, Firestore refuse toute
+      // lecture/écriture (règles "if request.auth != null"). Ne bloque jamais
+      // l'accès à l'appli si Firebase est indisponible ou hors ligne — la
+      // synchro se contente de rester en attente (indicateur en haut).
+      if(typeof _auth!=='undefined' && _auth && typeof _FB_AUTH_EMAIL!=='undefined'){
+        _auth.signInWithEmailAndPassword(_FB_AUTH_EMAIL, mdp).catch(function(e){
+          console.warn('Connexion Firebase échouée :', e.code, e.message);
+        });
+      }
       var scr = document.getElementById('login-screen');
       scr.style.transition = 'opacity .4s';
       scr.style.opacity = '0';
@@ -762,11 +772,11 @@ function loginVerif(){
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON et synchroniser vers Firebase">📤 Restaurer</button>
         <button onclick="diagnostiquerSauvegardeJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(150,150,150,.5);color:rgba(200,200,200,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Vérifie le contenu d'un fichier JSON de sauvegarde sans rien restaurer (nombre de Frères, Modèles, Tenues, etc.)">🔍 Vérifier un JSON</button>
         <button onclick="syncAllToFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,200,100,.5);color:rgba(100,200,100,.7);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Pousser toutes les données locales vers Firebase (pour partager entre appareils)">☁️ Sync</button>
-        <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
-        <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
-        <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.555-admin-local</span>
-        <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
+        <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
+        <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
+        <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.556-admin-local</span>
+        <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
     </div>
@@ -1337,6 +1347,7 @@ function loginVerif(){
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 // Stubs silencieux par défaut — remplacés si Firebase se charge correctement
 window._fbReady = false;
@@ -1384,13 +1395,11 @@ window.fbWatch = function(key, callback){ return null; };
   ];
   window._FB_ALL_KEYS = _FB_ALL_KEYS; // rendre accessible globalement (export, sync)
 
-  // Seules ces clés quittent l'appareil vers le cloud Firebase — tout le reste
-  // (Frères, Planning, Trésorerie, offices...) reste exclusivement local
-  // (localStorage), même dans cette copie complète de l'administrateur : la clé
-  // d'API Firebase étant publique, toute donnée synchronisée est potentiellement
-  // accessible depuis internet, ce que l'on veut éviter pour tout sauf ces deux
-  // rubriques volontairement partagées entre le site public et les appareils.
-  var _FB_SYNC_ALLOWLIST = ['clefs','motexpert'];
+  // Synchronisation complète rouverte : désormais protégée par
+  // l'authentification Firebase (compte partagé, voir _auth ci-dessus) et des
+  // règles Firestore exigeant "request.auth != null" — la clé d'API publique
+  // ne suffit plus, seule à elle, à lire/écrire les données.
+  var _FB_SYNC_ALLOWLIST = _FB_ALL_KEYS.slice();
   function _fbAllowed(key){ return _FB_SYNC_ALLOWLIST.indexOf(key)>=0; }
 
 try {
@@ -1408,11 +1417,25 @@ try {
   firebase.initializeApp(firebaseConfig);
   var _db = firebase.firestore();
 
+  // Authentification Firebase (compte partagé unique) : Firestore n'accepte
+  // désormais les lectures/écritures que si on est connecté (règles
+  // « allow read, write: if request.auth != null »). Le mot de passe tapé à
+  // l'écran de connexion sert aussi de mot de passe pour ce compte partagé —
+  // voir loginVerif(). _authReadyPromise ne se résout qu'une fois connecté ;
+  // fbGet/fbSet/fbWatch l'attendent avant tout appel réseau à Firestore.
+  var _auth = firebase.auth();
+  var _FB_AUTH_EMAIL = 'loge.seu1657@gestion-loge.local';
+  try{ _auth.setPersistence(firebase.auth.Auth.Persistence.SESSION); }catch(e){}
+  var _authReadyPromise = new Promise(function(resolve){
+    _auth.onAuthStateChanged(function(user){ if(user) resolve(); });
+  });
+
   window.fbGet = function(key, cb) {
     if(!_fbAllowed(key)){
       try{ var sLoc=localStorage.getItem(key); if(cb) cb(sLoc?JSON.parse(sLoc):null); }catch(e){ if(cb) cb(null); }
       return;
     }
+    _authReadyPromise.then(function(){
     _db.collection('seu').doc(key).get().then(function(d) {
       if(d.exists) {
         var val = d.data().value;
@@ -1437,6 +1460,7 @@ try {
       console.warn('fbGet', key, e);
       if(cb) { try { var s=localStorage.getItem(key); cb(s?JSON.parse(s):null); } catch(ex){cb(null);} }
     });
+    });
   };
 
   window.fbSet = function(key, value) {
@@ -1449,6 +1473,7 @@ try {
       localStorage.setItem(key, typeof value==='string'?value:JSON.stringify(value));
       localStorage.setItem(key+'_localTs', String(ts));
     } catch(e) {}
+    _authReadyPromise.then(function(){
     _db.collection('seu').doc(key).set({ value: value, updatedAt: ts })
       .then(function(){ console.log('✓ fbSet OK:', key); })
       .catch(function(e){
@@ -1456,11 +1481,13 @@ try {
         var el=document.getElementById('firebase-status');
         if(el){ el.textContent='⬤ Erreur écriture (règles?)'; el.style.color='rgba(255,100,100,.8)'; }
       });
+    });
   };
 
   window.fbWatch = function(key, callback) {
     if(!_fbAllowed(key)) return null;
-    return _db.collection('seu').doc(key).onSnapshot(function(snap) {
+    _authReadyPromise.then(function(){
+    _db.collection('seu').doc(key).onSnapshot(function(snap) {
       if(snap.exists) {
         var val = snap.data().value;
         var fbTs = snap.data().updatedAt || 0;
@@ -1476,6 +1503,8 @@ try {
         callback(val);
       }
     }, function(e){ console.warn('fbWatch', key, e); });
+    });
+    return null;
   };
 
   // ── Firebase Storage (fichiers jusqu'à 20 Mo) ──────────────
@@ -11619,14 +11648,8 @@ function diagnostiquerSauvegardeJSON(input){
 
 function rechargerDepuisFirebase(){
   if(!window.fbGet){alert('Firebase non connecté. Vérifiez votre connexion internet.');return;}
-  // Depuis la restriction de synchronisation (_FB_SYNC_ALLOWLIST), seules
-  // 'clefs' et 'motexpert' sont réellement lues depuis Firestore : effacer
-  // puis recharger TOUTES les clés locales (comportement d'origine) ferait
-  // perdre définitivement Frères/Planning/Trésorerie/offices, qui ne
-  // peuvent plus être retéléchargés depuis le cloud. On limite donc l'action
-  // aux seules clés encore synchronisées.
-  var allow=window._FB_SYNC_ALLOWLIST||['clefs','motexpert'];
-  if(!confirm('Recharger Clefs du Temple et Patte de l\'Expert depuis Firebase ?\n\nLe cache local de ces deux rubriques sera effacé et la page rechargée.\nLe reste de vos données (Frères, Planning, Trésorerie, offices...) n\'est plus synchronisé avec le cloud et ne sera pas touché.')) return;
+  var allow=window._FB_SYNC_ALLOWLIST||[];
+  if(!confirm('Recharger TOUTES vos données depuis Firebase ?\n\nLe cache local sera effacé puis la page rechargée : la version présente sur le cloud (Frères, Planning, Trésorerie, offices, Clefs du Temple, Patte de l\'Expert...) remplacera vos données locales actuelles.')) return;
   allow.forEach(function(key){
     try{localStorage.removeItem(key+'_localTs');}catch(e){}
     try{localStorage.removeItem(key);}catch(e){}
