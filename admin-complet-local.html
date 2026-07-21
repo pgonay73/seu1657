@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.554-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.555-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -6049,13 +6049,27 @@ function cfgTab(name, btn){
   if(name==='regles') renderRegles();
   if(name==='modeles') renderModeles();
   if(name==='durees') renderDureesReleves();
-  if(name==='accueil') setTimeout(cfgAccueilRubriquesRender, 0);
-  if(name==='cartes') setTimeout(cfgAccueilCartesRender, 0);
   if(name==='detail'){ window._detailPanelVisite=true; setTimeout(function(){ try { initParDefautStandards(); if(!D.parDefaut)D.parDefaut=[]; [{nom:'ÉLECTION',dur:0,elecSteps:[]},{nom:'INSTALLATION',dur:0,instSteps:[]},{nom:'INTERVENTION',dur:0,interSteps:[]},{nom:'CÉRÉMONIE',dur:0,cerCardSteps:[]},{nom:'RÉUNION HORS TENUE',dur:0,reunSteps:[]}].forEach(function(s){if(!D.parDefaut.some(function(p){return p.nom===s.nom;}))D.parDefaut.push(s);}); peRender('pe-defaut',D.parDefaut); } catch(ex) { console.error('peRender pe-defaut a échoué:', ex); } renderTypesDurees(); }, 0); }
   // Bouton imprimer global géré par dispatchImprimer()
   window._cfgCurrentTab = name;
   // Zone Observations
   if(panel) setTimeout(function(){ obsInject('cfg_'+name, 'cfg-panel-'+name); },80);
+}
+// Sous-onglets de l'onglet Administrateur "Accueil" (Texte d'accueil / Cartes
+// accueil) — fonction dédiée plutôt que cfgTab() : cfgTab() masque TOUS les
+// .cfg-panel de la page (y compris ceux de Configuration), ce qui viderait
+// l'affichage de Configuration si on l'utilisait ici.
+function accueilTab(name, btn){
+  var tabs=document.querySelectorAll('#admin-panel-accueil .cfg-tab');
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
+  if(btn) btn.classList.add('active');
+  var pAcc=document.getElementById('cfg-panel-accueil');
+  var pCartes=document.getElementById('cfg-panel-cartes');
+  if(pAcc) pAcc.style.display=name==='accueil'?'':'none';
+  if(pCartes) pCartes.style.display=name==='cartes'?'':'none';
+  if(name==='accueil'){ renderAccueilTexteFields(); cfgAccueilRubriquesRender(); }
+  if(name==='cartes') cfgAccueilCartesRender();
+  setTimeout(function(){ obsInject('cfg_'+name, 'cfg-panel-'+name); },80);
 }
 
 function renderTypesDurees(){
@@ -6559,11 +6573,6 @@ function renderConfig(){
   var elOrient=document.getElementById('cfg-orient'); if(elOrient) elOrient.value=D.loge.orient||'';
   var elObed=document.getElementById('cfg-obedience'); if(elObed) elObed.value=D.loge.obedience||'';
   var elCit=document.getElementById('cfg-citation'); if(elCit) elCit.value=D.loge.citation||'';
-  var elAccTitre=document.getElementById('cfg-accueil-titre'); if(elAccTitre) elAccTitre.value=D.loge.accueilTitre||'';
-  var elAccTexte=document.getElementById('cfg-accueil-texte'); if(elAccTexte) elAccTexte.value=D.loge.accueilTexte||'';
-  var elN1=document.getElementById('cfg-accueil-news1'); if(elN1) elN1.value=D.loge.accueilNews1||'';
-  var elN2=document.getElementById('cfg-accueil-news2'); if(elN2) elN2.value=D.loge.accueilNews2||'';
-  var elN3=document.getElementById('cfg-accueil-news3'); if(elN3) elN3.value=D.loge.accueilNews3||'';
   var elDur=document.getElementById('cfg-duree-classique'); if(elDur) elDur.value=D.loge.dureeClassique||'';
   var elDurMod=document.getElementById('cfg-duree-module'); if(elDurMod) elDurMod.value=D.loge.dureeModule||15;
   var elPerDeb=document.getElementById('cfg-periode-debut'); if(elPerDeb) elPerDeb.value=D.loge.periodeDebut||'';
@@ -6573,8 +6582,19 @@ function renderConfig(){
   infosRender();
   logoRender();
   renderLogePeriode();
+  renderAccueilTexteFields();
   // Les champs sont maintenant remplis : autoriser saveConfig() à les relire
   window._cfgPanelVisite = true;
+}
+// Remplit les champs de l'onglet "Accueil" (Texte d'accueil), utilisée à la
+// fois par renderConfig() (si Configuration a été ouverte avant) et par
+// adminTab('accueil',...) (accès direct sans passer par Configuration).
+function renderAccueilTexteFields(){
+  var elAccTitre=document.getElementById('cfg-accueil-titre'); if(elAccTitre) elAccTitre.value=D.loge.accueilTitre||'';
+  var elAccTexte=document.getElementById('cfg-accueil-texte'); if(elAccTexte) elAccTexte.value=D.loge.accueilTexte||'';
+  var elN1=document.getElementById('cfg-accueil-news1'); if(elN1) elN1.value=D.loge.accueilNews1||'';
+  var elN2=document.getElementById('cfg-accueil-news2'); if(elN2) elN2.value=D.loge.accueilNews2||'';
+  var elN3=document.getElementById('cfg-accueil-news3'); if(elN3) elN3.value=D.loge.accueilNews3||'';
 }
 
 function renderAccueilProchaineTenue(){
@@ -7147,12 +7167,6 @@ function saveConfig(){
     var _orient=document.getElementById('cfg-orient'); if(_orient) D.loge.orient=_orient.value.trim();
     var _obed=document.getElementById('cfg-obedience'); if(_obed) D.loge.obedience=_obed.value.trim();
     var _cit=document.getElementById('cfg-citation'); if(_cit) D.loge.citation=_cit.value.trim();
-    var _accTitre=document.getElementById('cfg-accueil-titre'); if(_accTitre) D.loge.accueilTitre=_accTitre.value.trim();
-    var _accTexte=document.getElementById('cfg-accueil-texte'); if(_accTexte) D.loge.accueilTexte=_accTexte.value.trim();
-    var _n1=document.getElementById('cfg-accueil-news1'); if(_n1) D.loge.accueilNews1=_n1.value.trim();
-    var _n2=document.getElementById('cfg-accueil-news2'); if(_n2) D.loge.accueilNews2=_n2.value.trim();
-    var _n3=document.getElementById('cfg-accueil-news3'); if(_n3) D.loge.accueilNews3=_n3.value.trim();
-    renderAccueilTexte();
     var _dur=document.getElementById('cfg-duree-classique'); if(_dur) D.loge.dureeClassique=parseInt(_dur.value)||0;
     var _durMod=document.getElementById('cfg-duree-module'); if(_durMod) D.loge.dureeModule=parseInt(_durMod.value)||15;
     var _plDm=document.getElementById('pl-duree-module'); if(_plDm) _plDm.value=D.loge.dureeModule||15;
@@ -7170,6 +7184,17 @@ function saveConfig(){
     if(window._detailPanelVisite){
       var p=peGet('pe-defaut'),f=[];for(var i=0;i<p.length;i++)if(p[i].nom)f.push(p[i]);D.parDefaut=f;
     }
+  }
+  // Texte d'accueil : onglet "Accueil" indépendant de Configuration, protégé
+  // par window._accueilPanelVisite (posé par adminTab('accueil',...)) — même
+  // logique que window._cfgPanelVisite ci-dessus, pour la même raison.
+  if(window._cfgPanelVisite || window._accueilPanelVisite){
+    var _accTitre=document.getElementById('cfg-accueil-titre'); if(_accTitre) D.loge.accueilTitre=_accTitre.value.trim();
+    var _accTexte=document.getElementById('cfg-accueil-texte'); if(_accTexte) D.loge.accueilTexte=_accTexte.value.trim();
+    var _n1=document.getElementById('cfg-accueil-news1'); if(_n1) D.loge.accueilNews1=_n1.value.trim();
+    var _n2=document.getElementById('cfg-accueil-news2'); if(_n2) D.loge.accueilNews2=_n2.value.trim();
+    var _n3=document.getElementById('cfg-accueil-news3'); if(_n3) D.loge.accueilNews3=_n3.value.trim();
+    renderAccueilTexte();
   }
   saveDureesReleves();
   save();
@@ -14157,6 +14182,7 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="adminTab(\'titulaires\',this)">Titulaires des offices</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'navigation\',this)">Visibilité navigation</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'responsables\',this)">Responsables</button>';
+    c+='<button class="cfg-tab" onclick="adminTab(\'accueil\',this)">🏠 Accueil</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'config\',this)">Configuration</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'planches-tracees\',this)">Planches tracées</button>';
     c+='<button class="cfg-tab" onclick="adminTab(\'correspondance\',this)">Correspondance</button>';
@@ -14253,9 +14279,6 @@ function renderOffice(n){
     c+='<button class="cfg-tab" onclick="cfgTab(\'statsth\',this)">Objectifs</button>';
     c+='<button class="cfg-tab" onclick="cfgTab(\'periode\',this)">Période du logiciel</button>';
     c+='<button class="cfg-tab" onclick="cfgTab(\'infos\',this)">Infos diverses</button>';
-    c+='<button class="cfg-tab" onclick="cfgTab(\'accueil\',this)">Texte d\'accueil</button>';
-    c+='<button class="cfg-tab" onclick="cfgTab(\'cartes\',this)">🗂 Cartes accueil</button>';
-
     c+='<button onclick="imprimerCfgOnglet(window._cfgCurrentTab||\'identite\')" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:4px 12px;border-radius:4px;font-family:Raleway,sans-serif;font-size:11px;font-weight:600;cursor:pointer;align-self:center;white-space:nowrap;">🖨️ Imprimer</button>';
     c+='</div>';
     c+='<div id="cfg-panel-identite" class="cfg-panel"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Identité de la Loge</h3><div class="cfg-row"><div class="cfg-group"><label>Nom de la Loge</label><input type="text" id="cfg-nom" placeholder="Ex : Sagesse en Uzege" onchange="saveConfig()"/></div><div class="cfg-group" style="max-width:200px"><label>Numero</label><input type="text" id="cfg-num" placeholder="N 1234" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Titre par defaut des tenues</label><input type="text" id="cfg-titredef" placeholder="Ex : Tenue au 1° degre" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Orient</label><input type="text" id="cfg-orient" placeholder="Ex : Uzès" onchange="saveConfig()"/></div><div class="cfg-group"><label>Obédience</label><input type="text" id="cfg-obedience" placeholder="Ex : Grande Loge de France" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group" style="max-width:260px;"><label>⏱ Durée classique d\'une tenue (minutes)</label><input type="number" id="cfg-duree-classique" min="30" max="480" step="5" placeholder="Ex : 120" style="max-width:120px;" onchange="saveConfig()"/><p style="font-size:10px;color:var(--grey);margin-top:4px;font-style:italic;">Sert de base de référence pour toute l\'application.</p></div></div><div class="cfg-row"><div class="cfg-group"><label>Citation / Devise</label><textarea id="cfg-citation" rows="2" placeholder="Ex : La lumière guide nos pas..." onchange="saveConfig()"></textarea></div></div><div class="cfg-row"><div class="cfg-group"><label>Logo de la Loge</label><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><img id="cfg-logo-preview" src="" alt="" style="display:none;height:56px;width:auto;object-fit:contain;border-radius:4px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.2);padding:4px;"/><div style="display:flex;flex-direction:column;gap:6px;"><label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">&#128444; Importer un logo<input type="file" accept="image/*" style="display:none;" onchange="logoImporter(this)"/></label><button class="btn btn-outline btn-sm" id="cfg-logo-suppr" style="display:none;color:var(--red);border-color:var(--red);" onclick="logoSupprimer()">&#10005; Supprimer le logo</button></div></div></div></div></div></div>';
@@ -14266,8 +14289,15 @@ function renderOffice(n){
     c+='<div id="cfg-panel-statsth" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Objectifs</h3><p style="font-size:10px;color:var(--grey);margin-bottom:8px;">Saisissez les objectifs pour chaque indicateur.</p><div id="statsth-list"></div></div></div>';
     c+='<div id="cfg-panel-periode" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Période du logiciel</h3><p style="font-size:13px;color:var(--grey);margin-bottom:14px">Définissez la période couverte par le logiciel. Une tenue créée ou générée en dehors de cette période déclenchera un avertissement (la création reste possible).</p><div class="cfg-row"><div class="cfg-group" style="max-width:200px;"><label>Date de début</label><input type="date" id="cfg-periode-debut" onchange="saveConfig()"/></div><div class="cfg-group" style="max-width:200px;"><label>Date de fin</label><input type="date" id="cfg-periode-fin" onchange="saveConfig()"/></div></div></div></div>';
     c+='<div id="cfg-panel-infos" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Infos diverses</h3><div id="infos-list"></div><div style="display:flex;gap:8px;margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="infosAjouter()">+ Ajouter une rubrique</button></div></div></div>';
-
-    c+='<div id="cfg-panel-accueil" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Texte d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Texte affiché centré sur la page d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>Titre (optionnel)</label><input type="text" id="cfg-accueil-titre" placeholder="Ex : Bienvenue à la Loge Sagesse en Uzège" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Texte principal</label><textarea id="cfg-accueil-texte" rows="5" placeholder="Saisissez ici le texte qui s\'affichera sur la page d\'accueil…" onchange="saveConfig()" style="min-height:100px;resize:none;overflow:hidden;"></textarea></div></div></div><div class="cfg-box" style="margin-top:16px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Les news</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Trois cases affichées sous le texte d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>News 1</label><textarea id="cfg-accueil-news1" rows="3" placeholder="Contenu de la 1ère case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 2</label><textarea id="cfg-accueil-news2" rows="3" placeholder="Contenu de la 2ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 3</label><textarea id="cfg-accueil-news3" rows="3" placeholder="Contenu de la 3ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div></div></div>'
+    c+='</div>';
+    // PANEL ACCUEIL
+    c+='<div id="admin-panel-accueil" style="display:none;">';
+    c+='<h3 style="font-size:18px;color:var(--gold);margin-bottom:12px;">Accueil</h3>';
+    c+='<div style="display:flex;gap:0;border-bottom:2px solid var(--cream);margin-bottom:16px;flex-wrap:wrap;">';
+    c+='<button class="cfg-tab active" onclick="accueilTab(\'accueil\',this)">Texte d\'accueil</button>';
+    c+='<button class="cfg-tab" onclick="accueilTab(\'cartes\',this)">🗂 Cartes accueil</button>';
+    c+='</div>';
+    c+='<div id="cfg-panel-accueil" class="cfg-panel"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Texte d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Texte affiché centré sur la page d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>Titre (optionnel)</label><input type="text" id="cfg-accueil-titre" placeholder="Ex : Bienvenue à la Loge Sagesse en Uzège" onchange="saveConfig()"/></div></div><div class="cfg-row"><div class="cfg-group"><label>Texte principal</label><textarea id="cfg-accueil-texte" rows="5" placeholder="Saisissez ici le texte qui s\'affichera sur la page d\'accueil…" onchange="saveConfig()" style="min-height:100px;resize:none;overflow:hidden;"></textarea></div></div></div><div class="cfg-box" style="margin-top:16px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Les news</h3><p style="font-size:11px;color:var(--grey);margin-bottom:16px;">Trois cases affichées sous le texte d\'accueil.</p><div class="cfg-row"><div class="cfg-group"><label>News 1</label><textarea id="cfg-accueil-news1" rows="3" placeholder="Contenu de la 1ère case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 2</label><textarea id="cfg-accueil-news2" rows="3" placeholder="Contenu de la 2ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div><div class="cfg-group"><label>News 3</label><textarea id="cfg-accueil-news3" rows="3" placeholder="Contenu de la 3ème case…" onchange="saveConfig()" style="min-height:72px;resize:none;overflow:hidden;"></textarea></div></div></div>'
       +'<div class="cfg-box" style="margin-top:16px;border:2px solid var(--gold);border-radius:6px;"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:var(--gold);font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Rubriques dynamiques à l\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:14px;">Choisissez les informations affichées automatiquement sur la page d\'accueil. Une rubrique est cachée si elle est décochée ou si ses données sont vides.</p><div id="cfg-accueil-rubriques-list"></div></div></div>';
     c+='<div id="cfg-panel-cartes" class="cfg-panel" style="display:none;"><div class="cfg-box"><h3 style="font-size:20px;font-family:Cormorant Garamond,Georgia,serif;color:#FFFFFF;font-weight:700;margin-bottom:8px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Cartes de la page d\'accueil</h3><p style="font-size:11px;color:var(--grey);margin-bottom:18px;">Pour chaque carte : cochez pour l\'afficher, modifiez le titre, saisissez le contenu. Laisser le contenu vide masque la carte même si elle est cochée.</p><div id="cfg-cartes-list"></div><div style="margin-top:18px;"><button class="btn" onclick="accueilCartesSave()" style="background:var(--gold);color:#1E3660;font-weight:700;padding:8px 22px;border-radius:4px;border:none;cursor:pointer;font-size:14px;">💾 Sauvegarder les cartes</button></div></div></div>';
     c+='</div>';
@@ -16525,7 +16555,7 @@ function adminImprimerOnglet(){
 
 function adminTab(name, btn){
   window._ADMIN_TAB_ACTIF=name;
-  var tabs=document.querySelectorAll('#v-off-admin .cfg-tab:not([onclick*="cfgTab"])');
+  var tabs=document.querySelectorAll('#v-off-admin .cfg-tab:not([onclick*="cfgTab"]):not([onclick*="accueilTab"])');
   for(var i=0;i<tabs.length;i++) tabs[i].classList.remove('active');
   if(btn) btn.classList.add('active');
   var po=document.getElementById('admin-panel-offices');
@@ -16533,12 +16563,14 @@ function adminTab(name, btn){
   var pn=document.getElementById('admin-panel-navigation');
   var pr=document.getElementById('admin-panel-responsables');
   var pc=document.getElementById('admin-panel-config');
+  var pac=document.getElementById('admin-panel-accueil');
   var ppl=document.getElementById('admin-panel-planning');
   if(po) po.style.display=name==='offices'?'':'none';
   if(pt) pt.style.display=name==='titulaires'?'':'none';
   if(pn) pn.style.display=name==='navigation'?'':'none';
   if(pr) pr.style.display=name==='responsables'?'':'none';
   if(pc) pc.style.display=name==='config'?'':'none';
+  if(pac) pac.style.display=name==='accueil'?'':'none';
   if(ppl) ppl.style.display=name==='planning'?'block':'none';
   var ppt=document.getElementById('admin-panel-planches-tracees');
   var pco=document.getElementById('admin-panel-correspondance');
@@ -16547,6 +16579,12 @@ function adminTab(name, btn){
   var pfr=document.getElementById('admin-panel-freres');
   if(pfr) pfr.style.display=name==='freres'?'':'none';
   if(name==='config'){ setTimeout(function(){renderConfig();setTimeout(renderStatsth,50);},0); }
+  if(name==='accueil'){
+    setTimeout(function(){
+      window._accueilPanelVisite=true;
+      accueilTab('accueil', document.querySelector('#admin-panel-accueil .cfg-tab'));
+    },0);
+  }
   if(name==='planches-tracees'||name==='correspondance') { setTimeout(function(){ adminLoadTextPanel(name); },50); }
   if(name==='responsables') setTimeout(adminRenderResponsables,0);
   if(name==='titulaires') setTimeout(adminRenderTitulaires,0);
