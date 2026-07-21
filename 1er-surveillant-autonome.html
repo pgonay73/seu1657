@@ -747,7 +747,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil 1° Surveillant autonome, hors-ligne">1° Surveillant autonome — v2026-07-21.426</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil 1° Surveillant autonome, hors-ligne">1° Surveillant autonome — v2026-07-21.427</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -2532,7 +2532,7 @@ var _OFFICE_SAVE_MAP={
   'off-exp':        function(){saveAllMotExpert();},
   'off-mc':         function(){save();},
   'off-couv':       function(){save();},
-  'off-mh':         function(){save();},
+  'off-mh':         function(){mhSave();},
   'off-mb':         function(){mbSave();},
   'off-dep':        function(){depSave();},
   'off-admin':      function(){saveConfig();},
@@ -2832,7 +2832,7 @@ function toast(m){var e=document.getElementById('toast');e.textContent=m;e.class
     'off-exp':    "saveAllMotExpert()",
     'off-mc':     "save();toast('\u2713 Enregistré.')",
     'off-couv':   "save();toast('\u2713 Enregistré.')",
-    'off-mh':     "save();toast('\u2713 Enregistré.')",
+    'off-mh':     "mhSave()",
     'off-mb':     "mbSave()",
     'off-dep':    "depSave()"
   };
@@ -14589,7 +14589,7 @@ function renderOffice(n){
     'off-exp':      "saveAllMotExpert()",
     'off-mc':       "save();toast('\\u2713 Enregistré.')",
     'off-couv':     "save();toast('\\u2713 Enregistré.')",
-    'off-mh':       "save();toast('\\u2713 Enregistré.')",
+    'off-mh':       "mhSave()",
     'off-mb':       "mbSave()",
     'off-dep':      "depSave()",
     'off-admin':    "saveConfig()"
