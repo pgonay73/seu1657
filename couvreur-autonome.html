@@ -747,7 +747,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Couvreur autonome, hors-ligne">Couvreur autonome — v2026-07-21.431</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Couvreur autonome, hors-ligne">Couvreur autonome — v2026-07-21.432</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -830,6 +830,7 @@ function loginVerif(){
         </div>
 
         <!-- Cartes accueil définies par l'administrateur -->
+        <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:16px;font-weight:700;color:var(--gold2);letter-spacing:1px;margin-top:24px;margin-bottom:12px;padding-bottom:6px;padding-top:14px;border-top:2px solid rgba(184,146,42,.3);border-bottom:2px solid var(--gold);text-align:left;">Les officiers vous informent</div>
         <div id="accueil-carte-app"           style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #33DD66;padding:14px 18px;margin-bottom:12px;"></div>
         <div id="accueil-carte-comp"          style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #FF9900;padding:14px 18px;margin-bottom:12px;"></div>
         <div id="accueil-carte-ca"            style="display:none;background:var(--white);border:1px solid var(--cream);border-radius:6px;border-left:4px solid #4472C4;padding:14px 18px;margin-bottom:12px;"></div>
