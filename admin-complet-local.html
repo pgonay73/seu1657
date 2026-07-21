@@ -14289,7 +14289,7 @@ function renderOffice(n){
     c+='<button id="admin-pl-l1-btn-avec" onclick="adminPlL1Tab(\'avec\',this)" style="'+_l1I+'">📊 Planning des tenues avec planches</button>';
     c+='<button id="admin-pl-l1-btn-ref" onclick="adminPlL1Tab(\'ref\',this)" style="'+_l1I+'">📌 Planning de référence</button>';
     c+='<button id="admin-pl-l1-btn-morceaux" onclick="adminPlL1Tab(\'morceaux\',this)" style="'+_l1I+'">🏛 Morceaux d\'architecture</button>';
-    c+='<button id="admin-pl-l1-btn-propositions" onclick="adminPlL1Tab(\'propositions\',this)" style="'+_l1I+'">📝 Propositions de planches</button>';
+    c+='<button id="admin-pl-l1-btn-propositions" onclick="adminPlL1Tab(\'propositions\',this)" style="'+_l1I+'">📝 Le mercato des planches</button>';
     c+='</div>';
     // ─ L1.0 : Planning 1 — squelette du planning (thème + modèle uniquement) ─
     c+='<div id="admin-pl-l1-creation" style="display:none;">';
@@ -14475,7 +14475,7 @@ function renderOffice(n){
     c+='<div id="admin-pl-l1-propositions" style="display:none;">';
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
-    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Propositions de planches par frère</h3>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Le mercato des planches</h3>';
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour chaque frère, notez les sujets de planche ou symbolisme qu\'il propose, et à quel degré. Simples propositions, indépendantes du Suivi par frère et non liées à une tenue.</p>';
     c+='</div>';
     c+='<button onclick="imprimerListePropositionsPlanches()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;flex-shrink:0;margin-left:16px;">🖨 Imprimer</button>';
@@ -24564,7 +24564,7 @@ function plRenderAdminNav(containerId){
       {id:'planches',  label:'📐 Programmation des planches'},
       {id:'ref',       label:'📌 Planning de référence'},
       {id:'morceaux',  label:"🏛 Morceaux d'architecture"},
-      {id:'propositions', label:'📝 Propositions de planches'}
+      {id:'propositions', label:'📝 Le mercato des planches'}
     ];
     var l2TabsA=[
       {id:'procedure', label:'Procédure'},
@@ -25897,7 +25897,7 @@ function adminPlRenderPropositions(cid){
     mesProps.forEach(function(p,pi){
       var bg=fi%2===0?'rgba(255,255,255,.02)':'transparent';
       h+='<div style="display:flex;gap:10px;align-items:center;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';flex-wrap:wrap;">';
-      h+='<div style="width:140px;flex-shrink:0;color:var(--gold2);font-weight:600;">'+(pi===0?fr.nomFrere:'')+'</div>';
+      h+='<div style="width:140px;flex-shrink:0;color:var(--gold2);font-weight:600;font-size:11px;">'+(pi===0?fr.nomFrere:'')+'</div>';
       if(p){
         h+='<div style="width:55px;flex-shrink:0;"><select onchange="plProposChangerDegre(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
         h+='<option value=""'+(!p.degre?' selected':'')+'>--</option>';
@@ -25943,12 +25943,12 @@ function adminPlRenderPropositions(cid){
         h+='</div>';
         h+='<div style="width:60px;flex-shrink:0;display:flex;gap:4px;justify-content:flex-end;">';
         h+='<button onclick="if(confirm(\'Supprimer cette proposition ?\'))plProposSupprimer(&quot;'+p.id+'&quot;)" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;padding:2px;">🗑</button>';
-        if(pi===mesProps.length-1) h+='<button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une autre proposition pour ce frère" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:4px;color:#fff;cursor:pointer;font-size:16px;font-weight:700;line-height:1;padding:4px 8px;">➕</button>';
+        if(pi===mesProps.length-1) h+='<button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une autre proposition pour ce frère" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:4px;color:#fff;cursor:pointer;font-size:11px;font-weight:700;line-height:1;padding:3px 6px;">➕</button>';
         h+='</div>';
       } else {
         h+='<div style="width:55px;flex-shrink:0;"></div><div style="width:100px;flex-shrink:0;"></div><div style="width:150px;flex-shrink:0;"></div><div style="width:130px;flex-shrink:0;"></div><div style="width:44px;flex-shrink:0;"></div>';
         h+='<div style="flex:1;min-width:180px;"></div>';
-        h+='<div style="width:60px;flex-shrink:0;display:flex;justify-content:flex-end;"><button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une proposition" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:4px;color:#fff;cursor:pointer;font-size:16px;font-weight:700;line-height:1;padding:4px 8px;">➕</button></div>';
+        h+='<div style="width:60px;flex-shrink:0;display:flex;justify-content:flex-end;"><button onclick="plProposAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une proposition" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:4px;color:#fff;cursor:pointer;font-size:11px;font-weight:700;line-height:1;padding:3px 6px;">➕</button></div>';
       }
       h+='</div>';
     });
@@ -25970,8 +25970,8 @@ function imprimerListePropositionsPlanches(){
     +'th{text-align:left;padding:6px 8px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#7F8C8D;border-bottom:2px solid #B8922A;}'
     +'td{padding:7px 8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}'
     +'@media print{body{margin:10mm;}}';
-  var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Propositions de planches par frère — '+loge+'</title><style>'+css+'</style></head><body>';
-  h+='<h1>'+(loge?loge+' — ':'')+'Propositions de planches par frère</h1>';
+  var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Le mercato des planches — '+loge+'</title><style>'+css+'</style></head><body>';
+  h+='<h1>'+(loge?loge+' — ':'')+'Le mercato des planches</h1>';
   var jFrProp=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
   var mFrProp2=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function fmtDateProp(ds){ if(!ds) return ''; var d=new Date(ds+'T12:00:00'); return jFrProp[d.getDay()]+' '+d.getDate()+' '+mFrProp2[d.getMonth()]+' '+d.getFullYear(); }
@@ -26003,7 +26003,7 @@ function imprimerListePropositionsPlanches(){
     h+='</tbody></table>';
   }
   h+='</body></html>';
-  _printHtml(h,'Propositions de planches par frère — '+loge);
+  _printHtml(h,'Le mercato des planches — '+loge);
 }
 function plGenererPlanningReference(){
   if(!confirm('🔄 Générer le planning de référence ?\n\nCette opération va :\n1. Placer toutes les tenues impératives dans le planning\n2. Appliquer toutes les règles de tenues conseillées\n\nLes tenues déjà présentes à ces dates seront remplacées.')) return;
