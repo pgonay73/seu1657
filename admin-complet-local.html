@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.561-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.562-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24770,6 +24770,14 @@ function _plMorceauType(p){
 // squelette, dates spéciales/2°, candidatures/initiations), avec le détail
 // de chaque partie (planches/symbolismes affectés ou encore disponibles,
 // cf. Étape 4). Ne modifie jamais les données du planning.
+function _plCompletToggleDetail(id){
+  var d=document.getElementById('pl-complet-det-'+id);
+  var b=document.getElementById('pl-complet-tog-'+id);
+  if(!d) return;
+  var open=d.style.display!=='none';
+  d.style.display=open?'none':'';
+  if(b) b.innerHTML=(open?'▸ Voir toutes les étapes ':'▾ Masquer les étapes ')+'('+d.getAttribute('data-n')+')';
+}
 function adminPlRenderComplet(cid){
   cid=cid||'admin-pl-complet-list';
   var el=document.getElementById(cid); if(!el) return;
@@ -24781,50 +24789,60 @@ function adminPlRenderComplet(cid){
   var jFr=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
   var mFr=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function fmtDate(ds){ if(!ds) return '—'; var d=new Date(ds+'T12:00:00'); return jFr[d.getDay()]+' '+d.getDate()+' '+mFr[d.getMonth()]+' '+d.getFullYear(); }
+  function fmtDuree(min){ return min>0?(Math.floor(min/60)>0?Math.floor(min/60)+'h'+((min%60)>0?String(min%60).padStart(2,'0'):''):(min+' min')):'—'; }
+  function ligneMorceau(p){
+    var type=_plMorceauType(p);
+    var marq=type==='P'?'<span style="color:#33DD66;font-weight:700;">Planche</span>':(type==='S'?'<span style="color:#C080D0;font-weight:700;">Symbolisme</span>':'<span style="color:rgba(255,255,255,.5);">'+(p.nom||'')+'</span>');
+    var infos=[];
+    if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
+    if(p.titre) infos.push('« '+p.titre+' »');
+    var infosStr=infos.length?' — '+infos.join(' · '):' — <span style="color:#FF9900;">disponible</span>';
+    return '<span style="display:inline-block;margin-right:18px;margin-bottom:2px;">'+marq+infosStr+'</span>';
+  }
+  function ligneEtape(p){
+    var type=_plMorceauType(p);
+    var marq=type==='P'?'<span style="color:#33DD66;font-weight:700;">P</span> ':(type==='S'?'<span style="color:#C080D0;font-weight:700;">S</span> ':'');
+    var infos=[];
+    if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
+    if(p.titre) infos.push('« '+p.titre+' »');
+    var infosStr=infos.length?' — '+infos.join(' · '):'';
+    return '<div style="padding:2px 0;">'+marq+(p.nom||'')+(p.dur?' <span style="color:rgba(255,255,255,.35);">('+p.dur+' min)</span>':'')+infosStr+'</div>';
+  }
   if(!evts.length){
     el.innerHTML='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucune tenue dans la période définie.</p>';
     return;
   }
-  var h='<table style="width:100%;border-collapse:collapse;font-size:12.5px;">';
-  h+='<thead><tr style="border-bottom:2px solid var(--gold);">';
-  h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Date</th>';
-  h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:55px;">Degré</th>';
-  h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:180px;">Titre</th>';
-  h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;width:150px;">Modèle</th>';
-  h+='<th style="text-align:left;padding:8px;color:var(--gold);font-size:11px;text-transform:uppercase;letter-spacing:1px;">Détail</th>';
-  h+='</tr></thead><tbody>';
+  var h='';
   evts.forEach(function(e,i){
     var deg=e.degre||'1°';
-    var degCouleur=deg==='3°'?'#E08080':(deg==='2°'?'#82AAFF':'#7FE0A0');
+    var cd=deg==='2°'?'#FF9900':(deg==='3°'?'#FF4444':'#33DD66');
     var modEffNom=_plModeleNom(e);
     var titre=e.titre||modEffNom;
     var parties=_plPartiesEffectives(e);
-    var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
-    h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;">';
-    h+='<td style="padding:8px;color:var(--gold2);font-weight:600;white-space:nowrap;">'+fmtDate(e.date)+(e.heure?' <span style="color:rgba(255,255,255,.4);font-size:11px;">'+e.heure+'</span>':'')+'</td>';
-    h+='<td style="padding:8px;color:'+degCouleur+';font-weight:700;">'+deg+'</td>';
-    h+='<td style="padding:8px;font-weight:600;">'+titre+'</td>';
-    h+='<td style="padding:8px;color:rgba(255,255,255,.6);">'+modEffNom+'</td>';
-    h+='<td style="padding:8px;">';
-    if(!parties.length){
-      h+='<span style="color:rgba(255,255,255,.35);font-style:italic;">—</span>';
-    } else {
-      parties.forEach(function(p){
-        var type=_plMorceauType(p);
-        var marq=type==='P'?'<span style="color:#33DD66;font-weight:700;">P</span> ':(type==='S'?'<span style="color:#C080D0;font-weight:700;">S</span> ':'');
-        var nL=(p.nom||'').toLowerCase(),isMo=nL.indexOf('morceau')>=0||nL.indexOf('architecture')>=0;
-        var infos=[];
-        if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
-        if(p.titre) infos.push('« '+p.titre+' »');
-        var vide=isMo&&!p.conf&&!p.titre;
-        var infosStr=infos.length?' — '+infos.join(' · '):(vide?' — <span style="color:#FF9900;">disponible</span>':'');
-        h+='<div style="padding:2px 0;">'+marq+(p.nom||'')+(p.dur?' <span style="color:rgba(255,255,255,.35);">('+p.dur+' min)</span>':'')+infosStr+'</div>';
-      });
-    }
-    h+='</td>';
-    h+='</tr>';
+    var dureeMin=parties.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0)||(e.duree>0?e.duree:0);
+    var dsA=_plDureeStyle(dureeMin);
+    var morceaux=parties.filter(function(p){return _plMorceauType(p)!=='';});
+    var bg=i%2===0?'rgba(255,255,255,.025)':'rgba(255,255,255,.005)';
+    h+='<div style="background:'+bg+';border-left:4px solid '+cd+';border-radius:4px;padding:10px 14px;margin-bottom:8px;">';
+    // Ligne 1 : date, heure, degré, modèle, thème, durée
+    h+='<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">';
+    h+='<span style="color:var(--gold2);font-weight:600;white-space:nowrap;font-size:13px;">'+fmtDate(e.date)+(e.heure?' <span style="color:rgba(255,255,255,.4);font-size:11px;">'+e.heure+'</span>':'')+'</span>';
+    h+='<span style="color:'+cd+';font-weight:700;font-size:13px;">'+deg+'</span>';
+    h+='<span style="color:rgba(255,255,255,.55);font-size:12px;">'+modEffNom+'</span>';
+    h+='<span style="color:'+cd+';font-weight:700;font-size:13.5px;flex:1;min-width:140px;">'+titre+'</span>';
+    h+='<span class="pl-col-duree'+dsA.cls+'" style="display:inline-flex;align-items:center;background:'+dsA.bg+';border-radius:8px;padding:2px 10px;flex-shrink:0;"><span style="color:'+dsA.color+';font-weight:700;font-size:12px;">'+fmtDuree(dureeMin)+'</span></span>';
+    h+='</div>';
+    // Ligne 2 : morceaux d'architecture (sujet, conférencier)
+    h+='<div style="margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;">';
+    h+=morceaux.length?morceaux.map(ligneMorceau).join(''):'<span style="color:rgba(255,255,255,.3);font-style:italic;">Aucun morceau d\'architecture</span>';
+    h+='</div>';
+    // Partie dépliable : toutes les étapes de la tenue
+    h+='<div style="margin-top:7px;"><button id="pl-complet-tog-'+e.id+'" onclick="_plCompletToggleDetail(&quot;'+e.id+'&quot;)" style="background:none;border:none;color:var(--gold2);cursor:pointer;font-size:11px;font-family:Raleway,sans-serif;padding:0;">▸ Voir toutes les étapes ('+parties.length+')</button></div>';
+    h+='<div id="pl-complet-det-'+e.id+'" data-n="'+parties.length+'" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(255,255,255,.15);">';
+    h+=parties.length?parties.map(ligneEtape).join(''):'<span style="color:rgba(255,255,255,.35);font-style:italic;">—</span>';
+    h+='</div>';
+    h+='</div>';
   });
-  h+='</tbody></table>';
   el.innerHTML=h;
 }
 // Vue en lecture seule dérivée du Planning de référence (mêmes tenues, même
