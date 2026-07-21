@@ -748,7 +748,7 @@ function loginVerif(){
         <span style="width:24px;display:inline-block;"></span>
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Planning autonome, hors-ligne">Planning autonome — v2026-07-21.423</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Planning autonome, hors-ligne">Planning autonome — v2026-07-21.424</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -20755,6 +20755,28 @@ function _plNomAvecPrenom(nom){
   var f=(D.freres||[]).filter(function(x){return (x.nom||'').trim().toLowerCase()===n.toLowerCase();})[0];
   return (f&&f.prenom)?(n+' '+f.prenom):n;
 }
+// Corrige, à l'affichage, un modèle de tenue qui ne correspond plus au degré
+// réel de la tenue (ex : tenue repassée manuellement au 2° après génération,
+// mais dont le modèle était resté « TENUE AU 1 »). Ne touche jamais un
+// modèle dont le nom ne permet pas de déduire un degré (modèle personnalisé,
+// catégorie Candidatures/Élections/Installations/Cérémonies/etc.).
+function _plSyncModelesAvecDegre(data){
+  var n=0;
+  (data.events||[]).forEach(function(ev){
+    if(!ev.modeleId||!ev.degre) return;
+    var modActuel=getModele(ev.modeleId);
+    var degModele=modActuel?_degreDepuisModele(modActuel):null;
+    if(!degModele||degModele===ev.degre) return;
+    var mCorrect=getModeleParDegre(ev.degre);
+    if(!mCorrect||mCorrect.id===ev.modeleId) return;
+    ev.modeleId=mCorrect.id;
+    ev.detail=cpP(mCorrect.parties||[]);
+    if(!ev._titreManuel) ev.titre=mCorrect.nom;
+    ev._pl2Touche=true;
+    n++;
+  });
+  return n;
+}
 function plRenderPlanning(targetId){
   var el=document.getElementById(targetId||'pl-list');if(!el)return;
   var isAdmin=(targetId||'')==='admin-pl-sans-list'||(targetId||'')==='admin-pl-ref-list';
@@ -20762,6 +20784,7 @@ function plRenderPlanning(targetId){
   plMajResumeCriteres();
   plMajDureeHabituelle();
   var data=plLoad();
+  var _syncModAj=(typeof _plSyncModelesAvecDegre==='function')?_plSyncModelesAvecDegre(data):0;
 
   // Filet de sécurité : applique le pré-cochage par défaut à toute tenue
   // obligatoire/conseillée qui n'aurait, pour une raison ou une autre, aucune
@@ -20785,7 +20808,7 @@ function plRenderPlanning(targetId){
       e.detail.forEach(function(p){var nL=(p.nom||'').toLowerCase();if((nL.indexOf('morceau')>=0||nL.indexOf('architecture')>=0)&&(!p.plancheSteps||!p.plancheSteps.length)){p.plancheSteps=['planche','parole'];aSauvegarder=true;}});
     }
   });
-  if(aSauvegarder) plSave(data);
+  if(aSauvegarder||_syncModAj>0) plSave(data);
 
   var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
 
