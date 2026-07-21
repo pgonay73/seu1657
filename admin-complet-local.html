@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.574-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.575-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25051,7 +25051,7 @@ function _plCompletImprimer(bornes){
   css+='.deg1{color:#2c5f2e;}.deg2{color:#1a3d7c;}.deg3{color:#7B0000;}';
   css+='.tenue-titre{font-weight:700;font-size:12.5px;flex:1;}';
   css+='.tenue-meta{font-size:9.5px;color:#7F8C8D;}';
-  css+='.etape{padding:2px 0 2px 14px;font-size:10px;}';
+  css+='.etape{padding:1px 0 1px 14px;font-size:9px;color:#555;}';
   css+='@media print{body{margin:10mm;}}';
   var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Planning complet — '+loge+'</title><style>'+css+'</style></head><body>';
   h+='<h1>'+(loge?loge+' — ':'')+'Planning complet</h1>';
@@ -25065,8 +25065,15 @@ function _plCompletImprimer(bornes){
       var nL=(p.nom||'').toLowerCase();
       return nL.indexOf('ouverture')<0&&nL.indexOf('fermeture')<0;
     });
+    var dureeMin=parties.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0)||(e.duree>0?e.duree:0);
     h+='<div class="tenue">';
-    h+='<div class="tenue-h"><span class="'+degCls+'" style="font-weight:700;">'+deg+'</span><span class="tenue-titre">'+titre+'</span><span class="tenue-meta">'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+' · '+modEffNom+'</span></div>';
+    h+='<div class="tenue-h">';
+    h+='<span class="tenue-meta">'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+'</span>';
+    h+='<span class="'+degCls+'" style="font-weight:700;">'+deg+'</span>';
+    h+='<span class="tenue-titre">'+titre+'</span>';
+    h+='<span class="tenue-meta">'+modEffNom+'</span>';
+    h+='<span class="tenue-meta" style="font-weight:700;">'+_plCompletFmtDuree(dureeMin)+'</span>';
+    h+='</div>';
     parties.forEach(function(p){
       var infos=[];
       if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
