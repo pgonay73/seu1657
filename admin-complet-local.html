@@ -765,7 +765,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger Clefs du Temple et Patte de l'Expert depuis Firebase (les autres données ne sont plus synchronisées)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui reste dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Supprime définitivement du cloud Firebase toutes les données sauf Clefs du Temple et Patte de l'Expert (les données locales sur cet ordinateur ne sont pas touchées)">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.549-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.550-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14299,10 +14299,10 @@ function renderOffice(n){
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Première étape : poser le squelette du planning (date, degré, modèle de tenue, thème) à partir des critères annuels ci-dessous. Les planches, candidats et conférenciers viendront dans une étape ultérieure.</p>';
     c+='</div>';
     c+='<button onclick="plTenueAdd({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-creation-list\');" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
-    c+='<button onclick="plNavToAdminL1(\'sans\')" style="background:transparent;border:1px solid rgba(184,146,42,.6);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:8px;">Passer au Planning 2 →</button>';
     c+='</div>';
     c+='<div id="admin-pl-panel-criteres"></div>';
     c+='<div id="admin-pl-creation-list"></div>';
+    c+=_plNavFixeHtml('','','sans','Planning 2');
     c+='</div></div>';
     // ─ L1.A : Programmation du planning ─
     c+='<div id="admin-pl-l1-prog">';
@@ -14347,9 +14347,9 @@ function renderOffice(n){
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour l\'instant, copie conforme de Planning 1 (mêmes tenues, mêmes colonnes). Les candidatures et initiations se saisissent au Planning 3.</p>';
     c+='</div>';
     c+='<button onclick="plTenueAdd2({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-planning2-list\',true);" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
-    c+='<button onclick="plNavToAdminL1(\'planning3\')" style="background:transparent;border:1px solid rgba(184,146,42,.6);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:8px;">Passer au Planning 3 →</button>';
     c+='</div>';
     c+='<div id="admin-pl-planning2-list"></div>';
+    c+=_plNavFixeHtml('creation','Planning 1','planning3','Planning 3');
     c+='</div></div>';
     // ─ L1.B2 : Planning 3 (pour l'instant, copie conforme de Planning 2) ─
     c+='<div id="admin-pl-l1-planning3" style="display:none;">';
@@ -14361,9 +14361,9 @@ function renderOffice(n){
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour l\'instant, copie conforme de Planning 2 (mêmes tenues, mêmes colonnes).</p>';
     c+='</div>';
     c+='<button onclick="plTenueAdd2({id:\'pl\'+Date.now(),date:\'\',heure:\'\',titre:\'\',degre:\'1°\',modeleId:\'\',detail:[]});adminPlRenderCreation(\'admin-pl-planning3-list\',true);" style="background:#1D8A5A;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:16px;">+ Ajouter une tenue</button>';
-    c+='<button onclick="plNavToAdminL1(\'planning4\')" style="background:transparent;border:1px solid rgba(184,146,42,.6);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 14px;letter-spacing:.3px;flex-shrink:0;margin-left:8px;">Passer au Planning 4 →</button>';
     c+='</div>';
     c+='<div id="admin-pl-planning3-list"></div>';
+    c+=_plNavFixeHtml('sans','Planning 2','planning4','Planning 4');
     c+='</div></div>';
     // ─ L1.B3 : Planning 4 (mêmes tenues que Planning 2/3, affichage limité aux
     // parties "Morceau d'architecture" — même présentation que l'onglet
@@ -14376,6 +14376,7 @@ function renderOffice(n){
     c+='</div>';
     c+='</div>';
     c+='<div id="admin-pl-planning4-list"></div>';
+    c+=_plNavFixeHtml('planning3','Planning 3','','');
     c+='</div></div>';
     // ─ L1.C : Programmation des planches ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
@@ -25897,7 +25898,7 @@ function adminPlRenderPropositions(cid){
     mesProps.forEach(function(p,pi){
       var bg=fi%2===0?'rgba(255,255,255,.02)':'transparent';
       h+='<div style="display:flex;gap:10px;align-items:center;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';flex-wrap:wrap;">';
-      h+='<div style="width:140px;flex-shrink:0;color:var(--gold2);font-weight:600;font-size:9px;">'+(pi===0?fr.nomFrere:'')+'</div>';
+      h+='<div style="width:140px;flex-shrink:0;color:var(--gold2);font-weight:600;font-size:14px;">'+(pi===0?fr.nomFrere:'')+'</div>';
       if(p){
         h+='<div style="width:55px;flex-shrink:0;"><select onchange="plProposChangerDegre(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
         h+='<option value=""'+(!p.degre?' selected':'')+'>--</option>';
@@ -27297,6 +27298,18 @@ function plNavToAdminL1(id){
       adminPlL1Tab(id, document.getElementById('admin-pl-l1-btn-'+id));
     }, 60);
   }, 60);
+}
+// Barre de navigation fixe (Planning précédent/suivant), affichée en bas à
+// droite de l'écran, qui reste visible même en scrollant dans une longue
+// liste de tenues. prevId/nextId = '' pour masquer le bouton correspondant
+// (Planning 1 n'a pas de précédent, Planning 4 n'a pas de suivant).
+function _plNavFixeHtml(prevId,prevLabel,nextId,nextLabel){
+  var bS='font-family:Raleway,sans-serif;font-size:12px;font-weight:700;letter-spacing:.3px;border-radius:5px;cursor:pointer;padding:8px 16px;box-shadow:0 2px 12px rgba(0,0,0,.4);';
+  var h='<div style="position:fixed;bottom:18px;right:18px;z-index:500;display:flex;gap:8px;">';
+  if(prevId) h+='<button onclick="plNavToAdminL1(&quot;'+prevId+'&quot;)" style="'+bS+'background:rgba(30,54,96,.95);border:1px solid rgba(184,146,42,.6);color:var(--gold2);">← '+prevLabel+'</button>';
+  if(nextId) h+='<button onclick="plNavToAdminL1(&quot;'+nextId+'&quot;)" style="'+bS+'background:rgba(184,146,42,.95);border:1px solid rgba(184,146,42,.9);color:#1a1206;">'+nextLabel+' →</button>';
+  h+='</div>';
+  return h;
 }
 
 // Re-render accueil prochaine tenue maintenant que plCriteresLoad est disponible
