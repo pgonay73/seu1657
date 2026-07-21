@@ -747,7 +747,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil 1° Surveillant autonome, hors-ligne">1° Surveillant autonome — v2026-07-21.428</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil 1° Surveillant autonome, hors-ligne">1° Surveillant autonome — v2026-07-21.429</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
@@ -1738,6 +1738,8 @@ var PL_KEY='planning_libre_data';
 function plLoad(){try{var s=localStorage.getItem(PL_KEY);var d=s?JSON.parse(s):{events:[]};if(d&&d.events&&d.events.length)d.events=d.events.filter(function(t){return !(t&&t.date==='2026-09-04'&&(t.titre||'').toUpperCase().indexOf('INSTALLATION COLLEGE')>=0);});return d;}catch(e){return{events:[]};}}
 function plSave(d){try{localStorage.setItem(PL_KEY,JSON.stringify(d));}catch(e){}window._plLocalSaveTs=Date.now();if(window.fbSet)window.fbSet(PL_KEY,d);}
 function getTenues(){return(plLoad().events||[]);}
+// Comparateur date puis heure — a date egale, les tenues du meme jour s'affichent dans l'ordre de leur heure plutot qu'un ordre indetermine.
+function _plCompareDateHeure(a,b){var d=(a.date||'').localeCompare(b.date||'');if(d!==0)return d;return (a.heure||'').localeCompare(b.heure||'');}
 function plTenueUpdate(id,fields){var d=plLoad();for(var i=0;i<d.events.length;i++){if(d.events[i].id===id){Object.assign(d.events[i],fields);break;}}plSave(d);}
 function plTenueAdd(t){var d=plLoad();d.events.push(t);plSave(d);}
 function plTenueDelete(id){var d=plLoad();d.events=d.events.filter(function(e){return e.id!==id;});plSave(d);}
@@ -1957,7 +1959,7 @@ function pdGetDatesOpts(selected, typeFiltre){
   var opts='<option value="">-- Date --</option>';
   var c=plCriteresLoad()||{};
   var deb=c.dateDebut||'';var fin=c.dateFin||'';
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i];
     if(!t.date)continue;
@@ -1998,7 +2000,7 @@ function pdRender(){
   if(selDate){
     var prevDate=selDate.value;
     selDate.innerHTML='<option value="">Toutes les dates</option>';
-    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().slice().sort(_plCompareDateHeure);
     var _cPd=(typeof plCriteresLoad==='function'?plCriteresLoad():null)||{};
     var _debPd=_cPd.dateDebut||'';var _finPd=_cPd.dateFin||'';
     for(var ti=0;ti<tenues.length;ti++){
@@ -2278,7 +2280,7 @@ function _renderPlanchesProgr(today){
   if(!el)return;
 
   // Collecter toutes les tenues ayant au moins un slot planche/symbolisme
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   var fresAvecPlanche={};
 
   var h='<div class="cfg-box" style="margin-bottom:16px;">';
@@ -12961,7 +12963,7 @@ function troncRender(){
     if(t.date<perDeb) return false;
     if(t.date>perFin) return false;
     return true;
-  }).sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  }).sort(_plCompareDateHeure);
   var fmtDate=function(dt){if(!dt)return'\u2014';var p=dt.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:dt;};
   var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:4px 7px;font-family:Raleway,sans-serif;font-size:12px;';
 
@@ -13090,7 +13092,7 @@ function troncSubTab(name, btn){
 function troncImprimer(){
   // Lire les valeurs depuis le DOM en priorité, sinon localStorage
   var d=troncLoad();
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
 
   // Collectes : lire DOM
   var collectes={};
@@ -14102,7 +14104,7 @@ function renderOffice(n){
     sc2+='<th style="'+thS2+'">Notes</th>';
     sc2+='<th style="padding:8px;width:36px;"></th>';
     sc2+='</tr></thead><tbody>';
-    var tenues2=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues2=getTenues().slice().sort(_plCompareDateHeure);
     for(var ti2=0;ti2<tenues2.length;ti2++){
       var t2=tenues2[ti2];
       var titre2=(t2.titre||'').toLowerCase();
@@ -14164,7 +14166,7 @@ function renderOffice(n){
     sc+='<th style="'+thS+'">Notes</th>';
     sc+='<th style="padding:8px;width:36px;"></th>';
     sc+='</tr></thead><tbody id="surv1-tbody">';
-    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().slice().sort(_plCompareDateHeure);
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     for(var ti=0;ti<tenues.length;ti++){
       var t=tenues[ti];
@@ -14206,7 +14208,7 @@ function renderOffice(n){
   }
   if(n==='off-mb'){
     var mbData={}; try{var mbs=localStorage.getItem('mb_menus');if(mbs)mbData=JSON.parse(mbs);}catch(e){}
-    var tenues=(typeof plGetTenuesFiltrees==='function')?plGetTenuesFiltrees():getTenues().filter(function(t){return!t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=(typeof plGetTenuesFiltrees==='function')?plGetTenuesFiltrees():getTenues().filter(function(t){return!t.ferie;}).slice().sort(_plCompareDateHeure);
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;resize:none;overflow:hidden;';
     var inpN='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;box-sizing:border-box;width:90px;text-align:right;';
@@ -14314,7 +14316,7 @@ function renderOffice(n){
   }
   if(n==='off-mh'){
     var mhData={}; try{var mhs=localStorage.getItem('mh_playlists');if(mhs)mhData=JSON.parse(mhs);}catch(e){}
-    var tenues=(typeof plGetTenuesFiltrees==='function')?plGetTenuesFiltrees():getTenues().filter(function(t){return!t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=(typeof plGetTenuesFiltrees==='function')?plGetTenuesFiltrees():getTenues().filter(function(t){return!t.ferie;}).slice().sort(_plCompareDateHeure);
     var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;';
     var mc='<div class="cfg-box" style="margin-top:12px;overflow-x:auto;">';
@@ -14367,7 +14369,7 @@ function renderOffice(n){
   }
   if(n==='off-dep'){
     var depData={}; try{var ds=localStorage.getItem('dep_interventions');if(ds)depData=JSON.parse(ds);}catch(e){}
-    var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    var tenues=getTenues().slice().sort(_plCompareDateHeure);
     var fmtDate=function(d){if(!d)return'\u2014';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
     var inpS='background:#1E3660;color:#FFFFFF;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:5px 8px;font-family:Raleway,sans-serif;font-size:12px;width:100%;box-sizing:border-box;';
     var dc='<div id="off-dep-content">';
@@ -15270,7 +15272,7 @@ function secCAReunRender(){
   h+='<th style="'+thS+'">Décisions / PV</th>';
   h+='<th style="padding:8px;width:36px;"></th>';
   h+='</tr></thead><tbody>';
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   for(var ti=0;ti<tenues.length;ti++){
     var t=tenues[ti];
     var titre=(t.titre||'').toLowerCase();
@@ -15312,7 +15314,7 @@ function imprimerCA(){
   h+='<h1>'+loge+' — Conseil d\'Administration</h1>';
   h+='<div class="subtitle">Édité le '+today.getDate()+' '+ml[today.getMonth()]+' '+today.getFullYear()+'</div>';
   h+='<table><thead><tr><th>Date</th><th>Ordre du jour</th><th>Membres présents</th><th>Décisions / PV</th></tr></thead><tbody>';
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i]; var titre=(t.titre||'').toLowerCase();
     if(titre.indexOf('conseil')<0||titre.indexOf('admin')<0) continue;
@@ -15563,7 +15565,7 @@ function imprimerAgapes(){
   var moisC=['jan.','fév.','mars','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   var jours=['Dim.','Lun.','Mar.','Mer.','Jeu.','Ven.','Sam.'];
 
-  var tenues=getTenues().filter(function(t){return !t.ferie;}).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().filter(function(t){return !t.ferie;}).slice().sort(_plCompareDateHeure);
 
   // Totaux
   var totalTriangle=0,totalAchats=0,totalNb=0;
@@ -15729,7 +15731,7 @@ function mhImprimer(){
   var sel=document.getElementById('mh-filtre-tenue');
   var filtId=sel?sel.value:'';
 
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   if(filtId) tenues=tenues.filter(function(t){return t.id===filtId;});
   // Ne garder que les tenues qui ont une playlist saisie (sauf si filtre spécifique)
   var avecPlaylist=tenues.filter(function(t){
@@ -16015,7 +16017,7 @@ function adminRenderPlanningGenere(avecDetail){
   var el = document.getElementById(elId);
   if(!el) return;
   var data = plLoad();
-  var evts = (data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var evts = (data.events||[]).slice().sort(_plCompareDateHeure);
   // Filtrer par période
   var pDeb=(D.loge&&D.loge.periodeDebut)||'';
   var pFin=(D.loge&&D.loge.periodeFin)||'';
@@ -18331,7 +18333,7 @@ setTimeout(adjustMainHeight,100);
 function imprimerDepInterventions(){
   var loge=D.loge.nom||'Loge'; var num=D.loge.num||'';
   var depData={}; try{var ds=localStorage.getItem('dep_interventions');if(ds)depData=JSON.parse(ds);}catch(e){}
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
   var h='<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Interventions Député</title>';
   h+='<style>*{box-sizing:border-box;}body{font-family:Georgia,serif;color:#1E3660;margin:20px;font-size:10.5px;}h1{font-size:17px;border-bottom:2.5px solid #B8922A;padding-bottom:6px;margin-bottom:4px;}.subtitle{font-size:9.5px;color:#7F8C8D;margin-bottom:14px;}table{width:100%;border-collapse:collapse;font-size:10px;}thead tr{background:#1E3660;color:#fff;}th{padding:5px 8px;text-align:left;font-size:8.5px;text-transform:uppercase;letter-spacing:.4px;}td{padding:5px 8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}@media print{body{margin:10mm;}tr{page-break-inside:avoid;}}</style></head><body>';
@@ -18374,7 +18376,7 @@ function imprimerSurv1(){
   h+='<h1>'+loge+' — Réunions des Compagnons (1° Surveillant)</h1>';
   h+='<div class="subtitle">Édité le '+todayS1.getDate()+' '+mlS1[todayS1.getMonth()]+' '+todayS1.getFullYear()+'</div>';
   h+='<table><thead><tr><th>Date</th><th>Ordre du jour</th><th>Participants</th><th>Notes</th></tr></thead><tbody>';
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i]; var rec=survData[t.id]||{}; if(typeof rec==='string')rec={odj:rec};
@@ -18395,7 +18397,7 @@ function imprimerSurv2(){
   h+='<h1>'+loge+' — Réunions des Apprentis (2° Surveillant)</h1>';
   h+='<div class="subtitle">Édité le '+todayS2.getDate()+' '+mlS2[todayS2.getMonth()]+' '+todayS2.getFullYear()+'</div>';
   h+='<table><thead><tr><th>Date</th><th>Ordre du jour</th><th>Participants</th><th>Notes</th></tr></thead><tbody>';
-  var tenues=getTenues().slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var tenues=getTenues().slice().sort(_plCompareDateHeure);
   var fmtDate=function(d){if(!d)return'—';var p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:d;};
   for(var i=0;i<tenues.length;i++){
     var t=tenues[i]; var rec=surv2Data[t.id]||{}; if(typeof rec==='string')rec={odj:rec};
@@ -19112,7 +19114,7 @@ function plSujetSymbolisme(modulesRestants,nbBlocs){
 // rouvre le sélecteur sans rien changer).
 function plTenuesEligibles(degre,type,reservationActuelleId){
   var data=plLoad();
-  var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var evts=(data.events||[]).slice().sort(_plCompareDateHeure);
   var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   var ML=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   var c=plCriteresLoad()||{};
@@ -19965,7 +19967,7 @@ function tcTransferer(){
   var crit=plCriteresLoad()||{};
   var debStr=crit.dateDebut||'';var finStr=crit.dateFin||'';
   // Trier les événements par date
-  var evts=plData.events.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var evts=plData.events.slice().sort(_plCompareDateHeure);
   var totalChanged=0;
   regles.forEach(function(tc){
     var moisPar=tcFreqMois(tc.frequence);var nbPar=tc.nb||1;
@@ -20343,7 +20345,7 @@ function plGetTenuesFiltrees(){
     }
   });
   if(_aSauv) plSave(data);
-  var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var evts=(data.events||[]).slice().sort(_plCompareDateHeure);
   (function(){
     var byDate={};
     evts.forEach(function(e){if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
@@ -20354,7 +20356,7 @@ function plGetTenuesFiltrees(){
       arr.sort(function(a,b){return _plDupScore(b)-_plDupScore(a);});
       clean.push(arr[0]);
     });
-    evts=clean.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    evts=clean.sort(_plCompareDateHeure);
   })();
   var _crit=plCriteresLoad()||{};
   var plPerDeb=_crit.dateDebut||(D.loge&&D.loge.periodeDebut)||'';
@@ -20841,7 +20843,7 @@ function plRenderPlanning(targetId){
   });
   if(aSauvegarder||_syncModAj>0) plSave(data);
 
-  var evts=(data.events||[]).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  var evts=(data.events||[]).slice().sort(_plCompareDateHeure);
 
   // Dédoublonnage par date : pour chaque date en double, garder l'entrée
   // la plus "propre" (modeleId sans detail > gen_ > autres).
@@ -20860,7 +20862,7 @@ function plRenderPlanning(targetId){
       arr.sort(function(a,b){return _plDupScore(b)-_plDupScore(a);});
       clean.push(arr[0]);
     });
-    evts=clean.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    evts=clean.sort(_plCompareDateHeure);
   })();
 
   // Index suivi : pour chaque tenueId, liste des frères assignés (planche ou symbolisme)
@@ -21774,7 +21776,7 @@ function plRenderPlanchesRecap(containerId){
     if(_debPR&&e.date<_debPR)return false;
     if(_finPR&&e.date>_finPR)return false;
     return true;
-  }).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  }).slice().sort(_plCompareDateHeure);
   var JC=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
   var ML=['Jan.','Fév.','Mar.','Avr.','Mai','Jun.','Jul.','Aoû.','Sep.','Oct.','Nov.','Déc.'];
   // Reverse suivi index: tenueId → [{nomFrere, type, degre, sujet}]
@@ -24032,7 +24034,7 @@ function plImprimerSans(bornes){
     if(perDeb && e.date < perDeb) return false;
     if(perFin && e.date > perFin) return false;
     return true;
-  }).slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+  }).slice().sort(_plCompareDateHeure);
   if(!evts.length){toast('⚠ Aucune tenue dans la période définie.');return;}
   var loge=(D&&D.loge&&D.loge.nom)?D.loge.nom:((D&&D.config&&D.config.nom)?D.config.nom:'Loge');
   var num=(D&&D.loge&&D.loge.num)?D.loge.num:((D&&D.config&&D.config.num)?D.config.num:'');
@@ -24369,7 +24371,7 @@ function admTransfererAuPlanning(){
   });
 
   if(added>0||updated>0){
-    data.events.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    data.events.sort(_plCompareDateHeure);
     plSave(data);
     var msg='';
     if(added>0) msg+='✓ '+added+' tenue'+(added>1?'s':'')+' ajoutée'+(added>1?'s':'')+'.';;
@@ -24425,7 +24427,7 @@ function plDeduplicaterParDate(silent,onlyDate){
     removed+=arr.length-1;
   });
   if(removed>0){
-    clean.sort(function(a,b){return(a.date||'').localeCompare(b.date||'');});
+    clean.sort(_plCompareDateHeure);
     data.events=clean;
     if(!data.doublonsArchives) data.doublonsArchives=[];
     data.doublonsArchives=data.doublonsArchives.concat(archives).slice(-200);
