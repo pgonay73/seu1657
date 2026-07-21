@@ -641,12 +641,12 @@ table.pl-table-compact input[type="checkbox"]{-webkit-appearance:checkbox!import
 <!-- ============================================================ -->
 <!-- ÉCRAN DE CONNEXION -->
 <!-- ============================================================ -->
-<div id="login-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(10,20,45,0.97);display:flex;align-items:center;justify-content:center;z-index:9999999;flex-direction:column;">
-  <div style="background:#0a1628;border:3px solid #B8922A;border-radius:12px;padding:48px 40px 40px;width:360px;max-width:92vw;box-shadow:0 0 60px rgba(184,146,42,.3),0 32px 80px rgba(0,0,0,.8);text-align:center;">
+<div id="login-screen" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(30,54,96,0.97);display:flex;align-items:center;justify-content:center;z-index:9999999;flex-direction:column;">
+  <div style="background:#1E3660;border:3px solid #B8922A;border-radius:12px;padding:48px 40px 40px;width:360px;max-width:92vw;box-shadow:0 0 60px rgba(184,146,42,.3),0 32px 80px rgba(0,0,0,.8);text-align:center;">
     <div style="font-size:40px;color:#D4AF5A;font-weight:700;margin-bottom:8px;">⬡</div>
     <div style="font-size:22px;color:#FFFFFF;font-weight:700;margin-bottom:6px;">Gestion de Loge</div>
     <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:28px;">Accès réservé aux Officiers</div>
-    <input id="login-mdp" type="password" placeholder="Mot de passe" autocomplete="current-password" style="width:100%;padding:14px 16px;background:#071020;border:2px solid #B8922A;border-radius:6px;color:#FFFFFF;font-size:16px;outline:none;margin-bottom:12px;letter-spacing:2px;" onkeydown="if(event.key==='Enter')loginVerif()" oninput="document.getElementById('login-err').style.display='none'">
+    <input id="login-mdp" type="password" placeholder="Mot de passe" autocomplete="current-password" style="width:100%;padding:14px 16px;background:#1E3660;border:2px solid #B8922A;border-radius:6px;color:#FFFFFF;font-size:16px;outline:none;margin-bottom:12px;letter-spacing:2px;" onkeydown="if(event.key==='Enter')loginVerif()" oninput="document.getElementById('login-err').style.display='none'">
     <div id="login-err" style="color:#FF6B6B;font-size:13px;font-weight:600;margin-bottom:8px;display:none;">Mot de passe incorrect.</div>
     <button onclick="loginVerif()" style="width:100%;padding:15px;background:#B8922A;border:none;border-radius:6px;color:#FFFFFF;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;">
       ENTRER EN LOGE
@@ -747,7 +747,7 @@ function loginVerif(){
       <nav class="header-nav">
         <button onclick="exportData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger une sauvegarde complète JSON (toutes les données)">📥 Backup</button>
         <button onclick="importData()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.55);color:rgba(184,146,42,.6);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Restaurer une sauvegarde JSON (fichier local uniquement)">📤 Restaurer</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Hospitalier autonome, hors-ligne">Hospitalier autonome — v2026-07-21.429</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Outil Hospitalier autonome, hors-ligne">Hospitalier autonome — v2026-07-21.430</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
       </nav>
     </div>
