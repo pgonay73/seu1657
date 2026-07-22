@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.589-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.590-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26835,10 +26835,10 @@ function admSelectNoSems(){
 // moisCible : mois JS 0-indexé (9=octobre, 11=décembre, 5=juin). rang :
 // occurrence du jour de semaine choisi dans ce mois (2 = 2e tenue).
 var ADM_DATES_SPECIALES=[
-  {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation', motsCles:['installation'], motsExclus:['inspecteur'], moisCible:9,  rang:2},
   {key:'dateInspecteur',   champ:'adm-crit-date-inspecteur',   titre:'Inspecteur',   motsCles:['inspecteur'],   motsExclus:['installation'], moisCible:9,  rang:2},
   {key:'dateStJean',       champ:'adm-crit-date-stjean',       titre:"St Jean d'hiver", motsCles:['jean'],      moisCible:11, rang:2},
-  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection',     motsCles:['election'],     moisCible:5,  rang:2}
+  {key:'dateElection',     champ:'adm-crit-date-election',     titre:'Élection',     motsCles:['election'],     moisCible:5,  rang:2},
+  {key:'dateInstallation', champ:'adm-crit-date-installation', titre:'Installation', motsCles:['installation'], motsExclus:['inspecteur'], moisCible:9,  rang:2}
 ];
 // Tenues au 2°, désignées parmi les dates disponibles (tenues au 1° déjà
 // présentes dans le planning) — 3 emplacements facultatifs.
