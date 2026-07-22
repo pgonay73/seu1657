@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.586-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.587-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26534,7 +26534,7 @@ function adminPlRenderCriteres(){
       h+='</select>';
     });
     h+='</div>';
-    h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Date calculée automatiquement (5e occurrence du jour choisi) ; modifiable si besoin. Actif uniquement si « 5e semaine → 3° » est cochée ci-dessus.</div>';
+    h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Date calculée automatiquement (5e occurrence du jour choisi) ; modifiable si besoin. Actif uniquement si « 5e semaine → 3° » est cochée ci-dessus.<br>Si la tenue au 3° de la 5e semaine est un jour férié, elle est avancée d\'une tenue.</div>';
   }
   h+='</div>';
   h+='<div style="margin-bottom:22px;">';
@@ -26824,7 +26824,9 @@ function _admDates5emeSemaine(){
       if(js===jourCrit) occs.push(new Date(dd.getTime()));
     }
     if(occs.length===5){
-      var occ5=occs[4];
+      // Si la 5e occurrence (tenue au 3°) tombe un jour férié, on l'avance
+      // à la tenue précédente (4e occurrence) du même mois.
+      var occ5=(typeof isFerie==='function'&&isFerie(occs[4]))?occs[3]:occs[4];
       if(occ5>=debut&&occ5<=fin){
         var moisKey=y+'-'+(mo<9?'0':'')+(mo+1);
         var ds=moisKey+'-'+(occ5.getDate()<10?'0':'')+occ5.getDate();
@@ -27053,9 +27055,21 @@ function admTransfererAuPlanning(){
           if(isDegre3){
             var moisKey3=y+'-'+(mo<9?'0':'')+(mo+1);
             var dsOverride=(c.datesTroisiemeOverrides||{})[moisKey3];
+            // Si aucun choix explicite n'a été fait et que la 5e occurrence
+            // tombe un jour férié, avancer par défaut à la tenue précédente
+            // (4e occurrence) du même mois.
+            if(!dsOverride && oi>0 && typeof isFerie==='function' && isFerie(occ)){
+              var occPrec=occs[oi-1];
+              dsOverride=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occPrec.getDate()<10?'0':'')+occPrec.getDate();
+            }
             if(dsOverride) ds=dsOverride;
           }
-          nouvelles.push({date:ds, degre3:isDegre3});
+          // Évite un doublon si cette date a déjà été ajoutée par une autre
+          // occurrence du même mois (ex : la 3° avancée sur la 4e occurrence,
+          // déjà présente comme tenue ordinaire) — fusionne au lieu de dupliquer.
+          var _existante=nouvelles.filter(function(x){return x.date===ds;})[0];
+          if(_existante){ if(isDegre3) _existante.degre3=true; }
+          else nouvelles.push({date:ds, degre3:isDegre3});
         }
       }
       if(mo===11) cur=new Date(y+1,0,1);
