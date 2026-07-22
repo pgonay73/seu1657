@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.587-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.588-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25081,6 +25081,48 @@ function _plCompletImprimer(bornes){
   h+='</body></html>';
   _printHtml(h,'Planning complet — '+loge);
 }
+// Jours fériés qui tombent sur le jour de semaine récurrent configuré
+// (Critères annuels), dans la période, et qui n'ont pas de tenue — puisque
+// admTransfererAuPlanning ne crée plus de tenue sur ces dates. Utilisé
+// uniquement pour affichage (Étape 6) : ne crée ni ne modifie aucune tenue.
+function _admJoursFeriesSansTenue(){
+  var c=(typeof plCriteresLoad==='function'?plCriteresLoad():{})||{};
+  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
+  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
+  if(!perDeb||!perFin||jourCrit<0||typeof isFerie!=='function') return [];
+  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+  var semaines=c.semaines||[];
+  var existants={};
+  (plLoad2().events||[]).forEach(function(e){ if(e.date) existants[e.date]=true; });
+  var out=[];
+  var cur=new Date(debut.getTime());
+  while(cur<=fin){
+    var y=cur.getFullYear(), mo=cur.getMonth();
+    var occs=[];
+    for(var day=1;day<=31;day++){
+      var dd=new Date(y,mo,day);
+      if(dd.getMonth()!==mo) break;
+      var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+      if(js===jourCrit) occs.push(new Date(dd.getTime()));
+    }
+    for(var oi=0;oi<occs.length;oi++){
+      var occ=occs[oi], numSem=oi+1, include=(semaines.length===0);
+      if(!include){
+        for(var si=0;si<semaines.length;si++){
+          if(semaines[si]===5){ if(numSem===5&&occs.length===5) include=true; }
+          else{ if(semaines[si]===numSem) include=true; }
+        }
+      }
+      if(include&&occ>=debut&&occ<=fin&&isFerie(occ)){
+        var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
+        if(!existants[ds]) out.push(ds);
+      }
+    }
+    if(mo===11) cur=new Date(y+1,0,1);
+    else cur=new Date(y,mo+1,1);
+  }
+  return out;
+}
 function adminPlRenderComplet(cid){
   cid=cid||'admin-pl-complet-list';
   var el=document.getElementById(cid); if(!el) return;
@@ -25095,7 +25137,18 @@ function adminPlRenderComplet(cid){
   if(typeof _plEnsureStore2Seeded==='function') _plEnsureStore2Seeded();
   var data=plLoad2();
   var evts=_plFiltrerParPeriode((data.events||[]).slice().sort(_plCompareDateHeure));
-  if(!evts.length){
+  // Jours fériés récurrents sans tenue (voir admTransfererAuPlanning, qui
+  // n'en crée plus) : affichés à leur place chronologique, sans case de
+  // tenue, juste la mention « Jour férié ».
+  var feries=(typeof _admJoursFeriesSansTenue==='function')?_admJoursFeriesSansTenue():[];
+  var items=evts.map(function(e){ return {ferie:false,date:e.date,e:e}; })
+    .concat(feries.map(function(ds){ return {ferie:true,date:ds}; }))
+    .sort(function(a,b){
+      if(a.date!==b.date) return a.date<b.date?-1:1;
+      if(a.ferie!==b.ferie) return a.ferie?-1:1;
+      return 0;
+    });
+  if(!items.length){
     el.innerHTML='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucune tenue dans la période définie.</p>';
     return;
   }
@@ -25107,17 +25160,21 @@ function adminPlRenderComplet(cid){
   h+='</datalist>';
   h+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin:0 0 10px;font-style:italic;">Tous les champs sont modifiables directement ici pour une dernière correction. Un changement de date peut décaler l\'ordre chronologique de la tenue : quittez puis revenez sur cet onglet pour voir la liste retriée.</p>';
   var _prevDate=null,_prevTrim=null;
-  evts.forEach(function(e){
-    var _trimKey=(typeof _plTrimestreInfo==='function')?_plTrimestreInfo(e.date).key:null;
+  items.forEach(function(it){
+    var _trimKey=(typeof _plTrimestreInfo==='function')?_plTrimestreInfo(it.date).key:null;
     if(_prevDate!==null){
       if(_trimKey!==null&&_trimKey!==_prevTrim){
         h+='<div style="height:1cm;background:#D4AF5A;border-radius:3px;margin-bottom:14px;"></div>';
-      } else if(e.date!==_prevDate){
+      } else if(it.date!==_prevDate){
         h+='<hr style="border:none;border-top:3px solid rgba(255,255,255,.75);margin:8px 0 12px;">';
       }
     }
-    _prevDate=e.date; _prevTrim=_trimKey;
-    h+='<div id="pl-complet-card-'+e.id+'">'+_plCompletCardHtml(e)+'</div>';
+    _prevDate=it.date; _prevTrim=_trimKey;
+    if(it.ferie){
+      h+='<div style="padding:8px 14px;margin-bottom:8px;color:rgba(255,255,255,.4);font-style:italic;font-size:12.5px;">'+_plCompletFmtDate(it.date)+' — Jour férié</div>';
+    } else {
+      h+='<div id="pl-complet-card-'+it.e.id+'">'+_plCompletCardHtml(it.e)+'</div>';
+    }
   });
   el.innerHTML=h;
 }
@@ -27090,8 +27147,16 @@ function admTransfererAuPlanning(){
   // tableau de Planning 2 et s'appliquent uniquement à ses propres tenues
   // (voir _admAppliquerDesignationsP2).
 
+  var feriesIgnores=0;
   nouvelles.forEach(function(item){
     var ds=item.date;
+    // Un jour férié ne reçoit pas de tenue générée (sauf la tenue au 3° de
+    // la 5e semaine, déjà avancée à une date non-fériée plus haut si besoin) :
+    // il reste visible comme jour férié sur le planning (voir Étape 6), sans
+    // case de tenue créée ni conservée dans le listing.
+    if(!item.degre3 && !existByDate[ds] && typeof isFerie==='function' && isFerie(new Date(ds+'T12:00:00'))){
+      feriesIgnores++; return;
+    }
     if(existByDate[ds]){
       var ev=data.events.filter(function(e){return e.date===ds;})[0];
       // Une tenue déjà présente (créée manuellement ou par une autre voie)
@@ -27132,7 +27197,7 @@ function admTransfererAuPlanning(){
   // depuis la dernière génération (le modèle assigné ne correspondait plus).
   var syncAj=_plSyncModelesAvecDegre(data);
 
-  if(added>0||updated>0||heureAj>0||modeleAj>0||syncAj>0){
+  if(added>0||updated>0||heureAj>0||modeleAj>0||syncAj>0||feriesIgnores>0){
     data.events.sort(_plCompareDateHeure);
     plSave(data);
     if(typeof adminPlRenderCreation==='function'){
@@ -27148,6 +27213,7 @@ function admTransfererAuPlanning(){
     if(updated>0) msg+=(msg?' ':'')+updated+' tenue'+(updated>1?'s':'')+' passée'+(updated>1?'s':'')+' au 3°.';
     if(modeleAj>0) msg+=(msg?' ':'')+modeleAj+' modèle'+(modeleAj>1?'s':'')+' complété'+(modeleAj>1?'s':'')+' sur des tenues déjà présentes.';
     if(syncAj>0) msg+=(msg?' ':'')+syncAj+' modèle'+(syncAj>1?'s':'')+' mis à jour suite à un changement de degré.';
+    if(feriesIgnores>0) msg+=(msg?' ':'')+feriesIgnores+' jour'+(feriesIgnores>1?'s fériés ignorés (aucune tenue créée)':' férié ignoré (aucune tenue créée)')+'.';
     var restantes=Math.max(0,skipped-updated-heureAj-modeleAj-syncAj);
     if(restantes>0) msg+=' ('+restantes+' date'+(restantes>1?'s déjà présentes sans changement':' déjà présente sans changement')+')';
     toast(msg||'Planning mis à jour.');
