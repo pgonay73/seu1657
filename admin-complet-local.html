@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.594-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.595-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26772,7 +26772,7 @@ function adminPlRenderCriteresP2(cid){
     h+='</div>';
   });
   h+='</div>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Inspecteur : sa date est impérative et déterminée par lui. St Jean : en principe la dernière tenue de décembre, ou à défaut l\'avant-dernière. Élection : en principe la dernière tenue de juin, ou à défaut l\'avant-dernière. Installation : a priori la même tenue que l\'Inspecteur, si trop tard dans le planning la mettre à la première tenue de septembre.</div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Inspecteur : sa date est impérative et déterminée par lui. St Jean : en principe la dernière tenue de décembre, ou à défaut l\'avant-dernière. Élection : en principe la dernière tenue de juin, ou à défaut l\'avant-dernière. Installation : la date de l\'Inspecteur si elle tombe en automne, sinon la première tenue disponible de l\'automne.</div>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues déjà présentes dans le planning, laquelle correspond à chacune de ces tenues-clés. Le modèle de tenue associé est automatique (Installation → Installation Collège + VM, Inspecteur → Inspecteur, St Jean → St Jean, Élection → Élection complet ; Installation + Inspecteur → Installation + Inspecteur si les deux tombent le même jour).</div>';
   h+='</div>';
   // Tenues au 2°, désignées via menu déroulant parmi les dates disponibles
@@ -27143,6 +27143,16 @@ function _admPremiereOccurrenceMois(mois){
   }
   return '';
 }
+// Première tenue disponible de l'automne (septembre, octobre, novembre,
+// dans cet ordre) — repli de l'Installation quand la date de l'Inspecteur
+// n'est pas elle-même en automne.
+function _admPremiereOccurrenceAutomne(){
+  for(var i=0;i<3;i++){
+    var d=_admPremiereOccurrenceMois(8+i); // septembre(8), octobre(9), novembre(10)
+    if(d) return d;
+  }
+  return '';
+}
 // Date par défaut d'une désignation (Inspecteur, St Jean, Élection,
 // Installation), utilisée à la fois par l'affichage du sélecteur et par
 // l'application effective des désignations — pour rester cohérentes :
@@ -27151,8 +27161,8 @@ function _admPremiereOccurrenceMois(mois){
 // - St Jean : dernière tenue de décembre, ou l'avant-dernière si déjà prise
 //   par une autre désignation.
 // - Élection : dernière tenue de juin, ou l'avant-dernière si déjà prise.
-// - Installation : a priori la même tenue que l'Inspecteur ; si trop tard
-//   (Inspecteur en octobre ou après), la 1ère tenue de septembre.
+// - Installation : la date de l'Inspecteur si elle tombe en automne
+//   (septembre à novembre) ; sinon la première tenue disponible de l'automne.
 function _admDateSpecialeDefaut(key){
   var c=plCriteresLoad()||{};
   if(c[key]) return c[key];
@@ -27169,7 +27179,7 @@ function _admDateSpecialeDefaut(key){
   if(key==='dateInstallation'){
     var dInsp=_admDateSpecialeDefaut('dateInspecteur');
     var moisInsp=dInsp?(parseInt(dInsp.split('-')[1],10)-1):-1;
-    return (dInsp&&moisInsp<=8)?dInsp:_admPremiereOccurrenceMois(8);
+    return (dInsp&&moisInsp>=8&&moisInsp<=10)?dInsp:_admPremiereOccurrenceAutomne();
   }
   return _admDateOccurrence(sp.moisCible,sp.rang);
 }
