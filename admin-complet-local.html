@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.591-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.592-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26613,12 +26613,12 @@ function _admAppliquerDesignationsP2(){
   var data=plLoad2(); if(!data.events) data.events=[];
   var titreAj=0, modAj=0, deg2Aj=0;
 
-  var _dInstall=c.dateInstallation||_admDateOccurrence(9,2), _dInspect=c.dateInspecteur||_admDateOccurrence(9,2);
+  var _dInstall=_admDateSpecialeDefaut('dateInstallation'), _dInspect=_admDateSpecialeDefaut('dateInspecteur');
   var _memeDateInstallInspect=!!(_dInstall && _dInstall===_dInspect);
   var _modCombine=_memeDateInstallInspect?_admModeleParMotsCles(['inspecteur','installation']):null;
   var _titreCombine='Inspecteur + Installation';
   ADM_DATES_SPECIALES.forEach(function(sp){
-    var ds=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
+    var ds=_admDateSpecialeDefaut(sp.key);
     if(!ds) return;
     var ev=data.events.filter(function(e){return e.date===ds;})[0];
     if(!ev) return;
@@ -26689,7 +26689,7 @@ function adminPlRenderCriteresP2(cid){
   h+='<div style="display:flex;flex-wrap:nowrap;gap:10px;align-items:center;overflow-x:auto;">';
   var lblInlSpec='font-size:11px;color:var(--grey);font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;';
   ADM_DATES_SPECIALES.forEach(function(sp){
-    var valSp=c[sp.key]||_admDateOccurrence(sp.moisCible,sp.rang);
+    var valSp=c[sp.key]||_admDateSpecialeDefaut(sp.key);
     h+='<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">';
     h+='<span style="'+lblInlSpec+'">'+sp.titre+'</span>';
     h+='<select id="'+sp.champ+'" data-touched="'+(c[sp.key]?'1':'0')+'" onchange="this.setAttribute(&quot;data-touched&quot;,&quot;1&quot;);admCritSave();_admRafraichirCriteresTout();" style="'+inS+';width:130px;">';
@@ -26701,7 +26701,7 @@ function adminPlRenderCriteresP2(cid){
     h+='</div>';
   });
   h+='</div>';
-  h+='<div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Inspecteur : sa date est impérative et déterminée par lui. St Jean : en principe la dernière tenue de décembre, ou à défaut l\'avant-dernière. Élection : en principe la dernière tenue de juin, ou à défaut l\'avant-dernière. Installation : a priori la même tenue que l\'Inspecteur.</div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Inspecteur : sa date est impérative et déterminée par lui. St Jean : en principe la dernière tenue de décembre, ou à défaut l\'avant-dernière. Élection : en principe la dernière tenue de juin, ou à défaut l\'avant-dernière. Installation : a priori la même tenue que l\'Inspecteur, si trop tard dans le planning la mettre à la première tenue de septembre.</div>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues déjà présentes dans le planning, laquelle correspond à chacune de ces tenues-clés. Le modèle de tenue associé est automatique (Installation → Installation Collège + VM, Inspecteur → Inspecteur, St Jean → St Jean, Élection → Élection complet ; Installation + Inspecteur → Installation + Inspecteur si les deux tombent le même jour).</div>';
   h+='</div>';
   // Tenues au 2°, désignées via menu déroulant parmi les dates disponibles
@@ -26729,6 +26729,7 @@ function adminPlRenderCriteresP2(cid){
     h+='</select></div>';
   });
   h+='</div>';
+  h+='<div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">Si possible, la tenue au 2° est 2 tenues avant la tenue au 3°.</div>';
   h+='<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px;">Choisissez, parmi les tenues au 1° déjà présentes dans le planning, lesquelles passer au 2°. Par défaut : 2 tenues avant la tenue au 3° correspondante (ou 3 si indisponible). Le modèle de tenue associé est automatiquement Tenue au 2°.</div>';
   h+='</div>';
   h+='<button onclick="admGenererPlanning2()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;margin-top:18px;">&#8594; Générer l\'Étape 2</button>';
@@ -27010,6 +27011,96 @@ function _admDateOccurrence(moisCible, rang){
     cur=new Date(y,mo+1,1);
   }
   return '';
+}
+// Dernière occurrence du jour de semaine configuré dans un mois donné,
+// à l'intérieur des bornes — recule à l'occurrence précédente si la
+// dernière est déjà prise par une autre désignation (St Jean, Élection).
+function _admDerniereOccurrenceMois(mois, prisesParAutres){
+  var c=plCriteresLoad()||{};
+  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
+  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
+  if(!perDeb||!perFin||jourCrit<0) return '';
+  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+  var cur=new Date(debut.getFullYear(),debut.getMonth(),1);
+  var finCur=new Date(fin.getFullYear(),fin.getMonth(),1);
+  while(cur<=finCur){
+    var y=cur.getFullYear(), mo=cur.getMonth();
+    if(mo===mois){
+      var occs=[];
+      for(var day=1;day<=31;day++){
+        var dd=new Date(y,mo,day);
+        if(dd.getMonth()!==mo) break;
+        var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+        if(js===jourCrit) occs.push(dd);
+      }
+      for(var oi=occs.length-1;oi>=0;oi--){
+        var occ=occs[oi];
+        if(occ<debut||occ>fin) continue;
+        var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
+        if(!prisesParAutres||!prisesParAutres[ds]) return ds;
+      }
+      return '';
+    }
+    cur=new Date(y,mo+1,1);
+  }
+  return '';
+}
+// Première occurrence du jour de semaine configuré dans un mois donné,
+// à l'intérieur des bornes (repli de l'Installation si trop tard).
+function _admPremiereOccurrenceMois(mois){
+  var c=plCriteresLoad()||{};
+  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
+  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
+  if(!perDeb||!perFin||jourCrit<0) return '';
+  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
+  var cur=new Date(debut.getFullYear(),debut.getMonth(),1);
+  var finCur=new Date(fin.getFullYear(),fin.getMonth(),1);
+  while(cur<=finCur){
+    var y=cur.getFullYear(), mo=cur.getMonth();
+    if(mo===mois){
+      for(var day=1;day<=31;day++){
+        var dd=new Date(y,mo,day);
+        if(dd.getMonth()!==mo) break;
+        var js=(dd.getDay()===0)?6:(dd.getDay()-1);
+        if(js===jourCrit&&dd>=debut&&dd<=fin){
+          return y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(dd.getDate()<10?'0':'')+dd.getDate();
+        }
+      }
+      return '';
+    }
+    cur=new Date(y,mo+1,1);
+  }
+  return '';
+}
+// Date par défaut d'une désignation (Inspecteur, St Jean, Élection,
+// Installation), utilisée à la fois par l'affichage du sélecteur et par
+// l'application effective des désignations — pour rester cohérentes :
+// - Inspecteur : impérative, déterminée par lui (occurrence par défaut du
+//   mois cible, éditable).
+// - St Jean : dernière tenue de décembre, ou l'avant-dernière si déjà prise
+//   par une autre désignation.
+// - Élection : dernière tenue de juin, ou l'avant-dernière si déjà prise.
+// - Installation : a priori la même tenue que l'Inspecteur ; si trop tard
+//   (Inspecteur en octobre ou après), la 1ère tenue de septembre.
+function _admDateSpecialeDefaut(key){
+  var c=plCriteresLoad()||{};
+  if(c[key]) return c[key];
+  var sp=ADM_DATES_SPECIALES.filter(function(x){return x.key===key;})[0];
+  if(!sp) return '';
+  if(key==='dateStJean'){
+    var pris={}; _admListeDesignations(c).forEach(function(x){ if(x.id!==('spec:'+key)) pris[x.date]=true; });
+    return _admDerniereOccurrenceMois(11,pris);
+  }
+  if(key==='dateElection'){
+    var pris2={}; _admListeDesignations(c).forEach(function(x){ if(x.id!==('spec:'+key)) pris2[x.date]=true; });
+    return _admDerniereOccurrenceMois(5,pris2);
+  }
+  if(key==='dateInstallation'){
+    var dInsp=_admDateSpecialeDefaut('dateInspecteur');
+    var moisInsp=dInsp?(parseInt(dInsp.split('-')[1],10)-1):-1;
+    return (dInsp&&moisInsp<=8)?dInsp:_admPremiereOccurrenceMois(8);
+  }
+  return _admDateOccurrence(sp.moisCible,sp.rang);
 }
 // Recense toutes les désignations actuelles (dates spéciales, tenues au
 // 2°, tenues au 3°) sous la forme {id, date}, à partir d'un objet
