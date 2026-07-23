@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.597-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.598-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25084,8 +25084,10 @@ function _plCompletImprimer(bornes){
 // Jours fériés qui tombent sur le jour de semaine récurrent configuré
 // (Critères annuels), dans la période, et qui n'ont pas de tenue — puisque
 // admTransfererAuPlanning ne crée plus de tenue sur ces dates. Utilisé
-// uniquement pour affichage (Étape 6) : ne crée ni ne modifie aucune tenue.
-function _admJoursFeriesSansTenue(){
+// uniquement pour affichage (Étape 1 et Étape 6) : ne crée ni ne modifie
+// aucune tenue. store2=true vérifie plLoad2() (Étape 2/3), sinon plLoad()
+// (Étape 1, la source d'origine des tenues générées).
+function _admJoursFeriesSansTenue(store2){
   var c=(typeof plCriteresLoad==='function'?plCriteresLoad():{})||{};
   var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
   var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
@@ -25093,7 +25095,7 @@ function _admJoursFeriesSansTenue(){
   var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
   var semaines=c.semaines||[];
   var existants={};
-  (plLoad2().events||[]).forEach(function(e){ if(e.date) existants[e.date]=true; });
+  ((store2?plLoad2():plLoad()).events||[]).forEach(function(e){ if(e.date) existants[e.date]=true; });
   var out=[];
   var cur=new Date(debut.getTime());
   while(cur<=fin){
@@ -25140,7 +25142,7 @@ function adminPlRenderComplet(cid){
   // Jours fériés récurrents sans tenue (voir admTransfererAuPlanning, qui
   // n'en crée plus) : affichés à leur place chronologique, sans case de
   // tenue, juste la mention « Jour férié ».
-  var feries=(typeof _admJoursFeriesSansTenue==='function')?_admJoursFeriesSansTenue():[];
+  var feries=(typeof _admJoursFeriesSansTenue==='function')?_admJoursFeriesSansTenue(true):[];
   var items=evts.map(function(e){ return {ferie:false,date:e.date,e:e}; })
     .concat(feries.map(function(ds){ return {ferie:true,date:ds}; }))
     .sort(function(a,b){
@@ -25223,8 +25225,31 @@ function adminPlRenderCreation(cid,store2){
     var i=0;
     var trimestres=_plGrouperParTrimestre(evts);
     var anneeAcc=[];
+    // Jours fériés récurrents sans tenue (admTransfererAuPlanning n'en crée
+    // plus) : affichés à leur place chronologique dans le bon trimestre,
+    // sans case de tenue, juste la mention « Jour férié ». N'entrent jamais
+    // dans bucket.events (stats/cartes annuelles inchangées).
+    var feriesParTrim={};
+    if(typeof _admJoursFeriesSansTenue==='function' && typeof _plTrimestreInfo==='function'){
+      _admJoursFeriesSansTenue(store2).forEach(function(ds){
+        var k=_plTrimestreInfo(ds).key;
+        if(!feriesParTrim[k]) feriesParTrim[k]=[];
+        feriesParTrim[k].push(ds);
+      });
+    }
     trimestres.forEach(function(bucket,bi){
-      bucket.events.forEach(function(e){
+      var lignes=bucket.events.map(function(e){ return {date:e.date,e:e}; })
+        .concat((feriesParTrim[bucket.key]||[]).map(function(ds){ return {date:ds,ferie:true}; }))
+        .sort(function(a,b){ if(a.date!==b.date) return a.date<b.date?-1:1; return a.ferie?-1:1; });
+      lignes.forEach(function(ligne){
+        if(ligne.ferie){
+          var bgF=i%2===0?'rgba(255,255,255,.02)':'transparent'; i++;
+          h+='<tr style="background:'+bgF+';border-bottom:1px solid rgba(255,255,255,.06);">';
+          h+='<td colspan="8" style="padding:8px;color:rgba(255,255,255,.4);font-style:italic;">'+_plCompletFmtDate(ligne.date)+' — Jour férié</td>';
+          h+='</tr>';
+          return;
+        }
+        var e=ligne.e;
         var bg=i%2===0?'rgba(255,255,255,.02)':'transparent'; i++;
         var deg=e.degre||'1°';
         var cd=deg==='2°'?'#FF9900':deg==='3°'?'#FF4444':'#33DD66';
