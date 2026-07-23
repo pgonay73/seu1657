@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.596-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.597-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25278,10 +25278,11 @@ function adminPlRenderCreation(cid,store2){
 // ── Planning 2 : dates disponibles pour les menus déroulants Candidatures/
 // Initiations — mêmes règles que Planning 1 (tenues au 1°, dans les
 // bornes des critères annuels), mais tirées du magasin de Planning 2/3.
-function _pl2DatesDisponibles(){
+function _pl2DatesDisponibles(degre){
   var c=plCriteresLoad()||{};
+  degre=degre||'1°';
   return (plLoad2().events||[])
-    .filter(function(e){ return (e.degre||'1°')==='1°'; })
+    .filter(function(e){ return (e.degre||'1°')===degre; })
     .map(function(e){return e.date;}).filter(function(d){return !!d;})
     .filter(function(d){ if(c.dateDebut&&d<c.dateDebut) return false; if(c.dateFin&&d>c.dateFin) return false; return true; })
     .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
@@ -25307,10 +25308,10 @@ function _admToutesDesignationsGlobal(){
   var c=plCriteresLoad()||{};
   return (typeof _admListeDesignations==='function'?_admListeDesignations(c):[]).concat(_pl2ToutesDesignations());
 }
-function _pl2OptsAvecValeur(val,monId){
+function _pl2OptsAvecValeur(val,monId,degre){
   var prisesParAutres={};
   _admToutesDesignationsGlobal().forEach(function(x){ if(x.id!==monId) prisesParAutres[x.date]=true; });
-  var d=_pl2DatesDisponibles().filter(function(ds){ return !prisesParAutres[ds]; });
+  var d=_pl2DatesDisponibles(degre).filter(function(ds){ return !prisesParAutres[ds]; });
   if(val && d.indexOf(val)<0) d.push(val);
   return d.sort();
 }
@@ -25695,11 +25696,24 @@ function pl2InitChangerNom(idx,val){
 }
 function pl2InitChangerDegre(idx,val){
   var items=pl2InitLoad(); if(!items[idx]) return;
+  var ancienneDate=items[idx].date||'';
   items[idx].degre=val;
+  // v597 — Une initiation au 2° ou au 3° doit être datée sur une tenue déjà
+  // à ce degré (voir Étape 2 : Tenues au 2°, tenue au 3° de la 5e semaine) :
+  // si la date actuellement saisie n'y correspond pas (ou n'est pas
+  // renseignée), on la remplace par la première date disponible à ce degré.
+  if(val==='2°'||val==='3°'){
+    var data=plLoad2();
+    var evActuel=ancienneDate?data.events.filter(function(e){return e.date===ancienneDate;})[0]:null;
+    if(!evActuel||(evActuel.degre||'1°')!==val){
+      var opts=_pl2OptsAvecValeur('','init:'+idx,val);
+      items[idx].date=opts[0]||'';
+    }
+  }
   pl2InitSave(items);
-  if(items[idx].nom && items[idx].date){
-    _pl2Designer(items[idx].date,items[idx].date,pl2InitLabel(idx,items[idx].nom,val));
-    if(val) _pl2AppliquerDegre(items[idx].date,val);
+  if(items[idx].nom){
+    _pl2Designer(ancienneDate,items[idx].date,pl2InitLabel(idx,items[idx].nom,val));
+    if(items[idx].date && val) _pl2AppliquerDegre(items[idx].date,val);
   }
   _pl2RafraichirTout();
 }
@@ -25728,7 +25742,7 @@ function adminPl2RenderInitiations(cid){
     h+='<label style="'+lblS+'margin-bottom:0;">Initiation '+(i+1)+'</label>';
     h+='<select onchange="pl2InitChangerDate('+i+',this.value)" style="'+inS+';width:100%;">';
     h+='<option value="">-- Aucune --</option>';
-    _pl2OptsAvecValeur(val,'init:'+i).forEach(function(ds){
+    _pl2OptsAvecValeur(val,'init:'+i,item.degre||'1°').forEach(function(ds){
       h+='<option value="'+ds+'"'+(val===ds?' selected':'')+'>'+fmtDate(ds)+'</option>';
     });
     h+='</select>';
