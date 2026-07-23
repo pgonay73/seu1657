@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.593-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.594-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -16650,7 +16650,7 @@ function adminPlL1Tab(name,btn){
     if(mb) adminPlTab('procedure',mb);
   }
   if(name==='sans'){ setTimeout(function(){ _plEnsureStore2Seeded(); if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins(); adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCriteresP2('admin-pl-panel-criteres-p2'); },0); }
-  if(name==='planning3'){ setTimeout(function(){ _plEnsureStore2Seeded(); if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins(); adminPlRenderCreation('admin-pl-planning3-list',true); adminPl2RenderCandidatures(); adminPl2RenderInitiations(); },0); }
+  if(name==='planning3'){ setTimeout(function(){ _plEnsureStore2Seeded(); if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins(); if(typeof _pl2ComblerDatesTrimestre==='function') _pl2ComblerDatesTrimestre(); adminPlRenderCreation('admin-pl-planning3-list',true); adminPl2RenderCandidatures(); adminPl2RenderInitiations(); },0); }
   if(name==='planning4'){ setTimeout(function(){ _plEnsureStore2Seeded(); if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins(); adminPlRenderMorceauxDisponibles('admin-pl-planning4-list',true); },0); }
   if(name==='planches'){ setTimeout(function(){ var e=document.getElementById('admin-pl-sujets-list'); if(e) plSujetsRenderInto(e); },0); }
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
@@ -25724,6 +25724,62 @@ function adminPl2RenderInitiations(cid){
   h+='<button onclick="admGenererPlanning3()" style="background:var(--gold);border:none;border-radius:5px;color:#1a1206;cursor:pointer;padding:10px 20px;font-size:13px;font-weight:700;font-family:Raleway,sans-serif;width:100%;letter-spacing:.5px;margin-top:18px;">&#8594; Générer l\'Étape 3</button>';
   el.innerHTML=h;
 }
+// Clé de trimestre maçonnique du N-ième trimestre couvert par la période
+// (0 = premier trimestre chronologique de la période, 1 = second, etc.),
+// déterminée à partir des dates de tenues au 1° disponibles.
+function _pl2TrimestreKeyParIndex(idx){
+  var keys=[];
+  _pl2DatesDisponibles().forEach(function(ds){
+    var k=_plTrimestreInfo(ds).key;
+    if(keys.indexOf(k)<0) keys.push(k);
+  });
+  return keys[idx]||null;
+}
+// Comble automatiquement les dates encore vides des candidatures et
+// initiations par défaut (index 0 à 2, un par trimestre) :
+// - Candidature : Courrier = 1er créneau disponible du trimestre ; Enquête =
+//   créneau disponible suivant ; Cérémonie = celui d'après (un tour d'écart).
+// - Initiation : 1er créneau disponible du trimestre.
+// Traite les candidatures avant les initiations, et affecte chaque date au
+// fur et à mesure (pas seulement en fin de fonction), pour qu'aucune des
+// deux ne réutilise une date déjà distribuée à l'autre.
+function _pl2ComblerDatesTrimestre(){
+  var cands=pl2CandLoad();
+  var inits=pl2InitLoad();
+  function disponibles(trimKey){
+    var pris={};
+    _admToutesDesignationsGlobal().forEach(function(x){ pris[x.date]=true; });
+    return _pl2DatesDisponibles().filter(function(ds){
+      return !pris[ds] && _plTrimestreInfo(ds).key===trimKey;
+    });
+  }
+  for(var i=0;i<Math.min(3,cands.length);i++){
+    var trimKey=_pl2TrimestreKeyParIndex(i);
+    if(!trimKey) continue;
+    var cand=cands[i];
+    if(!cand.courrier){
+      var d=disponibles(trimKey);
+      if(d[0]){ cand.courrier=d[0]; pl2CandSave(cands); }
+    }
+    if(!cand.enquete){
+      var d2=disponibles(trimKey);
+      if(d2[0]){ cand.enquete=d2[0]; pl2CandSave(cands); }
+    }
+    if(!cand.ceremonie){
+      var d3=disponibles(trimKey);
+      if(d3[1]){ cand.ceremonie=d3[1]; pl2CandSave(cands); } // saute le créneau juste après l'Enquête
+    }
+  }
+  for(var j=0;j<Math.min(3,inits.length);j++){
+    var trimKeyI=_pl2TrimestreKeyParIndex(j);
+    if(!trimKeyI) continue;
+    var it=inits[j];
+    if(!it.date){
+      var d4=disponibles(trimKeyI);
+      if(d4[0]){ it.date=d4[0]; pl2InitSave(inits); }
+    }
+  }
+}
 // Réapplique toutes les désignations Candidatures/Initiations actuellement
 // saisies (dates, modèles, degrés) sur les tenues de Planning 2/3 — même
 // résultat que ce qui se produit déjà automatiquement à chaque changement
@@ -25756,6 +25812,7 @@ function _admAppliquerDesignationsP3(){
   if(initsMaj) pl2InitSave(inits);
 }
 function admGenererPlanning3(){
+  _pl2ComblerDatesTrimestre();
   _admAppliquerDesignationsP3();
   // Répare les tenues qui gardaient un modèle spécial (Candidature,
   // Initiation, Élection...) devenu orphelin, et fait suivre le modèle des
