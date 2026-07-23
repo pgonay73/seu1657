@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.601-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.602-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25334,8 +25334,18 @@ function _admToutesDesignationsGlobal(){
   return (typeof _admListeDesignations==='function'?_admListeDesignations(c):[]).concat(_pl2ToutesDesignations());
 }
 function _pl2OptsAvecValeur(val,monId,degre){
+  // v603 — Une tenue au 2°/3° n'existe QUE parce qu'elle est déjà désignée
+  // comme telle (id "2e:"/"3e:", voir _admListeDesignations) : ce n'est pas
+  // une AUTRE désignation concurrente, c'est la tenue elle-même. Sans cette
+  // exclusion, aucune tenue au 2°/3° ne pouvait jamais être proposée pour
+  // une initiation à ce degré, puisqu'elle se bloquait elle-même.
+  var prefixIgnorer=(degre==='3°')?'3e:':(degre==='2°')?'2e:':null;
   var prisesParAutres={};
-  _admToutesDesignationsGlobal().forEach(function(x){ if(x.id!==monId) prisesParAutres[x.date]=true; });
+  _admToutesDesignationsGlobal().forEach(function(x){
+    if(x.id===monId) return;
+    if(prefixIgnorer && x.id.indexOf(prefixIgnorer)===0) return;
+    prisesParAutres[x.date]=true;
+  });
   var d=_pl2DatesDisponibles(degre).filter(function(ds){ return !prisesParAutres[ds]; });
   if(val && d.indexOf(val)<0) d.push(val);
   return d.sort();
@@ -26927,6 +26937,13 @@ function admProposerDateFin(){
   dF.value=((debut<=fin30Juin)?y:y+1)+'-06-30';
 }
 function admCritSave(){
+  // v602 — Capture des désignations réellement APPLIQUÉES (mêmes règles de
+  // défaut que _admAppliquerDesignationsP2, via _admListeDesignationsAppliquees)
+  // AVANT toute écriture, pour pouvoir ensuite libérer l'ancienne tenue si
+  // l'une d'elles change de date (voir _admLibererDesignationsObsoletes plus
+  // bas : sans ça, l'ancienne tenue gardait indéfiniment le titre/degré
+  // désigné).
+  var _oldDesignationsCrit=_admListeDesignationsAppliquees();
   var _chk5=document.getElementById('adm-crit-cinqieme-sur-trois');
   var data={
     dateDebut:(document.getElementById('adm-crit-date-debut')||{}).value||'',
@@ -26960,6 +26977,73 @@ function admCritSave(){
   var elDeb=document.getElementById('pl-crit-date-debut'); if(elDeb) elDeb.value=data.dateDebut;
   var elFin=document.getElementById('pl-crit-date-fin'); if(elFin) elFin.value=data.dateFin;
   var elJour=document.getElementById('pl-crit-jour'); if(elJour) elJour.value=data.jour;
+  if(typeof _admLibererDesignationsObsoletes==='function') _admLibererDesignationsObsoletes(_oldDesignationsCrit);
+}
+// v602 — Reproduit exactement la logique de _admAppliquerDesignationsP2 pour
+// calculer, à un instant donné (lu en direct depuis plCriteresLoad), quelle
+// tenue est effectivement désignée pour chaque date spéciale / tenue au 2°
+// — y compris quand le champ n'a jamais été « touché » et n'affiche donc
+// qu'une valeur par défaut calculée (_admDateSpecialeDefaut /
+// _admDate2emeParDefaut), pour que la libération d'une ancienne désignation
+// (voir _admLibererDesignationsObsoletes) reste fiable même dans ce cas.
+function _admListeDesignationsAppliquees(){
+  var c=plCriteresLoad()||{};
+  var m=[];
+  ADM_DATES_SPECIALES.forEach(function(sp){
+    var ds=_admDateSpecialeDefaut(sp.key);
+    if(ds) m.push({id:'spec:'+sp.key, date:ds});
+  });
+  var _dates5T=_admDates5emeSemaine();
+  var _ov3T=c.datesTroisiemeOverrides||{};
+  var _dates3eListeT=_dates5T.map(function(d5){ return _ov3T[d5.mois]||d5.date; });
+  ADM_DATES_2EME.forEach(function(sp,idx2eT){
+    var monId='2e:'+sp.key;
+    var ds=c[sp.key]||'';
+    if(!ds){
+      var prises={};
+      _admListeDesignations(c).forEach(function(x){ if(x.id!==monId) prises[x.date]=true; });
+      ds=_admDate2emeParDefaut(_dates3eListeT[idx2eT], prises);
+    }
+    if(ds) m.push({id:monId, date:ds});
+  });
+  return m;
+}
+// v602 — Quand une date spéciale (Inspecteur, Installation, St Jean,
+// Élection) ou une tenue au 2° change de tenue, l'ANCIENNE tenue désignée
+// doit redevenir une tenue au 1° normale (titre vidé, modèle standard,
+// degré remis à 1° pour les tenues au 2°) — à condition qu'elle ne soit pas
+// restée désignée par ailleurs (ex : Installation et Inspecteur peuvent
+// partager la même date) et qu'elle porte bien encore le titre/degré posé
+// par cette désignation (pour ne jamais toucher une tenue entre-temps
+// reprise par une Candidature/Initiation).
+function _admLibererDesignationsObsoletes(oldDesignations){
+  if(!oldDesignations||!oldDesignations.length) return;
+  var newDesignations=_admListeDesignationsAppliquees();
+  var newById={}; newDesignations.forEach(function(x){ newById[x.id]=x.date; });
+  var newDatesSet={}; newDesignations.forEach(function(x){ newDatesSet[x.date]=true; });
+  var titresSpec=ADM_DATES_SPECIALES.map(function(x){return x.titre;}).concat(['Inspecteur + Installation']);
+  oldDesignations.forEach(function(x){
+    if(newById[x.id]===x.date) return;
+    if(newDatesSet[x.date]) return;
+    var data=plLoad2(); if(!data.events) return;
+    var ev=data.events.filter(function(e){return e.date===x.date;})[0];
+    if(!ev) return;
+    if(x.id.indexOf('spec:')===0){
+      if(titresSpec.indexOf(ev.titre)<0) return;
+      var mStd=typeof getModeleParDegre==='function'?getModeleParDegre(ev.degre||'1°'):null;
+      ev.titre=''; ev._titreManuel=false;
+      if(mStd){ ev.modeleId=mStd.id; ev.detail=cpP(mStd.parties||[]); }
+      ev._pl2Touche=true;
+      plSave2(data);
+    } else if(x.id.indexOf('2e:')===0){
+      if(ev.degre!=='2°') return;
+      ev.degre='1°'; ev.titre='';
+      var mStd2=typeof getModeleParDegre==='function'?getModeleParDegre('1°'):null;
+      if(mStd2){ ev.modeleId=mStd2.id; ev.detail=cpP(mStd2.parties||[]); }
+      ev._pl2Touche=true;
+      plSave2(data);
+    }
+  });
 }
 function admToggleCritSem(s,btn){
   var i=_plCritSemaines.indexOf(s);
