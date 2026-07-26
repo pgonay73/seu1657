@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.610-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.611-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14330,7 +14330,8 @@ function renderOffice(n){
     c+='<button id="admin-pl-l1-btn-sans" onclick="adminPlL1Tab(\'sans\',this)" style="'+_l1I+'">2️⃣ Étape 2 / Dates spéciales, Tenues au 2°</button>';
     c+='<button id="admin-pl-l1-btn-planning3" onclick="adminPlL1Tab(\'planning3\',this)" style="'+_l1I+'">3️⃣ Étape 3 / Candidatures, Initiations</button>';
     c+='<button id="admin-pl-l1-btn-planning4" onclick="adminPlL1Tab(\'planning4\',this)" style="'+_l1I+'">4️⃣ Étape 4 / Disponibilité architecture</button>';
-    c+='<button id="admin-pl-l1-btn-propositions" onclick="adminPlL1Tab(\'propositions\',this)" style="'+_l1I+'">5️⃣ Étape 5 / Le mercato des planches</button>';
+    c+='<button id="admin-pl-l1-btn-dispoplanches" onclick="adminPlL1Tab(\'dispoplanches\',this)" style="'+_l1I+'">5️⃣ Étape 5 / Disponibilités planches</button>';
+    c+='<button id="admin-pl-l1-btn-propositions" onclick="adminPlL1Tab(\'propositions\',this)" style="'+_l1I+'">6️⃣ Étape 6 / Le mercato des planches</button>';
     c+='<button id="admin-pl-l1-btn-planches" onclick="adminPlL1Tab(\'planches\',this)" style="'+_l1I+'">📐 Banque d\'architecture</button>';
     c+='<button id="admin-pl-l1-btn-avec" onclick="adminPlL1Tab(\'avec\',this)" style="'+_l1I+'">📊 Planning des tenues avec planches</button>';
     c+='</div>';
@@ -14422,7 +14423,20 @@ function renderOffice(n){
     c+='</div>';
     c+='</div>';
     c+='<div id="admin-pl-planning4-list"></div>';
-    c+=_plNavFixeHtml('planning3','Étape 3','','','propositions','5️⃣ Étape 5 / Le mercato des planches');
+    c+=_plNavFixeHtml('planning3','Étape 3','dispoplanches','Étape 5');
+    c+='</div></div>';
+    // ─ L1.B4 : Disponibilités des frères pour les planches — sujet, degré et
+    // plage de dates (période de disponibilité), avant assignation à une
+    // tenue précise via l'Étape 6 / Le mercato des planches ─
+    c+='<div id="admin-pl-l1-dispoplanches" style="display:none;">';
+    c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
+    c+='<div>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 5 / Disponibilités planches</h3>';
+    c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour chaque frère, notez les planches (ou symbolismes) qu\'il propose et la plage de dates pendant laquelle il est disponible pour la présenter — avant assignation à une tenue précise à l\'Étape 6.</p>';
+    c+='</div>';
+    c+='</div>';
+    c+='<div id="admin-pl-dispoplanches-list"></div>';
+    c+=_plNavFixeHtml('planning4','Étape 4','propositions','Étape 6');
     c+='</div></div>';
     // ─ L1.C : Banque d'architecture ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
@@ -14448,20 +14462,20 @@ function renderOffice(n){
     c+='<div id="admin-pl-l1-propositions" style="display:none;">';
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
-    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 5 / Le mercato des planches</h3>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 6 / Le mercato des planches</h3>';
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Pour chaque frère, notez les sujets de planche ou symbolisme qu\'il propose, et à quel degré. Simples propositions, indépendantes du Suivi par frère et non liées à une tenue.</p>';
     c+='</div>';
     c+='<button onclick="imprimerListePropositionsPlanches()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;flex-shrink:0;margin-left:16px;">🖨 Imprimer</button>';
     c+='</div>';
     c+='<div id="admin-pl-propositions-list"></div>';
-    c+=_plNavFixeHtml('planning4','Étape 4','complet','Étape 6');
+    c+=_plNavFixeHtml('dispoplanches','Étape 5','complet','Étape 7');
     c+='</div></div>';
-    // ─ L1.H : Étape 6 / Planning complet — vue d'ensemble en lecture seule
+    // ─ L1.H : Étape 7 / Planning complet — vue d'ensemble en lecture seule
     // de toutes les tenues (Étapes 1 à 4) ─
     c+='<div id="admin-pl-l1-complet" style="display:none;">';
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
-    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 6 / Planning complet</h3>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 7 / Planning complet</h3>';
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Vue d\'ensemble de toutes les tenues de la période, modifiable pour une dernière correction : degré, modèle, titre et détail (planches, symbolismes, désignations) issus des Étapes 1 à 4.</p>';
     c+='</div>';
     c+='<div style="display:flex;gap:8px;flex-shrink:0;margin-left:16px;">';
@@ -14471,7 +14485,7 @@ function renderOffice(n){
     c+='</div>';
     c+='<div id="admin-pl-complet-list"></div>';
     c+='</div>';
-    c+=_plNavFixeHtml('propositions','Étape 5','','');
+    c+=_plNavFixeHtml('propositions','Étape 6','','');
     c+='</div>';
     c+='</div>';
 
@@ -16635,7 +16649,7 @@ function adminTab(name, btn){
 
 // ── Planning L1 tabs ───────────────────────────────────────────────────
 function adminPlL1Tab(name,btn){
-  var l1=['creation','prog','sans','planning3','planning4','planches','avec','propositions','complet'];
+  var l1=['creation','prog','sans','planning3','planning4','dispoplanches','planches','avec','propositions','complet'];
   var _bS='padding:9px 14px;font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;border:none;cursor:pointer;border-radius:5px 5px 0 0;';
   var _aS=_bS+'background:rgba(184,146,42,.22);color:#D4AF5A;border-bottom:3px solid #D4AF5A;margin-bottom:-3px;';
   var _iS=_bS+'background:transparent;color:rgba(255,255,255,.5);border-bottom:3px solid transparent;margin-bottom:-3px;';
@@ -16652,6 +16666,7 @@ function adminPlL1Tab(name,btn){
   if(name==='sans'){ setTimeout(function(){ _plEnsureStore2Seeded(); if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins(); adminPlRenderCreation('admin-pl-planning2-list',true); adminPlRenderCriteresP2('admin-pl-panel-criteres-p2'); },0); }
   if(name==='planning3'){ setTimeout(function(){ _plEnsureStore2Seeded(); if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins(); if(typeof _pl2ComblerDatesTrimestre==='function') _pl2ComblerDatesTrimestre(); adminPlRenderCreation('admin-pl-planning3-list',true); adminPl2RenderCandidatures(); adminPl2RenderInitiations(); },0); }
   if(name==='planning4'){ setTimeout(function(){ _plEnsureStore2Seeded(); if(typeof _plNettoyerModelesOrphelins==='function') _plNettoyerModelesOrphelins(); adminPlRenderMorceauxDisponibles('admin-pl-planning4-list',true); },0); }
+  if(name==='dispoplanches'){ setTimeout(function(){ adminPlRenderDispoPlanches('admin-pl-dispoplanches-list'); },0); }
   if(name==='planches'){ setTimeout(function(){ var e=document.getElementById('admin-pl-sujets-list'); if(e) plSujetsRenderInto(e); },0); }
   if(name==='avec') setTimeout(function(){plSuiviParTenueRender('admin-pl-avec-tenue-list');},0);
   if(name==='propositions'){ setTimeout(function(){ adminPlRenderPropositions('admin-pl-propositions-list'); },0); }
@@ -24537,8 +24552,9 @@ function plRenderAdminNav(containerId){
       {id:'sans',      label:'2️⃣ Étape 2 / Dates spéciales, Tenues au 2°'},
       {id:'planning3', label:'3️⃣ Étape 3 / Candidatures, Initiations'},
       {id:'planning4', label:'4️⃣ Étape 4 / Disponibilité architecture'},
-      {id:'propositions', label:'5️⃣ Étape 5 / Le mercato des planches'},
-      {id:'complet',   label:'6️⃣ Étape 6 / Planning complet'},
+      {id:'dispoplanches', label:'5️⃣ Étape 5 / Disponibilités planches'},
+      {id:'propositions', label:'6️⃣ Étape 6 / Le mercato des planches'},
+      {id:'complet',   label:'7️⃣ Étape 7 / Planning complet'},
       {id:'planches',  label:"📐 Banque d'architecture"}
     ];
     var l2TabsA=[
@@ -26168,6 +26184,125 @@ function imprimerListeFreresPlanches(){
 // tenue), ici chaque frère peut avoir un nombre libre de propositions,
 // chacune juste taguée par un degré, sans lien avec le planning ni avec
 // une tenue précise.
+// ── Étape 5 : Disponibilités des frères pour les planches ──────────────
+// Pour chaque frère, une liste libre de planches/symbolismes proposés
+// (sujet, degré, type) accompagnés d'une plage de dates (Date début / Date
+// fin) pendant laquelle il est disponible pour la présenter — antérieur et
+// distinct de l'Étape 6 / Le mercato des planches, qui assigne elle une
+// tenue précise (une date unique) à chaque proposition.
+var PL_DISPO_PLANCHES_KEY='planning_libre_dispo_planches';
+function plDispoLoad(){
+  try{
+    var s=localStorage.getItem(PL_DISPO_PLANCHES_KEY);var d=s?JSON.parse(s):[];
+    if(!Array.isArray(d)) return [];
+    d.forEach(function(p){
+      if(p.degre===undefined) p.degre='';
+      if(p.type===undefined) p.type='';
+      if(p.sujet===undefined) p.sujet='';
+      if(p.dateDebut===undefined) p.dateDebut='';
+      if(p.dateFin===undefined) p.dateFin='';
+    });
+    return d;
+  }catch(e){return [];}
+}
+function plDispoSave(arr){
+  try{localStorage.setItem(PL_DISPO_PLANCHES_KEY,JSON.stringify(arr));}catch(e){}
+  if(window.fbSet) window.fbSet(PL_DISPO_PLANCHES_KEY,arr);
+  if(typeof _autoBackupSiDue==='function') _autoBackupSiDue();
+}
+function plDispoAjouter(nomFrere){
+  var arr=plDispoLoad();
+  arr.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:'', type:'', sujet:'', dateDebut:'', dateFin:''});
+  plDispoSave(arr);
+  adminPlRenderDispoPlanches();
+}
+function plDispoSupprimer(id){
+  var arr=plDispoLoad().filter(function(x){return x.id!==id;});
+  plDispoSave(arr);
+  adminPlRenderDispoPlanches();
+}
+function plDispoChangerDegre(id,val){
+  var arr=plDispoLoad(); var p=arr.filter(function(x){return x.id===id;})[0]; if(!p) return;
+  p.degre=val; plDispoSave(arr); adminPlRenderDispoPlanches();
+}
+function plDispoChangerType(id,val){
+  var arr=plDispoLoad(); var p=arr.filter(function(x){return x.id===id;})[0]; if(!p) return;
+  p.type=val; plDispoSave(arr); adminPlRenderDispoPlanches();
+}
+function plDispoChangerSujet(id,val){
+  var arr=plDispoLoad(); var p=arr.filter(function(x){return x.id===id;})[0]; if(!p) return;
+  p.sujet=val; plDispoSave(arr); adminPlRenderDispoPlanches();
+}
+// La date de fin ne peut jamais être antérieure à la date de début : on
+// ajuste l'autre borne plutôt que de laisser une plage incohérente.
+function plDispoChangerDateDebut(id,val){
+  var arr=plDispoLoad(); var p=arr.filter(function(x){return x.id===id;})[0]; if(!p) return;
+  p.dateDebut=val;
+  if(p.dateFin && val && p.dateFin<val) p.dateFin=val;
+  plDispoSave(arr); adminPlRenderDispoPlanches();
+}
+function plDispoChangerDateFin(id,val){
+  var arr=plDispoLoad(); var p=arr.filter(function(x){return x.id===id;})[0]; if(!p) return;
+  p.dateFin=val;
+  if(p.dateDebut && val && val<p.dateDebut) p.dateDebut=val;
+  plDispoSave(arr); adminPlRenderDispoPlanches();
+}
+function adminPlRenderDispoPlanches(cid){
+  cid=cid||'admin-pl-dispoplanches-list';
+  var el=document.getElementById(cid); if(!el) return;
+  if(!window.D || !Array.isArray(D.freres) || !D.freres.length){
+    el.innerHTML='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucun frère enregistré.</p>';
+    return;
+  }
+  var items=plDispoLoad();
+  var parFrere={};
+  items.forEach(function(p){ if(!parFrere[p.frere]) parFrere[p.frere]=[]; parFrere[p.frere].push(p); });
+  var inS='padding:6px 9px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12.5px;';
+  var avecPlanche=[], sansPlanche=[];
+  D.freres.slice().sort(fSortNom).forEach(function(f){
+    var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
+    var mesItems=parFrere[nomFrere]||[];
+    var aUnePlanche=mesItems.some(function(p){return p.degre||p.sujet;});
+    (aUnePlanche?avecPlanche:sansPlanche).push({nomFrere:nomFrere, items:mesItems});
+  });
+  var ordered=avecPlanche.concat(sansPlanche);
+  var h='<div class="cfg-box">';
+  h+='<div style="display:flex;gap:10px;padding:6px 8px;border-bottom:2px solid var(--gold);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;flex-wrap:wrap;">';
+  h+='<div style="width:140px;flex-shrink:0;">Frère</div><div style="width:55px;flex-shrink:0;">Degré</div><div style="width:110px;flex-shrink:0;">Type</div><div style="flex:1;min-width:160px;">Sujet</div><div style="width:130px;flex-shrink:0;">Date début</div><div style="width:130px;flex-shrink:0;">Date fin</div><div style="width:60px;flex-shrink:0;"></div>';
+  h+='</div>';
+  ordered.forEach(function(fr,fi){
+    var mesItems=fr.items.length?fr.items:[null];
+    mesItems.forEach(function(p,pi){
+      var bg=fi%2===0?'rgba(255,255,255,.02)':'transparent';
+      h+='<div style="display:flex;gap:10px;align-items:center;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';flex-wrap:wrap;">';
+      h+='<div style="width:140px;flex-shrink:0;color:var(--gold2);font-weight:600;font-size:14px;">'+(pi===0?fr.nomFrere:'')+'</div>';
+      if(p){
+        h+='<div style="width:55px;flex-shrink:0;"><select onchange="plDispoChangerDegre(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+        h+='<option value=""'+(!p.degre?' selected':'')+'>--</option>';
+        ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(p.degre===dg?' selected':'')+'>'+dg+'</option>'; });
+        h+='</select></div>';
+        h+='<div style="width:110px;flex-shrink:0;"><select onchange="plDispoChangerType(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;">';
+        h+='<option value=""'+(!p.type?' selected':'')+'>--</option>';
+        h+='<option value="symbolisme"'+(p.type==='symbolisme'?' selected':'')+'>Symbolisme</option>';
+        h+='<option value="planche"'+(p.type==='planche'?' selected':'')+'>Planche</option>';
+        h+='</select></div>';
+        h+='<div style="flex:1;min-width:160px;"><input type="text" value="'+(p.sujet||'').replace(/"/g,'&quot;')+'" placeholder="Sujet proposé..." onblur="plDispoChangerSujet(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;box-sizing:border-box;"></div>';
+        h+='<div style="width:130px;flex-shrink:0;"><input type="date" value="'+(p.dateDebut||'')+'" onchange="plDispoChangerDateDebut(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;box-sizing:border-box;"></div>';
+        h+='<div style="width:130px;flex-shrink:0;"><input type="date" value="'+(p.dateFin||'')+'" min="'+(p.dateDebut||'')+'" onchange="plDispoChangerDateFin(&quot;'+p.id+'&quot;,this.value)" style="'+inS+';width:100%;box-sizing:border-box;"></div>';
+        h+='<div style="width:60px;flex-shrink:0;display:flex;gap:4px;justify-content:flex-end;">';
+        h+='<button onclick="if(confirm(\'Supprimer cette proposition ?\'))plDispoSupprimer(&quot;'+p.id+'&quot;)" title="Supprimer" style="background:none;border:none;color:rgba(220,80,80,.6);cursor:pointer;font-size:14px;padding:2px;">🗑</button>';
+        if(pi===mesItems.length-1) h+='<button onclick="plDispoAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une autre proposition pour ce frère" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:3px;color:#fff;cursor:pointer;font-size:9px;font-weight:700;line-height:1;padding:2px 4px;">➕</button>';
+        h+='</div>';
+      } else {
+        h+='<div style="width:55px;flex-shrink:0;"></div><div style="width:110px;flex-shrink:0;"></div><div style="flex:1;min-width:160px;"></div><div style="width:130px;flex-shrink:0;"></div><div style="width:130px;flex-shrink:0;"></div>';
+        h+='<div style="width:60px;flex-shrink:0;display:flex;justify-content:flex-end;"><button onclick="plDispoAjouter(&quot;'+fr.nomFrere+'&quot;)" title="Ajouter une proposition" style="background:rgba(29,138,90,.9);border:1px solid #1D8A5A;border-radius:3px;color:#fff;cursor:pointer;font-size:9px;font-weight:700;line-height:1;padding:2px 4px;">➕</button></div>';
+      }
+      h+='</div>';
+    });
+  });
+  h+='</div>';
+  el.innerHTML=h;
+}
 var PL_PROPOS_KEY='planning_libre_propositions_planches';
 function plProposLoad(){
   try{
@@ -26463,8 +26598,8 @@ function imprimerListePropositionsPlanches(){
     +'th{text-align:left;padding:6px 8px;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#7F8C8D;border-bottom:2px solid #B8922A;}'
     +'td{padding:7px 8px;border-bottom:1px solid #EDE9E2;vertical-align:top;}'
     +'@media print{body{margin:10mm;}}';
-  var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Étape 5 / Le mercato des planches — '+loge+'</title><style>'+css+'</style></head><body>';
-  h+='<h1>'+(loge?loge+' — ':'')+'Étape 5 / Le mercato des planches</h1>';
+  var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Étape 6 / Le mercato des planches — '+loge+'</title><style>'+css+'</style></head><body>';
+  h+='<h1>'+(loge?loge+' — ':'')+'Étape 6 / Le mercato des planches</h1>';
   var jFrProp=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
   var mFrProp2=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
   function fmtDateProp(ds){ if(!ds) return ''; var d=new Date(ds+'T12:00:00'); return jFrProp[d.getDay()]+' '+d.getDate()+' '+mFrProp2[d.getMonth()]+' '+d.getFullYear(); }
@@ -26496,7 +26631,7 @@ function imprimerListePropositionsPlanches(){
     h+='</tbody></table>';
   }
   h+='</body></html>';
-  _printHtml(h,'Étape 5 / Le mercato des planches — '+loge);
+  _printHtml(h,'Étape 6 / Le mercato des planches — '+loge);
 }
 function plGenererPlanningReference(){
   if(!confirm('🔄 Générer le planning ?\n\nCette opération va :\n1. Placer toutes les tenues impératives dans le planning\n2. Appliquer toutes les règles de tenues conseillées\n\nLes tenues déjà présentes à ces dates seront remplacées.')) return;
@@ -27972,7 +28107,7 @@ function plNavToAdminL1(id){
   var inAdmin=(adminPl&&adminPl.style.display!=='none');
   if(inAdmin){
     var _nS2='font-family:Raleway,sans-serif;font-size:11.5px;font-weight:700;text-transform:none;letter-spacing:.3px;border:none;cursor:pointer;padding:9px 14px;background:transparent;border-bottom:3px solid transparent;margin-bottom:-3px;';
-    ['creation','sans','planning3','planning4','prog','planches','avec','propositions','complet'].forEach(function(x){
+    ['creation','sans','planning3','planning4','dispoplanches','prog','planches','avec','propositions','complet'].forEach(function(x){
       var b=document.getElementById('pl-adm-l1-nav-'+x);
       if(b) b.style.cssText=_nS2+(x===id?'color:#D4AF5A;border-bottom-color:#D4AF5A;':'color:rgba(255,255,255,.5);');
     });
