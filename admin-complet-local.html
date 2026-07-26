@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.611-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.612-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25684,7 +25684,7 @@ function adminPl2RenderCandidatures(cid){
   });
   h+='</tr>';
   h+='</table></div>';
-  h+='<button onclick="pl2CandAjouter()" style="margin-top:10px;background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:4px;color:#3ECF8E;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 12px;">+ Ajouter une candidature</button>';
+  h+='<button onclick="pl2CandAjouter()" style="margin-top:10px;background:rgba(29,138,90,.15);border:1px solid rgba(29,138,90,.5);border-radius:4px;color:#9CAF88;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:5px 12px;">+ Ajouter une candidature</button>';
   h+='</div>';
   el.innerHTML=h;
 }
@@ -27402,99 +27402,53 @@ function _admDatesRecurrentes(c){
   }
   return dates;
 }
-// Calcule la date par défaut d'une tenue-clé (Installation, Inspecteur,
-// St Jean, Élection) : la N-ième occurrence (rang) du jour de semaine
-// choisi dans le mois cible (moisCible, 0-indexé), à l'intérieur des
-// bornes définies. Cherche le mois cible dans chaque année couverte par
-// la période, pour couvrir une période à cheval sur deux années civiles.
+// v612 — Calcule la date par défaut d'une tenue-clé (Installation,
+// Inspecteur, St Jean, Élection) : la N-ième occurrence (rang) du jour de
+// semaine choisi dans le mois cible (moisCible, 0-indexé), à l'intérieur
+// des bornes définies. S'appuie sur _admPlanDatesDisponibles (tenues au 1°
+// déjà matérialisées + dates théoriques de récurrence en secours) plutôt
+// que sur un simple calcul calendaire du jour de semaine : sinon, dès
+// qu'un jour férié ou toute autre irrégularité décalait une tenue réelle
+// par rapport à l'occurrence calendaire théorique, la date retournée ne
+// correspondait à AUCUNE tenue réelle — la désignation (titre/modèle)
+// échouait alors silencieusement à s'appliquer (aucune tenue trouvée à
+// cette date), tout en bloquant quand même cette date théorique dans les
+// menus de Candidatures/Initiations.
 function _admDateOccurrence(moisCible, rang){
   var c=plCriteresLoad()||{};
-  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
-  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
-  if(!perDeb||!perFin||jourCrit<0) return '';
-  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
-  var cur=new Date(debut.getFullYear(),debut.getMonth(),1);
-  var finCur=new Date(fin.getFullYear(),fin.getMonth(),1);
-  while(cur<=finCur){
-    var y=cur.getFullYear(), mo=cur.getMonth();
-    if(mo===moisCible){
-      var occs=[];
-      for(var day=1;day<=31;day++){
-        var dd=new Date(y,mo,day);
-        if(dd.getMonth()!==mo) break;
-        var js=(dd.getDay()===0)?6:(dd.getDay()-1);
-        if(js===jourCrit) occs.push(dd);
-      }
-      if(occs.length>=rang){
-        var occ=occs[rang-1];
-        if(occ>=debut&&occ<=fin){
-          return y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
-        }
-      }
-    }
-    cur=new Date(y,mo+1,1);
-  }
-  return '';
+  if(!c.dateDebut||!c.dateFin) return '';
+  var dates=(typeof _admPlanDatesDisponibles==='function'?_admPlanDatesDisponibles(c):[]).filter(function(d){
+    return parseInt(d.split('-')[1],10)-1===moisCible;
+  });
+  return dates[rang-1]||'';
 }
-// Dernière occurrence du jour de semaine configuré dans un mois donné,
-// à l'intérieur des bornes — recule à l'occurrence précédente si la
-// dernière est déjà prise par une autre désignation (St Jean, Élection).
+// Dernière occurrence (tenue réelle si matérialisée, sinon théorique) du
+// mois donné, à l'intérieur des bornes — recule à l'occurrence précédente
+// si la dernière est déjà prise par une autre désignation (St Jean,
+// Élection). Voir _admDateOccurrence pour la raison du calcul basé sur
+// _admPlanDatesDisponibles plutôt que sur le seul jour de semaine.
 function _admDerniereOccurrenceMois(mois, prisesParAutres){
   var c=plCriteresLoad()||{};
-  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
-  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
-  if(!perDeb||!perFin||jourCrit<0) return '';
-  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
-  var cur=new Date(debut.getFullYear(),debut.getMonth(),1);
-  var finCur=new Date(fin.getFullYear(),fin.getMonth(),1);
-  while(cur<=finCur){
-    var y=cur.getFullYear(), mo=cur.getMonth();
-    if(mo===mois){
-      var occs=[];
-      for(var day=1;day<=31;day++){
-        var dd=new Date(y,mo,day);
-        if(dd.getMonth()!==mo) break;
-        var js=(dd.getDay()===0)?6:(dd.getDay()-1);
-        if(js===jourCrit) occs.push(dd);
-      }
-      for(var oi=occs.length-1;oi>=0;oi--){
-        var occ=occs[oi];
-        if(occ<debut||occ>fin) continue;
-        var ds=y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(occ.getDate()<10?'0':'')+occ.getDate();
-        if(!prisesParAutres||!prisesParAutres[ds]) return ds;
-      }
-      return '';
-    }
-    cur=new Date(y,mo+1,1);
+  if(!c.dateDebut||!c.dateFin) return '';
+  var dates=(typeof _admPlanDatesDisponibles==='function'?_admPlanDatesDisponibles(c):[]).filter(function(d){
+    return parseInt(d.split('-')[1],10)-1===mois;
+  });
+  for(var i=dates.length-1;i>=0;i--){
+    if(!prisesParAutres||!prisesParAutres[dates[i]]) return dates[i];
   }
   return '';
 }
-// Première occurrence du jour de semaine configuré dans un mois donné,
-// à l'intérieur des bornes (repli de l'Installation si trop tard).
+// Première occurrence (tenue réelle si matérialisée, sinon théorique) du
+// mois donné, à l'intérieur des bornes (repli de l'Installation si trop
+// tard). Voir _admDateOccurrence pour la raison du calcul basé sur
+// _admPlanDatesDisponibles plutôt que sur le seul jour de semaine.
 function _admPremiereOccurrenceMois(mois){
   var c=plCriteresLoad()||{};
-  var perDeb=c.dateDebut||'', perFin=c.dateFin||'';
-  var jourCrit=(c.jour!==undefined&&c.jour!=='')?parseInt(c.jour):-1;
-  if(!perDeb||!perFin||jourCrit<0) return '';
-  var debut=new Date(perDeb+'T12:00:00'), fin=new Date(perFin+'T12:00:00');
-  var cur=new Date(debut.getFullYear(),debut.getMonth(),1);
-  var finCur=new Date(fin.getFullYear(),fin.getMonth(),1);
-  while(cur<=finCur){
-    var y=cur.getFullYear(), mo=cur.getMonth();
-    if(mo===mois){
-      for(var day=1;day<=31;day++){
-        var dd=new Date(y,mo,day);
-        if(dd.getMonth()!==mo) break;
-        var js=(dd.getDay()===0)?6:(dd.getDay()-1);
-        if(js===jourCrit&&dd>=debut&&dd<=fin){
-          return y+'-'+(mo<9?'0':'')+(mo+1)+'-'+(dd.getDate()<10?'0':'')+dd.getDate();
-        }
-      }
-      return '';
-    }
-    cur=new Date(y,mo+1,1);
-  }
-  return '';
+  if(!c.dateDebut||!c.dateFin) return '';
+  var dates=(typeof _admPlanDatesDisponibles==='function'?_admPlanDatesDisponibles(c):[]).filter(function(d){
+    return parseInt(d.split('-')[1],10)-1===mois;
+  });
+  return dates[0]||'';
 }
 // Première tenue disponible de l'automne (septembre, octobre, novembre,
 // dans cet ordre) — repli de l'Installation quand la date de l'Inspecteur
