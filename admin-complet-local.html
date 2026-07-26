@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.609-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.610-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25303,12 +25303,19 @@ function adminPlRenderCreation(cid,store2){
 // ── Planning 2 : dates disponibles pour les menus déroulants Candidatures/
 // Initiations — mêmes règles que Planning 1 (tenues au 1°, dans les
 // bornes des critères annuels), mais tirées du magasin de Planning 2/3.
+// v610 — Pour le 1° degré, complète les tenues déjà matérialisées dans
+// Planning 2/3 avec les dates théoriques de récurrence (_admDatesRecurrentes,
+// même mécanisme que _admPlanDatesDisponibles pour les Dates spéciales) :
+// sans ça, les menus de Candidatures/Initiations ne proposaient que les mois
+// déjà transférés depuis l'Étape 1, au lieu de toute l'année tout de suite.
 function _pl2DatesDisponibles(degre){
   var c=plCriteresLoad()||{};
   degre=degre||'1°';
-  return (plLoad2().events||[])
+  var mats=(plLoad2().events||[])
     .filter(function(e){ return (e.degre||'1°')===degre; })
-    .map(function(e){return e.date;}).filter(function(d){return !!d;})
+    .map(function(e){return e.date;}).filter(function(d){return !!d;});
+  var theoriques=(degre==='1°'&&typeof _admDatesRecurrentes==='function')?_admDatesRecurrentes(c):[];
+  return mats.concat(theoriques)
     .filter(function(d){ if(c.dateDebut&&d<c.dateDebut) return false; if(c.dateFin&&d>c.dateFin) return false; return true; })
     .filter(function(d,i,arr){return arr.indexOf(d)===i;}).sort();
 }
