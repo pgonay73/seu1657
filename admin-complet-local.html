@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.602-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.603-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25835,8 +25835,10 @@ function _pl2TrimestreKeyParIndex(idx){
 }
 // Comble automatiquement les dates encore vides des candidatures et
 // initiations par défaut (index 0 à 2, un par trimestre) :
-// - Candidature : Courrier = 1er créneau disponible du trimestre ; Enquête =
-//   créneau disponible suivant ; Cérémonie = celui d'après (un tour d'écart).
+// - Candidature : Courrier = 1er créneau au 1° disponible du trimestre ;
+//   Enquête = créneau au 1° disponible suivant ; Cérémonie = on saute la
+//   toute prochaine tenue après l'Enquête (quel que soit son degré), puis
+//   on prend la première tenue au 1° disponible parmi celles qui restent.
 // - Initiation : 1er créneau disponible du trimestre.
 // Traite les candidatures avant les initiations, et affecte chaque date au
 // fur et à mesure (pas seulement en fin de fonction), pour qu'aucune des
@@ -25863,9 +25865,18 @@ function _pl2ComblerDatesTrimestre(){
       var d2=disponibles(trimKey);
       if(d2[0]){ cand.enquete=d2[0]; pl2CandSave(cands); }
     }
-    if(!cand.ceremonie){
-      var d3=disponibles(trimKey);
-      if(d3[1]){ cand.ceremonie=d3[1]; pl2CandSave(cands); } // saute le créneau juste après l'Enquête
+    if(!cand.ceremonie && cand.enquete){
+      var pris3={};
+      _admToutesDesignationsGlobal().forEach(function(x){ pris3[x.date]=true; });
+      var toutesApres=_pl2ToutesTenuesTrimestre(trimKey).filter(function(ds){ return ds>cand.enquete; });
+      var apresSkip=toutesApres.slice(1); // saute la toute prochaine tenue, quel que soit son degré
+      var evts2=plLoad2().events||[];
+      var candDate=apresSkip.filter(function(ds){
+        if(pris3[ds]) return false;
+        var ev=evts2.filter(function(e){return e.date===ds;})[0];
+        return ev && (ev.degre||'1°')==='1°';
+      })[0];
+      if(candDate){ cand.ceremonie=candDate; pl2CandSave(cands); }
     }
   }
   for(var j=0;j<Math.min(3,inits.length);j++){
@@ -25877,6 +25888,21 @@ function _pl2ComblerDatesTrimestre(){
       if(d4[0]){ it.date=d4[0]; pl2InitSave(inits); }
     }
   }
+}
+// Toutes les dates de tenues (tous degrés confondus) d'un trimestre donné,
+// dans les bornes de la période — utilisé pour déterminer, en Cérémonie de
+// Candidature, quelle tenue « sauter » avant de reprendre la première
+// tenue au 1° disponible (la tenue sautée peut être à n'importe quel
+// degré, contrairement au Courrier/à l'Enquête qui ne considèrent que des
+// tenues au 1°).
+function _pl2ToutesTenuesTrimestre(trimKey){
+  var c=plCriteresLoad()||{};
+  return (plLoad2().events||[])
+    .map(function(e){return e.date;}).filter(function(d){return !!d;})
+    .filter(function(d){ if(c.dateDebut&&d<c.dateDebut) return false; if(c.dateFin&&d>c.dateFin) return false; return true; })
+    .filter(function(d,i,arr){return arr.indexOf(d)===i;})
+    .filter(function(d){ return _plTrimestreInfo(d).key===trimKey; })
+    .sort();
 }
 // Réapplique toutes les désignations Candidatures/Initiations actuellement
 // saisies (dates, modèles, degrés) sur les tenues de Planning 2/3 — même
