@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.615-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.616-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24875,7 +24875,7 @@ function _plCompletCardHtml(e){
   var cdTxt=cd;
   if(!isReunHT){
     if((e.titre||'').indexOf('Candidature')===0) cdTxt='#9CAF88';
-    else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}) || e.titre==='Inspecteur + Installation') cdTxt='#2E6B4F';
+    else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}) || e.titre==='Inspecteur + Installation') cdTxt='#27AE60';
   }
   var dureeMin=parties.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0)||(e.duree>0?e.duree:0);
   var dsA=_plDureeStyle(dureeMin);
@@ -25295,7 +25295,7 @@ function adminPlRenderCreation(cid,store2){
         // sauge, Date spéciale en vert sapin) au lieu de la couleur du
         // degré, quand la tenue en porte une.
         if((e.titre||'').indexOf('Candidature')===0) cd='#9CAF88';
-        else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}) || e.titre==='Inspecteur + Installation') cd='#2E6B4F';
+        else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}) || e.titre==='Inspecteur + Installation') cd='#27AE60';
         // !important nécessaire : "#v-off-admin input, select { color:#FFFFFF !important; }"
         // (règle CSS globale) écraserait sinon la couleur du degré fixée en ligne.
         var inpD=inpS+'color:'+cd+' !important;font-weight:600;';
@@ -27113,7 +27113,7 @@ function adminPlRenderCriteresP2(cid){
   h+='<div style="margin-bottom:22px;padding-top:18px;border-top:2mm solid var(--gold);">';
   h+='<label style="'+lblS+'margin-bottom:12px;">Dates spéciales (quasi-impératives)</label>';
   h+='<div style="display:flex;flex-wrap:nowrap;gap:10px;align-items:center;overflow-x:auto;">';
-  var lblInlSpec='font-size:11px;color:#2E6B4F;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;';
+  var lblInlSpec='font-size:11px;color:#27AE60;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;';
   ADM_DATES_SPECIALES.forEach(function(sp){
     var valSp=c[sp.key]||_admDateSpecialeDefaut(sp.key);
     h+='<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">';
