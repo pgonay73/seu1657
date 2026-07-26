@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.627-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.628-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26497,26 +26497,26 @@ function adminPlRenderDispoPlanches(cid){
 // les tenues encore ouvertes pour ce type/degré) — le choix de la date
 // affecte directement le frère/sujet à cette tenue, en traçant aussi une
 // disponibilité (Étape 4) pour l'historique.
-// v623 — Un frère déjà affecté à une tenue (que ce soit depuis cette
-// Étape 7, ou depuis une disponibilité « externe » saisie à l'Étape 4 puis
-// affectée à l'Étape 5) reste affiché dans la liste, avec son choix en
-// lecture + un crayon pour revenir en arrière — au lieu de disparaître
-// une fois la tenue mise à jour. Seuls les frères ayant une disponibilité
-// encore SANS tenue (en cours de suivi à l'Étape 4/5) sont exclus : eux
-// sont déjà suivis/gérés là-bas, pas besoin de les dédoubler ici.
+// v623 — Un frère affecté DEPUIS cette Étape 7 (marqué origine:'etape7' sur
+// sa disponibilité, un sujet forcément choisi dans la Banque d'architecture,
+// Étape 6) reste affiché dans la liste après affectation, avec son choix en
+// lecture + un crayon pour revenir en arrière — au lieu de disparaître une
+// fois la tenue mise à jour. Un frère dont la planche/le symbolisme a été
+// affecté ailleurs (Étape 4/5 — sujet libre, pas forcément dans la Banque)
+// n'est ni modifiable ni ré-affichable ici : ce n'est pas géré par cette
+// Étape 7, seulement par l'Étape 4/5 elle-même.
 function _plFreresRestants(){
   if(!window.D || !Array.isArray(D.freres)) return [];
   var freresAExclure={};
-  plDispoLoad().forEach(function(p){ if(p.sujet&&!p.assigneEventId) freresAExclure[p.frere]=true; });
+  plDispoLoad().forEach(function(p){ if(p.sujet&&p.origine!=='etape7') freresAExclure[p.frere]=true; });
   return D.freres.slice().sort(fSortNom).filter(function(f){
     var nom=((f.prenom||'')+' '+(f.nom||'')).trim();
     return !freresAExclure[nom];
   });
 }
-// Disponibilité déjà affectée à une tenue pour ce frère, s'il y en a une —
-// qu'elle vienne de cette Étape 7 ou d'une affectation faite à l'Étape 5.
+// Disponibilité affectée depuis cette Étape 7 pour ce frère, s'il y en a une.
 function _plFrereEtape7Affecte(nomFrere){
-  return plDispoLoad().filter(function(p){return p.frere===nomFrere&&p.assigneEventId;})[0]||null;
+  return plDispoLoad().filter(function(p){return p.frere===nomFrere&&p.origine==='etape7'&&p.assigneEventId;})[0]||null;
 }
 // Tenues (Planning 2/3) du degré donné ayant encore au moins une place
 // Planche/Symbolisme vide du type donné — pour proposer, une fois
@@ -26574,16 +26574,10 @@ function plFrereAssignerTenue(nomFrere,type,degre,sujet,eid){
   toast('✓ '+nomFrere+' — '+sujet+' affecté à la tenue du '+(ev.date||''));
   adminPlRenderFreresRestants('admin-pl-freresrestants-list');
 }
-// Le crayon (✏️) d'un frère déjà affecté à une tenue : libère la place de
-// la tenue, puis :
-// - si la disponibilité venait de cette Étape 7 (origine:'etape7', créée
-//   uniquement pour cet usage) : elle est supprimée et le choix
-//   Type/Degré/Sujet est rouvert, déjà prérempli (il ne reste qu'à choisir
-//   une nouvelle date, ou tout recommencer) ;
-// - si elle venait de l'Étape 4 (« ancienne » disponibilité externe,
-//   affectée depuis l'Étape 5) : elle redevient simplement disponible
-//   (assigneEventId vidé), sans rien supprimer — son suivi continue à
-//   l'Étape 4/5, pas ici.
+// Le crayon (✏️) d'un frère déjà affecté depuis l'Étape 7 : libère la place
+// de la tenue et la disponibilité correspondante, puis rouvre le choix
+// Type/Degré/Sujet déjà prérempli (il ne reste qu'à choisir une nouvelle
+// date, ou tout recommencer).
 function plFrereModifier(nomFrere,eid,type,degre,sujet){
   var data=plLoad2();
   var ev=data.events.filter(function(e){return e.id===eid;})[0];
@@ -26591,17 +26585,9 @@ function plFrereModifier(nomFrere,eid,type,degre,sujet){
     var slot=ev.detail.filter(function(p){return p.conf===nomFrere&&p.titre===sujet;})[0];
     if(slot){ slot.conf=''; slot.titre=''; ev._pl2Touche=true; plSave2(data); }
   }
-  var arr=plDispoLoad();
-  var dispo=arr.filter(function(p){return p.frere===nomFrere&&p.assigneEventId===eid&&p.sujet===sujet;})[0];
-  if(dispo&&dispo.origine==='etape7'){
-    plDispoSave(arr.filter(function(p){return p!==dispo;}));
-    window._plFrereDraft[nomFrere]={type:type,degre:degre,sujet:sujet};
-  } else if(dispo){
-    dispo.assigneEventId='';
-    plDispoSave(arr);
-  } else {
-    window._plFrereDraft[nomFrere]={type:type,degre:degre,sujet:sujet};
-  }
+  var dispo=plDispoLoad().filter(function(p){return !(p.frere===nomFrere&&p.origine==='etape7'&&p.assigneEventId===eid);});
+  plDispoSave(dispo);
+  window._plFrereDraft[nomFrere]={type:type,degre:degre,sujet:sujet};
   adminPlRenderFreresRestants('admin-pl-freresrestants-list');
 }
 function adminPlRenderFreresRestants(cid){
