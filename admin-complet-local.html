@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.616-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.617-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14436,7 +14436,7 @@ function renderOffice(n){
     c+='</div>';
     c+='</div>';
     c+='<div id="admin-pl-dispoplanches-list"></div>';
-    c+=_plNavFixeHtml('planning4','Étape 4','propositions','Étape 6');
+    c+=_plNavFixeHtml('planning4','Étape 4','complet','Étape 7');
     c+='</div></div>';
     // ─ L1.C : Banque d'architecture ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
@@ -14485,7 +14485,7 @@ function renderOffice(n){
     c+='</div>';
     c+='<div id="admin-pl-complet-list"></div>';
     c+='</div>';
-    c+=_plNavFixeHtml('propositions','Étape 6','','');
+    c+=_plNavFixeHtml('dispoplanches','Étape 5','','');
     c+='</div>';
     c+='</div>';
 
@@ -24553,7 +24553,10 @@ function plRenderAdminNav(containerId){
       {id:'planning3', label:'3️⃣ Étape 3 / Candidatures, Initiations'},
       {id:'planning4', label:'4️⃣ Étape 4 / Disponibilité architecture'},
       {id:'dispoplanches', label:'5️⃣ Étape 5 / Disponibilités planches'},
-      {id:'propositions', label:'6️⃣ Étape 6 / Le mercato des planches'},
+      // v618 — Étape 6 / Le mercato des planches masquée pour l'instant (sur
+      // demande) : bouton retiré de la barre de navigation, mais le
+      // panneau et ses données restent intacts (voir _plNavFixeHtml
+      // ci-dessous, qui relie directement l'Étape 5 à l'Étape 7).
       {id:'complet',   label:'7️⃣ Étape 7 / Planning complet'},
       {id:'planches',  label:"📐 Banque d'architecture"}
     ];
@@ -24879,7 +24882,8 @@ function _plCompletCardHtml(e){
   }
   var dureeMin=parties.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0)||(e.duree>0?e.duree:0);
   var dsA=_plDureeStyle(dureeMin);
-  var morceaux=parties.filter(function(p){return _plMorceauType(p)!=='';});
+  var morceaux=[];
+  parties.forEach(function(p,idx){ if(_plMorceauType(p)!=='') morceaux.push({p:p,idx:idx}); });
   var eid=e.id;
   var inS='padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;';
   var inSc='padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:'+cdTxt+' !important;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;';
@@ -24909,14 +24913,27 @@ function _plCompletCardHtml(e){
   // Ligne 2 : morceaux d'architecture (résumé lecture seule — se corrige
   // depuis la partie dépliable ci-dessous)
   h+='<div style="margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;">';
-  h+=morceaux.length?morceaux.map(function(p){
+  h+=morceaux.length?morceaux.map(function(m){
+    var p=m.p, idx=m.idx;
     var type=_plMorceauType(p);
     var marq=type==='P'?'<span style="color:#33DD66;font-weight:700;">Planche</span>':'<span style="color:#C080D0;font-weight:700;">Symbolisme</span>';
     var infos=[];
     if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
     if(p.titre) infos.push('« '+p.titre+' »');
-    var infosStr=infos.length?' — '+infos.join(' · '):' — <span style="color:#FF9900;">disponible</span>';
-    return '<span style="display:inline-block;margin-right:18px;margin-bottom:2px;">'+marq+infosStr+'</span>';
+    var reste;
+    if(infos.length){
+      reste=' — '+infos.join(' · ');
+    } else {
+      var _dispoOpts=_plDispoDisponiblesPourTenue(e.date,type,deg);
+      if(_dispoOpts.length){
+        reste=' — <select onchange="if(this.value){plDispoAssignerSlot(this.value,&quot;'+eid+'&quot;,'+idx+');}" style="padding:2px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11px;max-width:220px;vertical-align:middle;"><option value="">-- disponible : affecter --</option>'
+          +_dispoOpts.map(function(dp){ return '<option value="'+dp.id+'">'+dp.frere+' — '+dp.sujet+'</option>'; }).join('')
+          +'</select>';
+      } else {
+        reste=' — <span style="color:#FF9900;">disponible</span>';
+      }
+    }
+    return '<span style="display:inline-block;margin-right:18px;margin-bottom:2px;">'+marq+reste+'</span>';
   }).join(''):'<span style="color:rgba(255,255,255,.3);font-style:italic;">Aucun morceau d\'architecture</span>';
   h+='</div>';
   // Partie dépliable : toutes les étapes de la tenue, éditables (nom, durée,
@@ -24942,17 +24959,6 @@ function _plCompletCardHtml(e){
       h+='<span style="font-size:10px;color:rgba(255,255,255,.4);">min</span>';
       h+='<input type="text" list="pl-complet-freres" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:150px;">';
       h+='<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet / titre" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:150px;">';
-      if(type && !p.conf && !p.titre){
-        var _dispoOpts=_plDispoDisponiblesPourTenue(e.date,type,deg);
-        if(_dispoOpts.length){
-          h+='<select onchange="if(this.value){plDispoAssignerSlot(this.value,&quot;'+eid+'&quot;,'+idx+');}" style="'+inS+'width:210px;">';
-          h+='<option value="">-- Affecter une disponibilité --</option>';
-          _dispoOpts.forEach(function(dp){
-            h+='<option value="'+dp.id+'">'+dp.frere+' — '+dp.sujet+'</option>';
-          });
-          h+='</select>';
-        }
-      }
       h+='<button onclick="_plDetailPartieDel2(&quot;'+eid+'&quot;,'+idx+')" title="Supprimer cette étape" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:3px 7px;flex-shrink:0;">🗑</button>';
       h+='</div>';
     });
