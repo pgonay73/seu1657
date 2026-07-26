@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.604-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.605-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26021,9 +26021,11 @@ function plProposDesassignerSlot(eid,store2,conf,titre){
   toast('✓ Affectation retirée — la proposition redevient disponible.');
   adminPlRenderMorceauxDisponibles('admin-pl-planning4-list',store2);
 }
-// Planning 4 : uniquement les places encore disponibles (non pourvues) pour
-// un morceau d'architecture, en précisant s'il s'agit de Symbolisme ou de
-// Planche.
+// Planning 4 : toutes les tenues de la période, avec pour chacune ses
+// places de morceau d'architecture encore disponibles (non pourvues),
+// en précisant s'il s'agit de Symbolisme ou de Planche — et, pour une
+// tenue sans aucun morceau d'architecture prévu, la mention « Pas de
+// morceau d'architecture » à la place.
 function adminPlRenderMorceauxDisponibles(cid,store2){
   cid=cid||'admin-pl-planning4-list';
   var el=document.getElementById(cid); if(!el) return;
@@ -26038,12 +26040,12 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
   var lignes=[];
   evts.forEach(function(e){
     var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom);});
-    if(parties.length) lignes.push({e:e,parties:parties});
+    lignes.push({e:e,parties:parties});
   });
   var propsDispo=_plProposDisponibles();
   var h='';
   if(!lignes.length){
-    h='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucun morceau d\'architecture prévu sur la période.</p>';
+    h='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucune tenue sur la période.</p>';
   } else {
     h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px;">';
     h+='<thead><tr style="border-bottom:2px solid var(--gold);">';
@@ -26063,6 +26065,9 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
       (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
       h+='</select></td>';
       h+='<td style="padding:8px;">';
+      if(!ln.parties.length){
+        h+='<span style="color:rgba(255,255,255,.4);font-style:italic;">Pas de morceau d\'architecture</span>';
+      }
       var _videCompte=0;
       ln.parties.forEach(function(p){
         var type=_plMorceauType(p);
