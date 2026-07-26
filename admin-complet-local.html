@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.626-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.627-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24840,34 +24840,6 @@ function _plDetailPartieChanger2(eid,idx,field,val){
   ev._pl2Touche=true;
   plSave2(data);
 }
-// v625 — Détails d'un morceau d'architecture (Planche/Symbolisme), dans le
-// magasin Planning 2/3 : sous-types de Planche (Parole/Impression/Passage
-// au 2°/au 3°, cumulables) et degré du Symbolisme — jusqu'ici visibles
-// seulement en lecture sur les cartes de l'Étape 10.
-function _plDetailPartieSousTypePlanche2(eid,idx,type){
-  var data=plLoad2();
-  var ev=data.events.filter(function(e){return e.id===eid;})[0];
-  if(!ev) return;
-  if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
-  var p=ev.detail[idx]; if(!p) return;
-  if(!p.plancheSteps||p.plancheSteps.indexOf('planche')<0) p.plancheSteps=['planche'];
-  var i=p.plancheSteps.indexOf(type);
-  if(i>=0) p.plancheSteps.splice(i,1); else p.plancheSteps.push(type);
-  ev._pl2Touche=true;
-  plSave2(data);
-  if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
-}
-function _plDetailPartieSymDegre2(eid,idx,val){
-  var data=plLoad2();
-  var ev=data.events.filter(function(e){return e.id===eid;})[0];
-  if(!ev) return;
-  if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
-  var p=ev.detail[idx]; if(!p) return;
-  p.symDegres=val?[val]:[];
-  ev._pl2Touche=true;
-  plSave2(data);
-  if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
-}
 // Supprime une étape (partie) d'une tenue, dans le magasin Planning 2/3.
 // Déplace une étape (partie) d'un cran vers le haut (-1) ou le bas (+1)
 // dans le détail d'une tenue, dans le magasin Planning 2/3.
@@ -24966,34 +24938,17 @@ function _plCompletCardHtml(e){
   // Ligne 2 : morceaux d'architecture (résumé lecture seule — se corrige
   // depuis la partie dépliable ci-dessous)
   h+='<div style="margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.12);font-size:12px;">';
+  // v627 — Résumé strictement en lecture : l'affectation d'un morceau
+  // d'architecture (Planche/Symbolisme) se fait désormais uniquement via
+  // les Étapes 4 à 7, pas depuis le Planning complet.
   h+=morceaux.length?morceaux.map(function(m){
-    var p=m.p, idx=m.idx;
+    var p=m.p;
     var type=_plMorceauType(p);
     var marq=type==='P'?'<span style="color:#33DD66;font-weight:700;">Planche</span>':'<span style="color:#C080D0;font-weight:700;">Symbolisme</span>';
     var infos=[];
     if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
     if(p.titre) infos.push('« '+p.titre+' »');
-    var reste;
-    var editKey=eid+':'+idx;
-    var enEdition=!!(window._plMorceauEditIdx&&window._plMorceauEditIdx[editKey]);
-    if(enEdition){
-      // v624 — Crayon : corrige le conférencier/sujet directement sur la
-      // ligne toujours visible, sans passer par la partie dépliable.
-      reste=' — <input type="text" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value)" style="padding:2px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11px;width:120px;">'
-        +' <input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value)" style="padding:2px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11px;width:140px;">'
-        +' <button onclick="_plMorceauEditToggleComplet(&quot;'+editKey+'&quot;,&quot;'+eid+'&quot;)" title="Terminer la modification" style="background:none;border:1px solid rgba(29,138,90,.5);border-radius:3px;color:#3ECF8E;cursor:pointer;font-size:11px;padding:1px 6px;">✓</button>';
-    } else if(infos.length){
-      reste=' — '+infos.join(' · ')+' <button onclick="_plMorceauEditToggleComplet(&quot;'+editKey+'&quot;,&quot;'+eid+'&quot;)" title="Modifier" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:10px;padding:1px 5px;margin-left:4px;">✏️</button>';
-    } else {
-      var _dispoOpts=_plDispoDisponiblesPourTenue(e.date,type,deg);
-      if(_dispoOpts.length){
-        reste=' — <select onchange="if(this.value){plDispoAssignerSlot(this.value,&quot;'+eid+'&quot;,'+idx+');}" style="padding:2px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11px;max-width:220px;vertical-align:middle;"><option value="">-- disponible : affecter --</option>'
-          +_dispoOpts.map(function(dp){ return '<option value="'+dp.id+'">'+dp.frere+' — '+dp.sujet+'</option>'; }).join('')
-          +'</select>';
-      } else {
-        reste=' — <span style="color:#FF9900;">disponible</span>';
-      }
-    }
+    var reste=infos.length?(' — '+infos.join(' · ')):' — <span style="color:#FF9900;">disponible</span>';
     return '<span style="display:inline-block;margin-right:18px;margin-bottom:2px;">'+marq+reste+'</span>';
   }).join(''):'<span style="color:rgba(255,255,255,.3);font-style:italic;">Aucun morceau d\'architecture</span>';
   h+='</div>';
@@ -25018,31 +24973,19 @@ function _plCompletCardHtml(e){
       h+='<input type="text" list="pl-complet-detail-tenue" value="'+(p.nom||'').replace(/"/g,'&quot;')+'" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'nom\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:130px;">';
       h+='<input type="number" min="0" value="'+(p.dur||0)+'" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'dur\',+this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:56px;">';
       h+='<span style="font-size:10px;color:rgba(255,255,255,.4);">min</span>';
-      h+='<input type="text" list="pl-complet-freres" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:150px;">';
-      h+='<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet / titre" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:150px;">';
+      // v627 — Pour un morceau d'architecture (Planche/Symbolisme),
+      // conférencier et sujet ne sont plus modifiables ici : cela se fait
+      // désormais exclusivement via les Étapes 4 à 7. Le reste de l'étape
+      // (nom, durée, suppression) reste corrigeable comme avant.
+      if(type==='P'||type==='S'){
+        h+='<span style="'+inS+'width:150px;box-sizing:border-box;display:inline-block;color:rgba(255,255,255,.75);">'+(p.conf?(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf):'<span style="color:rgba(255,255,255,.3);font-style:italic;">— (Étapes 4-7)</span>')+'</span>';
+        h+='<span style="'+inS+'flex:1;min-width:150px;box-sizing:border-box;display:inline-block;color:rgba(255,255,255,.75);">'+(p.titre?('« '+p.titre+' »'):'<span style="color:rgba(255,255,255,.3);font-style:italic;">—</span>')+'</span>';
+      } else {
+        h+='<input type="text" list="pl-complet-freres" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:150px;">';
+        h+='<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet / titre" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:150px;">';
+      }
       h+='<button onclick="_plDetailPartieDel2(&quot;'+eid+'&quot;,'+idx+')" title="Supprimer cette étape" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:3px 7px;flex-shrink:0;">🗑</button>';
       h+='</div>';
-      // v625 — Sous-détails d'un morceau d'architecture : sous-types
-      // cumulables de Planche, ou degré du Symbolisme — jusqu'ici invisibles
-      // (« les détails des détails »).
-      if(type==='P'){
-        var steps=p.plancheSteps||[];
-        h+='<div style="display:flex;gap:14px;flex-wrap:wrap;padding:2px 0 6px 20px;font-size:11px;">';
-        [['parole','Parole'],['impression','Impression'],['passage2','Passage au 2°'],['passage3','Passage au 3°']].forEach(function(o){
-          var checked=steps.indexOf(o[0])>=0;
-          h+='<label style="display:flex;align-items:center;gap:4px;color:rgba(255,255,255,.7);cursor:pointer;"><input type="checkbox" '+(checked?'checked':'')+' onchange="_plDetailPartieSousTypePlanche2(&quot;'+eid+'&quot;,'+idx+',\''+o[0]+'\')" style="accent-color:var(--gold);cursor:pointer;">'+o[1]+'</label>';
-        });
-        h+='</div>';
-      } else if(type==='S'){
-        var degS=(p.symDegres||[])[0]||'';
-        h+='<div style="display:flex;gap:8px;align-items:center;padding:2px 0 6px 20px;font-size:11px;color:rgba(255,255,255,.7);">';
-        h+='<span>Degré du symbolisme :</span>';
-        h+='<select onchange="_plDetailPartieSymDegre2(&quot;'+eid+'&quot;,'+idx+',this.value)" style="padding:3px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11px;">';
-        h+='<option value="">--</option>';
-        ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(degS===dg?' selected':'')+'>'+dg+'</option>'; });
-        h+='</select>';
-        h+='</div>';
-      }
     });
   }
   h+='<select onchange="if(this.value!==&quot;&quot;){_plDetailPartieAdd2(&quot;'+eid+'&quot;,this.value);}this.selectedIndex=0;" style="margin-top:8px;'+inS+'max-width:280px;">';
@@ -26429,13 +26372,6 @@ function _plMorceauEditToggle(key,cid){
   window._plMorceauEditIdx[key]=!window._plMorceauEditIdx[key];
   if(typeof adminPlRenderMorceauxDisponibles==='function') adminPlRenderMorceauxDisponibles(cid,true);
 }
-// Même bascule, pour l'Étape 10 (Planning complet) : ne ré-affiche qu'une
-// seule carte (_plCompletRenderUneTenue) plutôt que toute la liste.
-function _plMorceauEditToggleComplet(key,eid){
-  if(!window._plMorceauEditIdx) window._plMorceauEditIdx={};
-  window._plMorceauEditIdx[key]=!window._plMorceauEditIdx[key];
-  if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
-}
 function plDispoSupprimer(id){
   var arr=plDispoLoad().filter(function(x){return x.id!==id;});
   plDispoSave(arr);
@@ -26561,24 +26497,26 @@ function adminPlRenderDispoPlanches(cid){
 // les tenues encore ouvertes pour ce type/degré) — le choix de la date
 // affecte directement le frère/sujet à cette tenue, en traçant aussi une
 // disponibilité (Étape 4) pour l'historique.
-// v623 — Un frère affecté DEPUIS l'Étape 7 (marqué origine:'etape7' sur sa
-// disponibilité) reste affiché dans la liste après affectation, avec son
-// choix en lecture + un crayon pour le modifier — au lieu de disparaître
+// v623 — Un frère déjà affecté à une tenue (que ce soit depuis cette
+// Étape 7, ou depuis une disponibilité « externe » saisie à l'Étape 4 puis
+// affectée à l'Étape 5) reste affiché dans la liste, avec son choix en
+// lecture + un crayon pour revenir en arrière — au lieu de disparaître
 // une fois la tenue mise à jour. Seuls les frères ayant une disponibilité
-// « externe » (saisie librement à l'Étape 4, sans cette origine) sont
-// exclus : eux sont déjà suivis/gérés là-bas.
+// encore SANS tenue (en cours de suivi à l'Étape 4/5) sont exclus : eux
+// sont déjà suivis/gérés là-bas, pas besoin de les dédoubler ici.
 function _plFreresRestants(){
   if(!window.D || !Array.isArray(D.freres)) return [];
   var freresAExclure={};
-  plDispoLoad().forEach(function(p){ if(p.sujet&&p.origine!=='etape7') freresAExclure[p.frere]=true; });
+  plDispoLoad().forEach(function(p){ if(p.sujet&&!p.assigneEventId) freresAExclure[p.frere]=true; });
   return D.freres.slice().sort(fSortNom).filter(function(f){
     var nom=((f.prenom||'')+' '+(f.nom||'')).trim();
     return !freresAExclure[nom];
   });
 }
-// Disponibilité affectée depuis l'Étape 7 pour ce frère, s'il y en a une.
+// Disponibilité déjà affectée à une tenue pour ce frère, s'il y en a une —
+// qu'elle vienne de cette Étape 7 ou d'une affectation faite à l'Étape 5.
 function _plFrereEtape7Affecte(nomFrere){
-  return plDispoLoad().filter(function(p){return p.frere===nomFrere&&p.origine==='etape7'&&p.assigneEventId;})[0]||null;
+  return plDispoLoad().filter(function(p){return p.frere===nomFrere&&p.assigneEventId;})[0]||null;
 }
 // Tenues (Planning 2/3) du degré donné ayant encore au moins une place
 // Planche/Symbolisme vide du type donné — pour proposer, une fois
@@ -26636,10 +26574,16 @@ function plFrereAssignerTenue(nomFrere,type,degre,sujet,eid){
   toast('✓ '+nomFrere+' — '+sujet+' affecté à la tenue du '+(ev.date||''));
   adminPlRenderFreresRestants('admin-pl-freresrestants-list');
 }
-// Le crayon (✏️) d'un frère déjà affecté depuis l'Étape 7 : libère la place
-// de la tenue et la disponibilité correspondante, puis rouvre le choix
-// Type/Degré/Sujet déjà prérempli (il ne reste qu'à choisir une nouvelle
-// date, ou tout recommencer).
+// Le crayon (✏️) d'un frère déjà affecté à une tenue : libère la place de
+// la tenue, puis :
+// - si la disponibilité venait de cette Étape 7 (origine:'etape7', créée
+//   uniquement pour cet usage) : elle est supprimée et le choix
+//   Type/Degré/Sujet est rouvert, déjà prérempli (il ne reste qu'à choisir
+//   une nouvelle date, ou tout recommencer) ;
+// - si elle venait de l'Étape 4 (« ancienne » disponibilité externe,
+//   affectée depuis l'Étape 5) : elle redevient simplement disponible
+//   (assigneEventId vidé), sans rien supprimer — son suivi continue à
+//   l'Étape 4/5, pas ici.
 function plFrereModifier(nomFrere,eid,type,degre,sujet){
   var data=plLoad2();
   var ev=data.events.filter(function(e){return e.id===eid;})[0];
@@ -26647,9 +26591,17 @@ function plFrereModifier(nomFrere,eid,type,degre,sujet){
     var slot=ev.detail.filter(function(p){return p.conf===nomFrere&&p.titre===sujet;})[0];
     if(slot){ slot.conf=''; slot.titre=''; ev._pl2Touche=true; plSave2(data); }
   }
-  var dispo=plDispoLoad().filter(function(p){return !(p.frere===nomFrere&&p.origine==='etape7'&&p.assigneEventId===eid);});
-  plDispoSave(dispo);
-  window._plFrereDraft[nomFrere]={type:type,degre:degre,sujet:sujet};
+  var arr=plDispoLoad();
+  var dispo=arr.filter(function(p){return p.frere===nomFrere&&p.assigneEventId===eid&&p.sujet===sujet;})[0];
+  if(dispo&&dispo.origine==='etape7'){
+    plDispoSave(arr.filter(function(p){return p!==dispo;}));
+    window._plFrereDraft[nomFrere]={type:type,degre:degre,sujet:sujet};
+  } else if(dispo){
+    dispo.assigneEventId='';
+    plDispoSave(arr);
+  } else {
+    window._plFrereDraft[nomFrere]={type:type,degre:degre,sujet:sujet};
+  }
   adminPlRenderFreresRestants('admin-pl-freresrestants-list');
 }
 function adminPlRenderFreresRestants(cid){
