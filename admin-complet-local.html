@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.606-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.607-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25329,9 +25329,15 @@ function _pl2ToutesDesignations(){
 // 2°/3° de Planning 2, Candidatures + Initiations de Planning 3) : une
 // même date, une fois prise par l'une, ne doit plus être proposée dans les
 // menus déroulants des autres, dans aucun des deux panneaux.
+// v607 — Utilise _admListeDesignationsAppliquees (qui reproduit les vraies
+// règles de défaut, ex. Installation qui suit l'Inspecteur) plutôt que
+// _admListeDesignations (défaut générique trop simple) : sinon une tenue
+// réellement occupée par une Date spéciale n'était pas reconnue comme
+// prise (elle réapparaissait comme disponible dans les menus de
+// Candidatures/Initiations), tandis qu'une tenue réellement libre était à
+// tort marquée comme prise par le calcul générique.
 function _admToutesDesignationsGlobal(){
-  var c=plCriteresLoad()||{};
-  return (typeof _admListeDesignations==='function'?_admListeDesignations(c):[]).concat(_pl2ToutesDesignations());
+  return (typeof _admListeDesignationsAppliquees==='function'?_admListeDesignationsAppliquees():[]).concat(_pl2ToutesDesignations());
 }
 function _pl2OptsAvecValeur(val,monId,degre){
   // v603 — Une tenue au 2°/3° n'existe QUE parce qu'elle est déjà désignée
@@ -27034,6 +27040,7 @@ function _admListeDesignationsAppliquees(){
     }
     if(ds) m.push({id:monId, date:ds});
   });
+  _dates5T.forEach(function(d5){ var v=_ov3T[d5.mois]||d5.date; if(v) m.push({id:'3e:'+d5.mois, date:v}); });
   return m;
 }
 // v602 — Quand une date spéciale (Inspecteur, Installation, St Jean,
