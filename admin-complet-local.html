@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.618-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.619-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14436,7 +14436,7 @@ function renderOffice(n){
     c+='</div>';
     c+='</div>';
     c+='<div id="admin-pl-planning4-list"></div>';
-    c+=_plNavFixeHtml('dispoplanches','Étape 4','complet','Étape 7');
+    c+=_plNavFixeHtml('dispoplanches','Étape 4','complet','Étape 10');
     c+='</div></div>';
     // ─ L1.C : Étape 8 / Banque d'architecture ─
     c+='<div id="admin-pl-l1-planches" style="display:none;">';
@@ -14447,7 +14447,7 @@ function renderOffice(n){
     c+='<button onclick="plImporterSujetsDuPlanning()" style="background:rgba(68,114,196,.15);border:1px solid rgba(68,114,196,.4);border-radius:4px;color:#82AAFF;cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:700;padding:4px 12px;">⬇ Importer depuis le planning</button>';
     c+='</div>';
     c+='<div id="admin-pl-sujets-list"></div>';
-    c+=_plNavFixeHtml('complet','Étape 7','','');
+    c+=_plNavFixeHtml('planning4','Étape 5','','');
     c+='</div>';
     c+='</div>';
     // ─ L1.D : Planning des tenues avec planches ─
@@ -14469,14 +14469,14 @@ function renderOffice(n){
     c+='<button onclick="imprimerListePropositionsPlanches()" style="background:rgba(184,146,42,.12);border:1px solid rgba(184,146,42,.4);border-radius:5px;color:var(--gold2);cursor:pointer;font-size:12px;font-family:Raleway,sans-serif;font-weight:600;padding:5px 12px;flex-shrink:0;margin-left:16px;">🖨 Imprimer</button>';
     c+='</div>';
     c+='<div id="admin-pl-propositions-list"></div>';
-    c+=_plNavFixeHtml('planning4','Étape 5','complet','Étape 7');
+    c+=_plNavFixeHtml('planning4','Étape 5','complet','Étape 10');
     c+='</div></div>';
-    // ─ L1.H : Étape 7 / Planning complet — vue d'ensemble en lecture seule
+    // ─ L1.H : Étape 10 / Planning complet — vue d'ensemble en lecture seule
     // de toutes les tenues (Étapes 1 à 4) ─
     c+='<div id="admin-pl-l1-complet" style="display:none;">';
     c+='<div class="cfg-box"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--gold);">';
     c+='<div>';
-    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 7 / Planning complet</h3>';
+    c+='<h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin:0 0 4px;">Étape 10 / Planning complet</h3>';
     c+='<p style="font-size:11px;color:var(--grey);margin:0;font-style:italic;">Vue d\'ensemble de toutes les tenues de la période, modifiable pour une dernière correction : degré, modèle, titre et détail (planches, symbolismes, désignations) issus des Étapes 1 à 4.</p>';
     c+='</div>';
     c+='<div style="display:flex;gap:8px;flex-shrink:0;margin-left:16px;">';
@@ -24556,9 +24556,9 @@ function plRenderAdminNav(containerId){
       {id:'planning4', label:'5️⃣ Étape 5 / Concordance dates dispos / planches frères'},
       // v618 — Étape 6 / Le mercato des planches masquée pour l'instant (sur
       // demande) : bouton retiré de la barre de navigation, mais le
-      // panneau et ses données restent intacts (voir _plNavFixeHtml
-      // ci-dessous, qui relie directement l'Étape 5 à l'Étape 7).
-      {id:'complet',   label:'7️⃣ Étape 7 / Planning complet'},
+      // panneau et ses données restent intactes (voir _plNavFixeHtml
+      // ci-dessous, qui relie directement l'Étape 5 à l'Étape 10).
+      {id:'complet',   label:'🔟 Étape 10 / Planning complet'},
       {id:'planches',  label:"8️⃣ Étape 8 / Banque d'architecture"}
     ];
     var l2TabsA=[
@@ -26100,13 +26100,16 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
   function fmtDate(ds){ if(!ds) return '—'; var d=new Date(ds+'T12:00:00'); return jFr[d.getDay()]+' '+d.getDate()+' '+mFr[d.getMonth()]+' '+d.getFullYear(); }
   // Toutes les places Planche/Symbolisme d'une tenue (disponibles ET déjà
   // pourvues) : la date reste affichée même une fois tous ses morceaux
-  // affectés, avec le frère et le sujet en clair à la place du menu.
+  // affectés, avec le frère et le sujet en clair à la place du menu. idx
+  // conserve l'index réel dans _plPartiesEffectives(e) (donc dans
+  // ev.detail), nécessaire pour plDispoAssignerSlot/_plDetailPartieChanger2.
   var lignes=[];
   evts.forEach(function(e){
-    var parties=_plPartiesEffectives(e).filter(function(p){return isPlancheOuSym(p.nom);});
+    var toutes=_plPartiesEffectives(e);
+    var parties=[];
+    toutes.forEach(function(p,idx){ if(isPlancheOuSym(p.nom)) parties.push({p:p,idx:idx}); });
     lignes.push({e:e,parties:parties});
   });
-  var propsDispo=_plProposDisponibles();
   var h='';
   if(!lignes.length){
     h='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Aucune tenue sur la période.</p>';
@@ -26132,26 +26135,38 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
       if(!ln.parties.length){
         h+='<span style="color:rgba(255,255,255,.4);font-style:italic;">Pas de morceau d\'architecture</span>';
       }
-      var _videCompte=0;
-      ln.parties.forEach(function(p){
+      ln.parties.forEach(function(m){
+        var p=m.p, idx=m.idx;
         var type=_plMorceauType(p);
         var lbl=type==='S'?'Symbolisme':(type==='P'?'Planche':'—');
         var couleur=type==='S'?'#C080D0':'#33DD66';
         var estVide=!p.conf&&!p.titre;
+        var editKey=e.id+':'+idx;
+        var enEdition=!!(window._plMorceauEditIdx&&window._plMorceauEditIdx[editKey]);
         h+='<div style="margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
         h+='<strong style="color:'+couleur+';white-space:nowrap;">'+lbl+'</strong>';
         if(estVide){
-          var _slotIdx=_videCompte++;
-          h+='<select onchange="plProposAssignerSlot(this.value,&quot;'+e.id+'&quot;,'+(store2?'true':'false')+','+_slotIdx+')" style="padding:4px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11.5px;max-width:280px;">';
-          h+='<option value="">-- Affecter une proposition --</option>';
-          propsDispo.forEach(function(pr){
-            var typeTxt=pr.type==='symbolisme'?'S':(pr.type==='planche'?'P':'?');
-            h+='<option value="'+pr.id+'">['+typeTxt+'] '+pr.frere+' — '+pr.sujet+'</option>';
-          });
-          h+='</select>';
+          // v619 — Affecte désormais depuis l'Étape 4 (Disponibilités
+          // planches frères), pas depuis l'ancien Mercato des planches
+          // (Étape 6, masquée) : les disponibilités déjà affectées ailleurs
+          // sont automatiquement exclues (voir _plDispoDisponiblesPourTenue).
+          var _dispoOpts=_plDispoDisponiblesPourTenue(e.date,type,e.degre||'1°');
+          if(_dispoOpts.length){
+            h+='<select onchange="if(this.value){plDispoAssignerSlot(this.value,&quot;'+e.id+'&quot;,'+idx+');setTimeout(function(){adminPlRenderMorceauxDisponibles(&quot;'+cid+'&quot;,true);},80);}" style="padding:4px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11.5px;max-width:280px;">';
+            h+='<option value="">-- Affecter une disponibilité --</option>';
+            _dispoOpts.forEach(function(dp){ h+='<option value="'+dp.id+'">'+dp.frere+' — '+dp.sujet+'</option>'; });
+            h+='</select>';
+          } else {
+            h+='<span style="color:rgba(255,255,255,.4);font-style:italic;font-size:11px;">Aucune disponibilité</span>';
+          }
+        } else if(enEdition){
+          h+='<input type="text" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+e.id+'&quot;,'+idx+',\'conf\',this.value)" style="padding:4px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11.5px;width:130px;">';
+          h+='<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet" onchange="_plDetailPartieChanger2(&quot;'+e.id+'&quot;,'+idx+',\'titre\',this.value)" style="padding:4px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11.5px;width:150px;">';
+          h+='<button onclick="_plMorceauEditToggle(&quot;'+editKey+'&quot;,&quot;'+cid+'&quot;)" title="Terminer la modification" style="background:none;border:1px solid rgba(29,138,90,.5);border-radius:3px;color:#3ECF8E;cursor:pointer;font-size:11px;padding:2px 6px;">✓</button>';
         } else {
           h+='<span style="color:rgba(255,255,255,.85);font-size:12px;">'+(p.conf||'')+(p.titre?' — « '+p.titre+' »':'')+'</span>';
-          h+='<button onclick="plProposDesassignerSlot(&quot;'+e.id+'&quot;,'+(store2?'true':'false')+',&quot;'+(p.conf||'').replace(/"/g,'&quot;')+'&quot;,&quot;'+(p.titre||'').replace(/"/g,'&quot;')+'&quot;)" title="Retirer cette affectation — la proposition redevient disponible" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:11px;padding:2px 6px;">🗑</button>';
+          h+='<button onclick="_plMorceauEditToggle(&quot;'+editKey+'&quot;,&quot;'+cid+'&quot;)" title="Modifier" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:11px;padding:2px 6px;">✏️</button>';
+          h+='<button onclick="plDispoDesassignerSlot(&quot;'+e.id+'&quot;,&quot;'+(p.conf||'').replace(/"/g,'&quot;')+'&quot;,&quot;'+(p.titre||'').replace(/"/g,'&quot;')+'&quot;);setTimeout(function(){adminPlRenderMorceauxDisponibles(&quot;'+cid+'&quot;,true);},80);" title="Retirer cette affectation — la disponibilité redevient proposable" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:11px;padding:2px 6px;">🗑</button>';
         }
         h+='</div>';
       });
@@ -26273,7 +26288,7 @@ function _plDispoDisponiblesPourTenue(dateTenue,type,degre){
   });
 }
 // Affecte une disponibilité (Étape 4, frère + sujet) à la place n° idx du
-// détail d'une tenue de Planning 2/3 (Étape 7 / Planning complet).
+// détail d'une tenue de Planning 2/3 (Étape 10 / Planning complet).
 function plDispoAssignerSlot(dispoId,eid,idx){
   if(!dispoId) return;
   var arr=plDispoLoad();
@@ -26298,6 +26313,32 @@ function plDispoAssignerSlot(dispoId,eid,idx){
   plDispoSave(arr);
   toast('✓ '+dispo.frere+' — '+dispo.sujet+' affecté à la tenue du '+(ev.date||''));
   if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
+}
+// Retire l'affectation d'une place Planche/Symbolisme déjà pourvue (conf +
+// titre identifient le slot) : la place redevient vide, et la
+// disponibilité correspondante (Étape 4), redevient proposable ailleurs.
+function plDispoDesassignerSlot(eid,conf,titre){
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.id===eid;})[0];
+  if(!ev||!ev.detail) return;
+  var slot=ev.detail.filter(function(p){return (p.conf||'')===conf&&(p.titre||'')===titre;})[0];
+  if(!slot) return;
+  slot.conf=''; slot.titre='';
+  ev._pl2Touche=true;
+  plSave2(data);
+  var arr=plDispoLoad();
+  var dispo=arr.filter(function(p){return p.frere===conf&&p.sujet===titre&&p.assigneEventId===eid;})[0];
+  if(dispo){ dispo.assigneEventId=''; plDispoSave(arr); }
+  toast('✓ Affectation retirée — la disponibilité redevient proposable.');
+  if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
+}
+// Bascule le mode édition (crayon) d'une place Planche/Symbolisme déjà
+// pourvue, pour corriger le frère/sujet directement en place sans passer
+// par la suppression + réaffectation.
+function _plMorceauEditToggle(key,cid){
+  if(!window._plMorceauEditIdx) window._plMorceauEditIdx={};
+  window._plMorceauEditIdx[key]=!window._plMorceauEditIdx[key];
+  if(typeof adminPlRenderMorceauxDisponibles==='function') adminPlRenderMorceauxDisponibles(cid,true);
 }
 function plDispoSupprimer(id){
   var arr=plDispoLoad().filter(function(x){return x.id!==id;});
