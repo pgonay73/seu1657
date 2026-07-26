@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.614-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.615-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24867,12 +24867,22 @@ function _plCompletCardHtml(e){
   var modRef=e.modeleId?getModele(e.modeleId):null;
   var isReunHT=(modRef&&modRef.categorie==='Réunions hors tenues')||parties.some(function(p){return isReunHTCard(p.nom)&&(p.reunSteps&&p.reunSteps.length);});
   var cd=isReunHT?'#9AA0A6':(deg==='2°'?'#FF9900':(deg==='3°'?'#FF4444':'#33DD66'));
+  // v615 — Le liseré (border-left) de la carte reste sur la couleur du
+  // degré (cd) ; le texte de TOUS les champs de la ligne (date, heure,
+  // degré, modèle, titre) prend en revanche la couleur de la désignation
+  // (Candidature en vert sauge, Date spéciale en vert sapin) quand la
+  // tenue en porte une, via une couleur de texte séparée (cdTxt).
+  var cdTxt=cd;
+  if(!isReunHT){
+    if((e.titre||'').indexOf('Candidature')===0) cdTxt='#9CAF88';
+    else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}) || e.titre==='Inspecteur + Installation') cdTxt='#2E6B4F';
+  }
   var dureeMin=parties.reduce(function(s,p){return s+(parseInt(p.dur)||0);},0)||(e.duree>0?e.duree:0);
   var dsA=_plDureeStyle(dureeMin);
   var morceaux=parties.filter(function(p){return _plMorceauType(p)!=='';});
   var eid=e.id;
   var inS='padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12px;';
-  var inSc='padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:'+cd+' !important;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;';
+  var inSc='padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:'+cdTxt+' !important;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;';
   var open=!!(window._plCompletOpen&&window._plCompletOpen[eid]);
   var h='<div style="background:rgba(255,255,255,.02);border-left:4px solid '+cd+';border-radius:4px;padding:10px 14px;margin-bottom:8px;">';
   // Ligne 1 : date, heure, degré, modèle, thème, durée — le texte de chaque
@@ -24892,13 +24902,7 @@ function _plCompletCardHtml(e){
   h+='<option value="">— Aucun modèle —</option>';
   (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
   h+='</select>';
-  var inScT=inSc;
-  if((titre||'').indexOf('Candidature')===0){
-    inScT='padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#9CAF88 !important;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;';
-  } else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===titre;}) || titre==='Inspecteur + Installation'){
-    inScT='padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#90EE90 !important;font-family:Raleway,sans-serif;font-size:12px;font-weight:700;';
-  }
-  h+='<input type="text" value="'+(titre||'').replace(/"/g,'&quot;')+'" onchange="plTitreChanger2(&quot;'+eid+'&quot;,this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inScT+'flex:2;min-width:220px;text-transform:uppercase;">';
+  h+='<input type="text" value="'+(titre||'').replace(/"/g,'&quot;')+'" onchange="plTitreChanger2(&quot;'+eid+'&quot;,this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inSc+'flex:2;min-width:220px;text-transform:uppercase;">';
   h+='<span class="pl-col-duree'+dsA.cls+'" style="display:inline-flex;align-items:center;background:'+dsA.bg+';border-radius:8px;padding:2px 10px;flex-shrink:0;margin-left:auto;" title="Durée totale — somme des étapes ci-dessous"><span style="color:'+dsA.color+';font-weight:700;font-size:12px;">'+_plCompletFmtDuree(dureeMin)+'</span></span>';
   h+='<button onclick="_plCompletDeleteTenue(&quot;'+eid+'&quot;)" title="Supprimer cette tenue du planning" style="background:none;border:1px solid rgba(192,57,43,.5);border-radius:4px;color:#C0392B;cursor:pointer;font-size:13px;padding:5px 9px;flex-shrink:0;">🗑</button>';
   h+='</div>';
@@ -24938,6 +24942,17 @@ function _plCompletCardHtml(e){
       h+='<span style="font-size:10px;color:rgba(255,255,255,.4);">min</span>';
       h+='<input type="text" list="pl-complet-freres" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:150px;">';
       h+='<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet / titre" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:150px;">';
+      if(type && !p.conf && !p.titre){
+        var _dispoOpts=_plDispoDisponiblesPourTenue(e.date,type,deg);
+        if(_dispoOpts.length){
+          h+='<select onchange="if(this.value){plDispoAssignerSlot(this.value,&quot;'+eid+'&quot;,'+idx+');}" style="'+inS+'width:210px;">';
+          h+='<option value="">-- Affecter une disponibilité --</option>';
+          _dispoOpts.forEach(function(dp){
+            h+='<option value="'+dp.id+'">'+dp.frere+' — '+dp.sujet+'</option>';
+          });
+          h+='</select>';
+        }
+      }
       h+='<button onclick="_plDetailPartieDel2(&quot;'+eid+'&quot;,'+idx+')" title="Supprimer cette étape" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:12px;padding:3px 7px;flex-shrink:0;">🗑</button>';
       h+='</div>';
     });
@@ -25275,6 +25290,12 @@ function adminPlRenderCreation(cid,store2){
         var bg=i%2===0?'rgba(255,255,255,.02)':'transparent'; i++;
         var deg=e.degre||'1°';
         var cd=deg==='2°'?'#FF9900':deg==='3°'?'#FF4444':'#33DD66';
+        // v615 — Tous les champs de la ligne (date, heure, degré, modèle,
+        // titre) prennent la couleur de la désignation (Candidature en vert
+        // sauge, Date spéciale en vert sapin) au lieu de la couleur du
+        // degré, quand la tenue en porte une.
+        if((e.titre||'').indexOf('Candidature')===0) cd='#9CAF88';
+        else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}) || e.titre==='Inspecteur + Installation') cd='#2E6B4F';
         // !important nécessaire : "#v-off-admin input, select { color:#FFFFFF !important; }"
         // (règle CSS globale) écraserait sinon la couleur du degré fixée en ligne.
         var inpD=inpS+'color:'+cd+' !important;font-weight:600;';
@@ -25291,13 +25312,7 @@ function adminPlRenderCreation(cid,store2){
         h+='<option value="">— Aucun —</option>';
         (D.modeles||[]).forEach(function(m){ h+='<option value="'+m.id+'"'+(e.modeleId===m.id?' selected':'')+'>'+m.nom+'</option>'; });
         h+='</select></td>';
-        var inpT=inpD;
-        if((e.titre||'').indexOf('Candidature')===0){
-          inpT=inpS+'color:#9CAF88 !important;font-weight:600;';
-        } else if(ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}) || e.titre==='Inspecteur + Installation'){
-          inpT=inpS+'color:#90EE90 !important;font-weight:600;';
-        }
-        h+='<td style="padding:6px;"><input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="Thème de la tenue..." onblur="plTitreChanger'+sfx+'(&quot;'+e.id+'&quot;,this.value)" style="'+inpT+'width:100%;text-transform:uppercase;"></td>';
+        h+='<td style="padding:6px;"><input type="text" value="'+(e.titre||'').replace(/"/g,'&quot;')+'" placeholder="Thème de la tenue..." onblur="plTitreChanger'+sfx+'(&quot;'+e.id+'&quot;,this.value)" style="'+inpD+'width:100%;text-transform:uppercase;"></td>';
         var _dureeP1=_plPartiesEffectives(e).reduce(function(s,p){return s+(parseInt(p.dur)||0);},0);
         h+='<td style="padding:6px;">';
         if(_dureeP1>0){
@@ -26214,6 +26229,7 @@ function plDispoLoad(){
       if(p.sujet===undefined) p.sujet='';
       if(p.dateDebut===undefined) p.dateDebut='';
       if(p.dateFin===undefined) p.dateFin='';
+      if(p.assigneEventId===undefined) p.assigneEventId='';
     });
     return d;
   }catch(e){return [];}
@@ -26225,9 +26241,56 @@ function plDispoSave(arr){
 }
 function plDispoAjouter(nomFrere){
   var arr=plDispoLoad();
-  arr.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:'', type:'', sujet:'', dateDebut:'', dateFin:''});
+  arr.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:'', type:'', sujet:'', dateDebut:'', dateFin:'', assigneEventId:''});
   plDispoSave(arr);
   adminPlRenderDispoPlanches();
+}
+// Disponibilités (Étape 5) encore proposables pour un morceau d'architecture
+// (Planche/Symbolisme) d'une tenue donnée : sujet renseigné, type/degré
+// compatibles si précisés, date de la tenue dans la plage Date début/fin si
+// précisée, et pas déjà affectées ailleurs (ou affectation qui ne
+// correspond plus à rien de réel — créneau vidé entretemps).
+function _plDispoDisponiblesPourTenue(dateTenue,type,degre){
+  var typeTexte=type==='P'?'planche':(type==='S'?'symbolisme':'');
+  return plDispoLoad().filter(function(p){
+    if(!p.sujet) return false;
+    if(p.type && typeTexte && p.type!==typeTexte) return false;
+    if(p.degre && degre && p.degre!==degre) return false;
+    if(p.dateDebut && dateTenue && dateTenue<p.dateDebut) return false;
+    if(p.dateFin && dateTenue && dateTenue>p.dateFin) return false;
+    if(!p.assigneEventId) return true;
+    var ev=(plLoad2().events||[]).filter(function(e){return e.id===p.assigneEventId;})[0];
+    if(!ev) return true;
+    var encore=(ev.detail||[]).some(function(x){return x.conf===p.frere&&x.titre===p.sujet;});
+    return !encore;
+  });
+}
+// Affecte une disponibilité (Étape 5, frère + sujet) à la place n° idx du
+// détail d'une tenue de Planning 2/3 (Étape 7 / Planning complet).
+function plDispoAssignerSlot(dispoId,eid,idx){
+  if(!dispoId) return;
+  var arr=plDispoLoad();
+  var dispo=arr.filter(function(x){return x.id===dispoId;})[0];
+  if(!dispo||!dispo.sujet){ toast('Choisissez une disponibilité avec un sujet renseigné.'); return; }
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.id===eid;})[0];
+  if(!ev) return;
+  if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
+  var slot=ev.detail[idx];
+  if(!slot) return;
+  slot.conf=dispo.frere;
+  slot.titre=dispo.sujet;
+  if(dispo.type==='symbolisme'){
+    if(dispo.degre) slot.symDegres=[dispo.degre];
+  } else if(!slot.plancheSteps||!slot.plancheSteps.length){
+    slot.plancheSteps=['planche'];
+  }
+  ev._pl2Touche=true;
+  plSave2(data);
+  dispo.assigneEventId=eid;
+  plDispoSave(arr);
+  toast('✓ '+dispo.frere+' — '+dispo.sujet+' affecté à la tenue du '+(ev.date||''));
+  if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
 }
 function plDispoSupprimer(id){
   var arr=plDispoLoad().filter(function(x){return x.id!==id;});
@@ -27050,7 +27113,7 @@ function adminPlRenderCriteresP2(cid){
   h+='<div style="margin-bottom:22px;padding-top:18px;border-top:2mm solid var(--gold);">';
   h+='<label style="'+lblS+'margin-bottom:12px;">Dates spéciales (quasi-impératives)</label>';
   h+='<div style="display:flex;flex-wrap:nowrap;gap:10px;align-items:center;overflow-x:auto;">';
-  var lblInlSpec='font-size:11px;color:#90EE90;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;';
+  var lblInlSpec='font-size:11px;color:#2E6B4F;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;';
   ADM_DATES_SPECIALES.forEach(function(sp){
     var valSp=c[sp.key]||_admDateSpecialeDefaut(sp.key);
     h+='<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">';
