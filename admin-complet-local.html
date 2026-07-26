@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.622-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.623-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26489,14 +26489,24 @@ function adminPlRenderDispoPlanches(cid){
 // les tenues encore ouvertes pour ce type/degré) — le choix de la date
 // affecte directement le frère/sujet à cette tenue, en traçant aussi une
 // disponibilité (Étape 4) pour l'historique.
+// v623 — Un frère affecté DEPUIS l'Étape 7 (marqué origine:'etape7' sur sa
+// disponibilité) reste affiché dans la liste après affectation, avec son
+// choix en lecture + un crayon pour le modifier — au lieu de disparaître
+// une fois la tenue mise à jour. Seuls les frères ayant une disponibilité
+// « externe » (saisie librement à l'Étape 4, sans cette origine) sont
+// exclus : eux sont déjà suivis/gérés là-bas.
 function _plFreresRestants(){
   if(!window.D || !Array.isArray(D.freres)) return [];
-  var freresAvecSujet={};
-  plDispoLoad().forEach(function(p){ if(p.sujet) freresAvecSujet[p.frere]=true; });
+  var freresAExclure={};
+  plDispoLoad().forEach(function(p){ if(p.sujet&&p.origine!=='etape7') freresAExclure[p.frere]=true; });
   return D.freres.slice().sort(fSortNom).filter(function(f){
     var nom=((f.prenom||'')+' '+(f.nom||'')).trim();
-    return !freresAvecSujet[nom];
+    return !freresAExclure[nom];
   });
+}
+// Disponibilité affectée depuis l'Étape 7 pour ce frère, s'il y en a une.
+function _plFrereEtape7Affecte(nomFrere){
+  return plDispoLoad().filter(function(p){return p.frere===nomFrere&&p.origine==='etape7'&&p.assigneEventId;})[0]||null;
 }
 // Tenues (Planning 2/3) du degré donné ayant encore au moins une place
 // Planche/Symbolisme vide du type donné — pour proposer, une fois
@@ -26548,10 +26558,26 @@ function plFrereAssignerTenue(nomFrere,type,degre,sujet,eid){
   ev._pl2Touche=true;
   plSave2(data);
   var dispo=plDispoLoad();
-  dispo.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:degre, type:type, sujet:sujet, dateDebut:ev.date, dateFin:ev.date, assigneEventId:eid});
+  dispo.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:degre, type:type, sujet:sujet, dateDebut:ev.date, dateFin:ev.date, assigneEventId:eid, origine:'etape7'});
   plDispoSave(dispo);
   delete window._plFrereDraft[nomFrere];
   toast('✓ '+nomFrere+' — '+sujet+' affecté à la tenue du '+(ev.date||''));
+  adminPlRenderFreresRestants('admin-pl-freresrestants-list');
+}
+// Le crayon (✏️) d'un frère déjà affecté depuis l'Étape 7 : libère la place
+// de la tenue et la disponibilité correspondante, puis rouvre le choix
+// Type/Degré/Sujet déjà prérempli (il ne reste qu'à choisir une nouvelle
+// date, ou tout recommencer).
+function plFrereModifier(nomFrere,eid,type,degre,sujet){
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.id===eid;})[0];
+  if(ev&&ev.detail){
+    var slot=ev.detail.filter(function(p){return p.conf===nomFrere&&p.titre===sujet;})[0];
+    if(slot){ slot.conf=''; slot.titre=''; ev._pl2Touche=true; plSave2(data); }
+  }
+  var dispo=plDispoLoad().filter(function(p){return !(p.frere===nomFrere&&p.origine==='etape7'&&p.assigneEventId===eid);});
+  plDispoSave(dispo);
+  window._plFrereDraft[nomFrere]={type:type,degre:degre,sujet:sujet};
   adminPlRenderFreresRestants('admin-pl-freresrestants-list');
 }
 function adminPlRenderFreresRestants(cid){
@@ -26572,11 +26598,24 @@ function adminPlRenderFreresRestants(cid){
   h+='</div>';
   restants.forEach(function(f,fi){
     var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
-    var draft=window._plFrereDraft[nomFrere]||{type:'',degre:'',sujet:''};
+    var nomFrereEsc=nomFrere.replace(/"/g,'&quot;');
     var bg=fi%2===0?'rgba(255,255,255,.02)':'transparent';
     h+='<div style="display:flex;gap:10px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';flex-wrap:wrap;">';
     h+='<div style="width:170px;flex-shrink:0;color:var(--gold2);font-weight:600;font-size:14px;">'+nomFrere+'</div>';
-    var nomFrereEsc=nomFrere.replace(/"/g,'&quot;');
+    var affecte=_plFrereEtape7Affecte(nomFrere);
+    if(affecte&&!window._plFrereDraft[nomFrere]){
+      // v623 — Déjà affecté depuis cette Étape 7 : reste dans la liste,
+      // affichage en lecture + crayon pour rouvrir le choix.
+      var evA=(plLoad2().events||[]).filter(function(e){return e.id===affecte.assigneEventId;})[0];
+      var typeTxt=affecte.type==='symbolisme'?'Symbolisme':'Planche';
+      h+='<div style="flex:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
+      h+='<span style="color:rgba(255,255,255,.85);font-size:12.5px;">'+typeTxt+' — '+(affecte.degre||'')+' — « '+affecte.sujet+' » — '+(evA?fmtDate(evA.date):'')+'</span>';
+      h+='<button onclick="plFrereModifier(&quot;'+nomFrereEsc+'&quot;,&quot;'+affecte.assigneEventId+'&quot;,\''+affecte.type+'\',\''+affecte.degre+'\',&quot;'+affecte.sujet.replace(/"/g,'&quot;')+'&quot;)" title="Modifier" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:11px;padding:2px 6px;">✏️</button>';
+      h+='</div>';
+      h+='</div>';
+      return;
+    }
+    var draft=window._plFrereDraft[nomFrere]||{type:'',degre:'',sujet:''};
     h+='<div style="width:110px;flex-shrink:0;"><select onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'type\',this.value)" style="'+inS+'width:100%;">';
     h+='<option value=""'+(!draft.type?' selected':'')+'>--</option>';
     h+='<option value="symbolisme"'+(draft.type==='symbolisme'?' selected':'')+'>Symbolisme</option>';
