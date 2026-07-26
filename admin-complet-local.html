@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.621-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.622-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -14457,7 +14457,7 @@ function renderOffice(n){
     // l'Étape 4 comme n'importe quelle disponibilité saisie librement ─
     c+='<div id="admin-pl-l1-freresrestants" style="display:none;">';
     c+='<div class="cfg-box"><h3 style="font-size:18px;color:var(--gold2);font-family:\'Cormorant Garamond\',Georgia,serif;font-weight:700;margin-bottom:4px;padding-bottom:8px;border-bottom:2px solid var(--gold);">Étape 7 / Choix dans la banque par les frères restants</h3>';
-    c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:14px;font-style:italic;">Frères n\'ayant encore proposé aucune planche ni symbolisme (Étape 4) : choisir directement un sujet dans la Banque d\'architecture (Étape 6) les ajoute aux disponibilités, comme une saisie libre.</p>';
+    c+='<p style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:14px;font-style:italic;">Frères n\'ayant encore proposé aucune planche ni symbolisme (Étape 4) : choisir Type, Degré puis un sujet dans la Banque d\'architecture (Étape 6), puis une date parmi les tenues encore ouvertes pour ce type/degré, affecte directement le frère à cette tenue.</p>';
     c+='<div id="admin-pl-freresrestants-list"></div>';
     c+=_plNavFixeHtml('planches','Étape 6','complet','Étape 10');
     c+='</div></div>';
@@ -26484,10 +26484,11 @@ function adminPlRenderDispoPlanches(cid){
 }
 // ── Étape 7 : Choix dans la banque par les frères restants ──────────────
 // Frères n'ayant encore proposé aucune planche ni symbolisme à l'Étape 4
-// (aucune entrée plDispo avec un sujet renseigné) : leur permet de choisir
-// directement un sujet dans la Banque d'architecture (Étape 6, Sujets des
-// planches + Symbolismes) plutôt que de saisir un sujet libre — le choix
-// crée une disponibilité (Étape 4) comme une saisie libre.
+// (aucune entrée plDispo avec un sujet renseigné) : Type puis Degré puis
+// Sujet (filtré dans la Banque d'architecture, Étape 6) puis Date (parmi
+// les tenues encore ouvertes pour ce type/degré) — le choix de la date
+// affecte directement le frère/sujet à cette tenue, en traçant aussi une
+// disponibilité (Étape 4) pour l'historique.
 function _plFreresRestants(){
   if(!window.D || !Array.isArray(D.freres)) return [];
   var freresAvecSujet={};
@@ -26497,17 +26498,60 @@ function _plFreresRestants(){
     return !freresAvecSujet[nom];
   });
 }
-function plFrereChoisirBanque(nomFrere,val){
-  if(!val) return;
-  var sep=val.indexOf(':');
-  var type=val.slice(0,sep), idx=parseInt(val.slice(sep+1),10);
-  var arr=(type==='symbolisme')?plSymLoad():plSujetsLoad();
-  var item=arr[idx];
-  if(!item||!item.sujet) return;
+// Tenues (Planning 2/3) du degré donné ayant encore au moins une place
+// Planche/Symbolisme vide du type donné — pour proposer, une fois
+// Type/Degré/Sujet choisis, sur quelle tenue affecter directement le frère.
+function _plTenuesOuvertesPour(type,degre){
+  var data=plLoad2();
+  return (data.events||[]).filter(function(e){
+    if(degre&&(e.degre||'1°')!==degre) return false;
+    return _plPartiesEffectives(e).some(function(p){
+      if(!isPlancheOuSym(p.nom)||p.conf||p.titre) return false;
+      var t=_plMorceauType(p);
+      var typeTexte=t==='P'?'planche':(t==='S'?'symbolisme':'');
+      return !type||typeTexte===type;
+    });
+  }).sort(function(a,b){return (a.date||'').localeCompare(b.date||'');});
+}
+// Sélections en cours (Type/Degré/Sujet), non encore validées par une date
+// — un brouillon par frère, remis à zéro dès qu'un champ amont change
+// (Type change → Degré/Sujet à refaire, etc.) ou une fois l'affectation
+// validée (choix de la date).
+window._plFrereDraft=window._plFrereDraft||{};
+function plFrereDraftChanger(nomFrere,champ,val){
+  if(!window._plFrereDraft[nomFrere]) window._plFrereDraft[nomFrere]={type:'',degre:'',sujet:''};
+  window._plFrereDraft[nomFrere][champ]=val;
+  if(champ==='type'){ window._plFrereDraft[nomFrere].degre=''; window._plFrereDraft[nomFrere].sujet=''; }
+  if(champ==='degre'){ window._plFrereDraft[nomFrere].sujet=''; }
+  adminPlRenderFreresRestants('admin-pl-freresrestants-list');
+}
+// Choix de la date (parmi les tenues encore ouvertes pour ce type/degré) :
+// affecte directement le frère/sujet à la première place vide correspondante
+// de cette tenue, et trace la disponibilité (Étape 4) pour l'historique.
+function plFrereAssignerTenue(nomFrere,type,degre,sujet,eid){
+  if(!eid||!sujet) return;
+  var data=plLoad2();
+  var ev=data.events.filter(function(e){return e.id===eid;})[0];
+  if(!ev) return;
+  if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
+  var slot=ev.detail.filter(function(p){
+    if(!isPlancheOuSym(p.nom)||p.conf||p.titre) return false;
+    var t=_plMorceauType(p);
+    var typeTexte=t==='P'?'planche':(t==='S'?'symbolisme':'');
+    return typeTexte===type;
+  })[0];
+  if(!slot){ toast('Aucune place libre correspondante sur cette tenue.'); return; }
+  slot.conf=nomFrere;
+  slot.titre=sujet;
+  if(type==='symbolisme'){ if(degre) slot.symDegres=[degre]; }
+  else if(!slot.plancheSteps||!slot.plancheSteps.length){ slot.plancheSteps=['planche']; }
+  ev._pl2Touche=true;
+  plSave2(data);
   var dispo=plDispoLoad();
-  dispo.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:item.degre||'', type:type, sujet:item.sujet, dateDebut:'', dateFin:'', assigneEventId:''});
+  dispo.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:degre, type:type, sujet:sujet, dateDebut:ev.date, dateFin:ev.date, assigneEventId:eid});
   plDispoSave(dispo);
-  toast('✓ '+nomFrere+' — '+item.sujet+' ajouté aux disponibilités (Étape 4).');
+  delete window._plFrereDraft[nomFrere];
+  toast('✓ '+nomFrere+' — '+sujet+' affecté à la tenue du '+(ev.date||''));
   adminPlRenderFreresRestants('admin-pl-freresrestants-list');
 }
 function adminPlRenderFreresRestants(cid){
@@ -26520,22 +26564,54 @@ function adminPlRenderFreresRestants(cid){
   }
   var sujets=_plSujetsMerged().filter(function(s){return s.actif!==false&&s.sujet;});
   var inS='padding:6px 9px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:12.5px;';
+  var mFrFr=['jan.','fév.','mar.','avr.','mai','juin','juil.','août','sep.','oct.','nov.','déc.'];
+  function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrFr[d.getMonth()]+' '+d.getFullYear(); }
   var h='<div class="cfg-box">';
-  h+='<div style="display:flex;gap:10px;padding:6px 8px;border-bottom:2px solid var(--gold);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;">';
-  h+='<div style="width:180px;flex-shrink:0;">Frère</div><div style="flex:1;">Choisir un sujet dans la Banque</div>';
+  h+='<div style="display:flex;gap:10px;padding:6px 8px;border-bottom:2px solid var(--gold);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;flex-wrap:wrap;">';
+  h+='<div style="width:170px;flex-shrink:0;">Frère</div><div style="width:110px;flex-shrink:0;">Type</div><div style="width:70px;flex-shrink:0;">Degré</div><div style="flex:1;min-width:220px;">Planche / Symbolisme</div><div style="width:160px;flex-shrink:0;">Date (disponibilités)</div>';
   h+='</div>';
   restants.forEach(function(f,fi){
     var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
+    var draft=window._plFrereDraft[nomFrere]||{type:'',degre:'',sujet:''};
     var bg=fi%2===0?'rgba(255,255,255,.02)':'transparent';
-    h+='<div style="display:flex;gap:10px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';">';
-    h+='<div style="width:180px;flex-shrink:0;color:var(--gold2);font-weight:600;font-size:14px;">'+nomFrere+'</div>';
-    h+='<div style="flex:1;"><select onchange="plFrereChoisirBanque(&quot;'+nomFrere.replace(/"/g,'&quot;')+'&quot;,this.value)" style="'+inS+'width:100%;max-width:400px;">';
-    h+='<option value="">-- Choisir dans la banque --</option>';
-    sujets.forEach(function(s){
-      var typeTxt=s._type==='symbolisme'?'Symbolisme':'Planche';
-      h+='<option value="'+s._type+':'+s._idx+'">['+(s.degre||'?')+'] '+typeTxt+' — '+s.sujet+'</option>';
-    });
+    h+='<div style="display:flex;gap:10px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';flex-wrap:wrap;">';
+    h+='<div style="width:170px;flex-shrink:0;color:var(--gold2);font-weight:600;font-size:14px;">'+nomFrere+'</div>';
+    var nomFrereEsc=nomFrere.replace(/"/g,'&quot;');
+    h+='<div style="width:110px;flex-shrink:0;"><select onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'type\',this.value)" style="'+inS+'width:100%;">';
+    h+='<option value=""'+(!draft.type?' selected':'')+'>--</option>';
+    h+='<option value="symbolisme"'+(draft.type==='symbolisme'?' selected':'')+'>Symbolisme</option>';
+    h+='<option value="planche"'+(draft.type==='planche'?' selected':'')+'>Planche</option>';
     h+='</select></div>';
+    h+='<div style="width:70px;flex-shrink:0;"><select onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'degre\',this.value)" style="'+inS+'width:100%;">';
+    h+='<option value=""'+(!draft.degre?' selected':'')+'>--</option>';
+    ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(draft.degre===dg?' selected':'')+'>'+dg+'</option>'; });
+    h+='</select></div>';
+    h+='<div style="flex:1;min-width:220px;">';
+    if(draft.type&&draft.degre){
+      var sujetsFiltres=sujets.filter(function(s){return s._type===draft.type&&(!s.degre||s.degre===draft.degre);});
+      h+='<select onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'sujet\',this.value)" style="'+inS+'width:100%;max-width:340px;">';
+      h+='<option value="">-- Choisir dans la banque --</option>';
+      sujetsFiltres.forEach(function(s){ h+='<option value="'+s.sujet.replace(/"/g,'&quot;')+'"'+(draft.sujet===s.sujet?' selected':'')+'>'+s.sujet+'</option>'; });
+      h+='</select>';
+    } else {
+      h+='<span style="color:rgba(255,255,255,.35);font-style:italic;font-size:11px;">Choisir Type et Degré</span>';
+    }
+    h+='</div>';
+    h+='<div style="width:160px;flex-shrink:0;">';
+    if(draft.type&&draft.degre&&draft.sujet){
+      var tenues=_plTenuesOuvertesPour(draft.type,draft.degre);
+      if(tenues.length){
+        h+='<select onchange="if(this.value)plFrereAssignerTenue(&quot;'+nomFrereEsc+'&quot;,\''+draft.type+'\',\''+draft.degre+'\',&quot;'+draft.sujet.replace(/"/g,'&quot;')+'&quot;,this.value)" style="'+inS+'width:100%;">';
+        h+='<option value="">-- Choisir une date --</option>';
+        tenues.forEach(function(t){ h+='<option value="'+t.id+'">'+fmtDate(t.date)+'</option>'; });
+        h+='</select>';
+      } else {
+        h+='<span style="color:rgba(255,255,255,.35);font-style:italic;font-size:11px;">Aucune tenue ouverte</span>';
+      }
+    } else {
+      h+='<span style="color:rgba(255,255,255,.35);font-style:italic;font-size:11px;">—</span>';
+    }
+    h+='</div>';
     h+='</div>';
   });
   h+='</div>';
