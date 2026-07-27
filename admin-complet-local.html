@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.631-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.632-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24793,19 +24793,27 @@ function _plModeleNom(e){
   return modEff?modEff.nom:'—';
 }
 function _plMorceauType(p){
-  var nL=(p.nom||'').toLowerCase(),isMo=nL.indexOf('morceau')>=0||nL.indexOf('architecture')>=0;
-  var eff=p.plancheSteps&&p.plancheSteps.length?p.plancheSteps:(isMo?['planche','parole']:[]);
   // v625 — Une partie non encore assignée nommée « PLANCHE... » (modèle
   // réel, sans les mots « morceau »/« architecture ») n'avait aucun
   // plancheSteps tant qu'un frère n'était pas choisi : elle ne pouvait
   // alors jamais être détectée comme une place « planche » libre (contrairement
   // à Symbolisme, dont symDegres est pré-rempli par le modèle). D'où le nom
-  // en repli, comme pour isPlancheOuSym.
+  // en repli, comme pour isPlancheOuSym — mais UNIQUEMENT quand aucune
+  // donnée réelle (symDegres/plancheSteps) n'est disponible : sinon, une
+  // partie nommée « SYMBOLISME » mais reclassée en Planche par
+  // plancheSteps (v632, place « croisée ») retombait à tort sur le repli
+  // par le nom au lieu de respecter la donnée réelle.
+  if(p.symDegres&&p.symDegres.length>0) return 'S';
+  var nL=(p.nom||'').toLowerCase(),isMo=nL.indexOf('morceau')>=0||nL.indexOf('architecture')>=0;
+  if(p.plancheSteps&&p.plancheSteps.length){
+    return p.plancheSteps.indexOf('symbolisme')>=0?'S':(p.plancheSteps.indexOf('planche')>=0?'P':'');
+  }
+  if(isMo) return 'P';
   var nomIndiqueP=nL.indexOf('planche')>=0;
   var nomIndiqueS=nL.indexOf('symbolisme')>=0||nL.indexOf('symbol')>=0;
-  var estS=(p.symDegres&&p.symDegres.length>0)||eff.indexOf('symbolisme')>=0||(nomIndiqueS&&!nomIndiqueP);
-  var estP=eff.indexOf('planche')>=0||(nomIndiqueP&&!estS);
-  return estS?'S':(estP?'P':'');
+  if(nomIndiqueS&&!nomIndiqueP) return 'S';
+  if(nomIndiqueP&&!nomIndiqueS) return 'P';
+  return '';
 }
 // ── Étape 6 : Planning complet — vue d'ensemble en lecture seule de toutes
 // les tenues (données de plLoad2, qui reflètent déjà les Étapes 1 à 3 :
@@ -24941,15 +24949,22 @@ function _plCompletCardHtml(e){
   // v627 — Résumé strictement en lecture : l'affectation d'un morceau
   // d'architecture (Planche/Symbolisme) se fait désormais uniquement via
   // les Étapes 4 à 7, pas depuis le Planning complet.
+  // v633 — Un morceau par ligne (au lieu de côte à côte) : plus lisible
+  // quand une tenue a à la fois une Planche et un Symbolisme, l'un affecté
+  // et l'autre encore disponible — les deux pouvaient sembler ne faire
+  // qu'un. Couleur du texte selon le degré pour la Planche (3° rouge, 2°
+  // orange, 1° vert, même convention que l'Étape 4), lavande pour le
+  // Symbolisme quel que soit le degré.
   h+=morceaux.length?morceaux.map(function(m){
     var p=m.p;
     var type=_plMorceauType(p);
-    var marq=type==='P'?'<span style="color:#33DD66;font-weight:700;">Planche</span>':'<span style="color:#C080D0;font-weight:700;">Symbolisme</span>';
+    var coul=type==='S'?'#C080D0':(deg==='3°'?'#E74C3C':(deg==='2°'?'#E67E22':'#33DD66'));
+    var marq='<span style="color:'+coul+';font-weight:700;">'+(type==='S'?'Symbolisme':'Planche')+'</span>';
     var infos=[];
     if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
     if(p.titre) infos.push('« '+p.titre+' »');
-    var reste=infos.length?(' — '+infos.join(' · ')):' — <span style="color:#FF9900;">disponible</span>';
-    return '<span style="display:inline-block;margin-right:18px;margin-bottom:2px;">'+marq+reste+'</span>';
+    var reste=infos.length?(' — <span style="color:'+coul+';">'+infos.join(' · ')+'</span>'):' — <span style="color:#FF9900;">disponible</span>';
+    return '<div style="margin-bottom:3px;">'+marq+reste+'</div>';
   }).join(''):'<span style="color:rgba(255,255,255,.3);font-style:italic;">Aucun morceau d\'architecture</span>';
   h+='</div>';
   // Partie dépliable : toutes les étapes de la tenue, éditables (nom, durée,
@@ -26183,11 +26198,18 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
           // planches frères), pas depuis l'ancien Mercato des planches
           // (Étape 6, masquée) : les disponibilités déjà affectées ailleurs
           // sont automatiquement exclues (voir _plDispoDisponiblesPourTenue).
-          var _dispoOpts=_plDispoDisponiblesPourTenue(e.date,type,e.degre||'1°');
+          // v632 — La place accepte aussi une disponibilité de l'autre type
+          // (ex. proposer un Symbolisme sur une place nominalement Planche,
+          // et inversement) : affectée, elle bascule le type de la place
+          // (voir plDispoAssignerSlot). Les options d'un autre type que
+          // celui de la place sont signalées entre parenthèses.
+          var typeOppose=type==='P'?'S':(type==='S'?'P':'');
+          var _dispoOpts=_plDispoDisponiblesPourTenue(e.date,type,e.degre||'1°').map(function(dp){ return {dp:dp,croise:false}; })
+            .concat(typeOppose?_plDispoDisponiblesPourTenue(e.date,typeOppose,e.degre||'1°').map(function(dp){ return {dp:dp,croise:true}; }):[]);
           if(_dispoOpts.length){
             h+='<select onchange="if(this.value){plDispoAssignerSlot(this.value,&quot;'+e.id+'&quot;,'+idx+');setTimeout(function(){adminPlRenderMorceauxDisponibles(&quot;'+cid+'&quot;,true);},80);}" style="padding:4px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF;font-family:Raleway,sans-serif;font-size:11.5px;max-width:280px;">';
             h+='<option value="">-- Affecter une planche proposée par un frère --</option>';
-            _dispoOpts.forEach(function(dp){ h+='<option value="'+dp.id+'">'+dp.frere+' — '+dp.sujet+'</option>'; });
+            _dispoOpts.forEach(function(o){ h+='<option value="'+o.dp.id+'">'+o.dp.frere+' — '+o.dp.sujet+(o.croise?' ('+(typeOppose==='S'?'Symbolisme':'Planche')+')':'')+'</option>'; });
             h+='</select>';
           } else {
             // v620 — Aucune disponibilité (Étape 4) ne correspond : le
@@ -26334,8 +26356,18 @@ function plDispoAssignerSlot(dispoId,eid,idx){
   if(!slot) return;
   slot.conf=dispo.frere;
   slot.titre=dispo.sujet;
+  // v632 — Le type de la disponibilité choisie fait foi, même s'il diffère
+  // de celui de la place (ex. affecter un Symbolisme proposé à une place
+  // nominalement Planche, et inversement) : on bascule le type de la place
+  // en conséquence, en vidant l'autre — sinon un symDegres déjà pré-rempli
+  // par le modèle (cas des places Symbolisme) empêcherait la reclassification
+  // en Planche.
   if(dispo.type==='symbolisme'){
-    if(dispo.degre) slot.symDegres=[dispo.degre];
+    slot.symDegres=dispo.degre?[dispo.degre]:[];
+    slot.plancheSteps=[];
+  } else if(dispo.type==='planche'){
+    slot.plancheSteps=['planche'];
+    slot.symDegres=[];
   } else if(!slot.plancheSteps||!slot.plancheSteps.length){
     slot.plancheSteps=['planche'];
   }
@@ -26526,10 +26558,14 @@ function _plFrereEtape7Affecte(nomFrere){
 // Tenues (Planning 2/3) du degré donné ayant encore au moins une place
 // Planche/Symbolisme vide du type donné — pour proposer, une fois
 // Type/Degré/Sujet choisis, sur quelle tenue affecter directement le frère.
-function _plTenuesOuvertesPour(type,degre){
+// v634 — dateDebut/dateFin (optionnelles) restreignent aux tenues dont la
+// date tombe dans la plage indiquée par le frère, comme à l'Étape 4.
+function _plTenuesOuvertesPour(type,degre,dateDebut,dateFin){
   var data=plLoad2();
   return (data.events||[]).filter(function(e){
     if(degre&&(e.degre||'1°')!==degre) return false;
+    if(dateDebut&&e.date&&e.date<dateDebut) return false;
+    if(dateFin&&e.date&&e.date>dateFin) return false;
     return _plPartiesEffectives(e).some(function(p){
       if(!isPlancheOuSym(p.nom)||p.conf||p.titre) return false;
       var t=_plMorceauType(p);
@@ -26609,7 +26645,7 @@ function adminPlRenderFreresRestants(cid){
   function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrFr[d.getMonth()]+' '+d.getFullYear(); }
   var h='<div class="cfg-box">';
   h+='<div style="display:flex;gap:10px;padding:6px 8px;border-bottom:2px solid var(--gold);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;flex-wrap:wrap;">';
-  h+='<div style="width:170px;flex-shrink:0;">Frère</div><div style="width:110px;flex-shrink:0;">Type</div><div style="width:70px;flex-shrink:0;">Degré</div><div style="flex:1;min-width:220px;">Planche / Symbolisme</div><div style="width:160px;flex-shrink:0;">Date (disponibilités)</div>';
+  h+='<div style="width:170px;flex-shrink:0;">Frère</div><div style="width:110px;flex-shrink:0;">Type</div><div style="width:70px;flex-shrink:0;">Degré</div><div style="flex:1;min-width:220px;">Planche / Symbolisme</div><div style="width:190px;flex-shrink:0;">Plage possible, puis date</div>';
   h+='</div>';
   restants.forEach(function(f,fi){
     var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
@@ -26651,16 +26687,23 @@ function adminPlRenderFreresRestants(cid){
       h+='<span style="color:rgba(255,255,255,.35);font-style:italic;font-size:11px;">Choisir Type et Degré</span>';
     }
     h+='</div>';
-    h+='<div style="width:160px;flex-shrink:0;">';
+    h+='<div style="width:190px;flex-shrink:0;">';
     if(draft.type&&draft.degre&&draft.sujet){
-      var tenues=_plTenuesOuvertesPour(draft.type,draft.degre);
+      // v634 — Avant de choisir une date précise, possibilité de noter une
+      // plage de dates possibles (comme à l'Étape 4) : la liste des tenues
+      // ci-dessous s'y restreint aussitôt. Les deux bornes sont optionnelles.
+      h+='<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:4px;">';
+      h+='<input type="date" value="'+(draft.dateDebut||'')+'" title="Plage possible — début" onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'dateDebut\',this.value)" style="'+inS+'width:100%;box-sizing:border-box;">';
+      h+='<input type="date" value="'+(draft.dateFin||'')+'" title="Plage possible — fin" onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'dateFin\',this.value)" style="'+inS+'width:100%;box-sizing:border-box;">';
+      h+='</div>';
+      var tenues=_plTenuesOuvertesPour(draft.type,draft.degre,draft.dateDebut,draft.dateFin);
       if(tenues.length){
         h+='<select onchange="if(this.value)plFrereAssignerTenue(&quot;'+nomFrereEsc+'&quot;,\''+draft.type+'\',\''+draft.degre+'\',&quot;'+draft.sujet.replace(/"/g,'&quot;')+'&quot;,this.value)" style="'+inS+'width:100%;">';
         h+='<option value="">-- Choisir une date --</option>';
         tenues.forEach(function(t){ h+='<option value="'+t.id+'">'+fmtDate(t.date)+'</option>'; });
         h+='</select>';
       } else {
-        h+='<span style="color:rgba(255,255,255,.35);font-style:italic;font-size:11px;">Aucune tenue ouverte</span>';
+        h+='<span style="color:rgba(255,255,255,.35);font-style:italic;font-size:11px;">Aucune tenue ouverte'+((draft.dateDebut||draft.dateFin)?' dans cette plage':'')+'</span>';
       }
     } else {
       h+='<span style="color:rgba(255,255,255,.35);font-style:italic;font-size:11px;">—</span>';
