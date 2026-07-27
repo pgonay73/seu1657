@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.636-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.637-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26650,7 +26650,7 @@ function adminPlRenderFreresRestants(cid){
   function fmtDate(ds){ var d=new Date(ds+'T12:00:00'); return d.getDate()+' '+mFrFr[d.getMonth()]+' '+d.getFullYear(); }
   var h='<div class="cfg-box">';
   h+='<div style="display:flex;gap:10px;padding:6px 8px;border-bottom:2px solid var(--gold);font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:1px;flex-wrap:wrap;">';
-  h+='<div style="width:170px;flex-shrink:0;">Frère</div><div style="width:110px;flex-shrink:0;">Type</div><div style="width:70px;flex-shrink:0;">Degré</div><div style="width:200px;flex-shrink:0;">Planche / Symbolisme</div><div style="width:340px;flex-shrink:0;">Plage possible, puis date</div>';
+  h+='<div style="width:130px;flex-shrink:0;">Frère</div><div style="width:110px;flex-shrink:0;">Type</div><div style="width:55px;flex-shrink:0;">Degré</div><div style="width:200px;flex-shrink:0;">Planche / Symbolisme</div><div style="width:340px;flex-shrink:0;">Plage possible, puis date</div>';
   h+='</div>';
   restants.forEach(function(f,fi){
     var nomFrere=((f.prenom||'')+' '+(f.nom||'')).trim();
@@ -26667,7 +26667,7 @@ function adminPlRenderFreresRestants(cid){
     var _cl=_clType&&_clDegre?(_clType==='symbolisme'?'#C080D0':(_clDegre==='3°'?'#E74C3C':(_clDegre==='2°'?'#E67E22':'#33DD66'))):'';
     var inSc=_cl?(inS+'color:'+_cl+' !important;'):inS;
     h+='<div style="display:flex;gap:10px;align-items:center;padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.06);background:'+bg+';flex-wrap:wrap;">';
-    h+='<div style="width:170px;flex-shrink:0;color:'+(_cl||'var(--gold2)')+';font-weight:600;font-size:14px;">'+nomFrere+'</div>';
+    h+='<div style="width:130px;flex-shrink:0;color:'+(_cl||'var(--gold2)')+';font-weight:600;font-size:13px;">'+nomFrere+'</div>';
     if(affecte&&!window._plFrereDraft[nomFrere]){
       // v623 — Déjà affecté depuis cette Étape 7 : reste dans la liste,
       // affichage en lecture + crayon pour rouvrir le choix.
@@ -26685,7 +26685,7 @@ function adminPlRenderFreresRestants(cid){
     h+='<option value="symbolisme"'+(draft.type==='symbolisme'?' selected':'')+'>Symbolisme</option>';
     h+='<option value="planche"'+(draft.type==='planche'?' selected':'')+'>Planche</option>';
     h+='</select></div>';
-    h+='<div style="width:70px;flex-shrink:0;"><select onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'degre\',this.value)" style="'+inSc+'width:100%;">';
+    h+='<div style="width:55px;flex-shrink:0;"><select onchange="plFrereDraftChanger(&quot;'+nomFrereEsc+'&quot;,\'degre\',this.value)" style="'+inSc+'width:100%;padding:6px 3px;">';
     h+='<option value=""'+(!draft.degre?' selected':'')+'>--</option>';
     ['1°','2°','3°'].forEach(function(dg){ h+='<option value="'+dg+'"'+(draft.degre===dg?' selected':'')+'>'+dg+'</option>'; });
     h+='</select></div>';
