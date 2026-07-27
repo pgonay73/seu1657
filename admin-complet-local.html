@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.632-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.633-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26183,7 +26183,12 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
         var p=m.p, idx=m.idx;
         var type=_plMorceauType(p);
         var lbl=type==='S'?'Symbolisme':(type==='P'?'Planche':'—');
-        var couleur=type==='S'?'#C080D0':'#33DD66';
+        // v635 — Couleur selon le degré pour une Planche (3° rouge, 2°
+        // orange, 1° vert, même convention que l'Étape 4/10), lavande pour
+        // un Symbolisme quel que soit le degré — appliquée au libellé ET
+        // au conférencier/sujet une fois la place pourvue.
+        var _deg=e.degre||'1°';
+        var couleur=type==='S'?'#C080D0':(_deg==='3°'?'#E74C3C':(_deg==='2°'?'#E67E22':'#33DD66'));
         var estVide=!p.conf&&!p.titre;
         var editKey=e.id+':'+idx;
         var enEdition=!!(window._plMorceauEditIdx&&window._plMorceauEditIdx[editKey]);
@@ -26218,7 +26223,7 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
             h+='<button onclick="_plMorceauEditToggle(&quot;'+editKey+'&quot;,&quot;'+cid+'&quot;)" title="Saisir manuellement" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:11px;padding:2px 6px;">✏️</button>';
           }
         } else {
-          h+='<span style="color:rgba(255,255,255,.85);font-size:12px;">'+(p.conf||'')+(p.titre?' — « '+p.titre+' »':'')+'</span>';
+          h+='<span style="color:'+couleur+';font-size:12px;">'+(p.conf||'')+(p.titre?' — « '+p.titre+' »':'')+'</span>';
           h+='<button onclick="_plMorceauEditToggle(&quot;'+editKey+'&quot;,&quot;'+cid+'&quot;)" title="Modifier" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:11px;padding:2px 6px;">✏️</button>';
           h+='<button onclick="plDispoDesassignerSlot(&quot;'+e.id+'&quot;,&quot;'+(p.conf||'').replace(/"/g,'&quot;')+'&quot;,&quot;'+(p.titre||'').replace(/"/g,'&quot;')+'&quot;);setTimeout(function(){adminPlRenderMorceauxDisponibles(&quot;'+cid+'&quot;,true);},80);" title="Retirer cette affectation — la disponibilité redevient proposable" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:11px;padding:2px 6px;">🗑</button>';
         }
