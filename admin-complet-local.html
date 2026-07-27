@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.638-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.639-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25245,6 +25245,11 @@ function adminPlRenderComplet(cid){
   // contenter d'afficher/corriger l'état actuel, sans jamais le réécrire
   // toute seule.
   if(typeof _plEnsureStore2Seeded==='function') _plEnsureStore2Seeded();
+  // v639 — Répare une éventuelle séquelle de l'ancien bug de
+  // plModeleChanger2 (corrigé en v638) : un morceau d'architecture affiché
+  // « disponible » alors qu'une disponibilité (Étape 4/7) l'indique
+  // toujours affecté à cette tenue précise.
+  if(typeof _plReparerMorceauxOrphelins==='function') _plReparerMorceauxOrphelins();
   var data=plLoad2();
   var evts=_plFiltrerParPeriode((data.events||[]).slice().sort(_plCompareDateHeure));
   // Jours fériés récurrents sans tenue (voir admTransfererAuPlanning, qui
@@ -26157,6 +26162,7 @@ function plProposDesassignerSlot(eid,store2,conf,titre){
 function adminPlRenderMorceauxDisponibles(cid,store2){
   cid=cid||'admin-pl-planning4-list';
   var el=document.getElementById(cid); if(!el) return;
+  if(store2&&typeof _plReparerMorceauxOrphelins==='function') _plReparerMorceauxOrphelins();
   var data=store2?plLoad2():plLoad();
   var evts=_plFiltrerParPeriode((data.events||[]).slice().sort(_plCompareDateHeure));
   var jFr=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
@@ -26192,8 +26198,18 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
       // v621 — Date/Degré/Modèle colorés selon le thème (couleur) du modèle
       // de tenue assigné, au lieu d'une couleur fixe, pour repérer d'un
       // coup d'œil le type de tenue.
+      // v640 — Priorité à la couleur de désignation quand la tenue en
+      // porte une (même convention que l'Étape 1/2/3 et l'Étape 10) :
+      // Candidature en vert sauge, Date spéciale en vert sapin, Initiation
+      // dans la couleur du degré — sinon la couleur du modèle comme avant.
       var _modRef=e.modeleId?getModele(e.modeleId):null;
       var _modCouleur=(_modRef&&_modRef.couleur)?_modRef.couleur:'var(--gold2)';
+      if((e.titre||'').indexOf('Candidature')===0) _modCouleur='#9CAF88';
+      else if((typeof ADM_DATES_SPECIALES!=='undefined'&&ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}))||e.titre==='Inspecteur + Installation') _modCouleur='#27AE60';
+      else if((e.titre||'').indexOf('Initiation')===0){
+        var _degI=e.degre||'1°';
+        _modCouleur=_degI==='3°'?'#E74C3C':(_degI==='2°'?'#E67E22':'#33DD66');
+      }
       h+='<td style="padding:8px;color:'+_modCouleur+';font-weight:600;white-space:nowrap;">'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+'</td>';
       h+='<td style="padding:8px;color:'+_modCouleur+';font-weight:600;">'+(e.degre||'1°')+'</td>';
       h+='<td style="padding:8px;"><select onchange="plModeleChanger2(&quot;'+e.id+'&quot;,this.value);setTimeout(function(){adminPlRenderMorceauxDisponibles(&quot;'+cid+'&quot;,true);},80);" style="padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:'+_modCouleur+' !important;font-weight:600;font-family:Raleway,sans-serif;font-size:12px;width:100%;">';
@@ -26350,6 +26366,39 @@ function plDispoAjouter(nomFrere){
   arr.push({id:'dispo'+Date.now()+Math.floor(Math.random()*1000), frere:nomFrere, degre:'', type:'', sujet:'', dateDebut:'', dateFin:'', assigneEventId:''});
   plDispoSave(arr);
   adminPlRenderDispoPlanches();
+}
+// v639 — Répare les affectations « orphelines » : une disponibilité
+// (Étape 4/7) marquée comme affectée à une tenue précise (assigneEventId)
+// mais dont la place correspondante, dans le détail de cette tenue, ne
+// reflète plus l'affectation (conf/titre absents) — séquelle de l'ancien
+// bug de plModeleChanger2 (corrigé en v638) qui effaçait tout le détail
+// d'une tenue, y compris les morceaux déjà affectés, à chaque changement
+// de modèle. Reporte l'affectation sur une place libre de même type de la
+// tenue visée, quand c'est encore possible.
+function _plReparerMorceauxOrphelins(){
+  var dispo=plDispoLoad();
+  var data=plLoad2();
+  var touche=false;
+  dispo.forEach(function(p){
+    if(!p.sujet||!p.assigneEventId) return;
+    var ev=data.events.filter(function(e){return e.id===p.assigneEventId;})[0];
+    if(!ev) return;
+    if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
+    var dejaLa=ev.detail.some(function(x){return x.conf===p.frere&&x.titre===p.sujet;});
+    if(dejaLa) return;
+    var typeTexte=p.type==='symbolisme'?'S':(p.type==='planche'?'P':'');
+    var slot=ev.detail.filter(function(x){
+      return isPlancheOuSym(x.nom)&&!x.conf&&!x.titre&&(!typeTexte||_plMorceauType(x)===typeTexte);
+    })[0];
+    if(!slot) return;
+    slot.conf=p.frere; slot.titre=p.sujet;
+    if(p.type==='symbolisme'){ slot.symDegres=p.degre?[p.degre]:[]; slot.plancheSteps=[]; }
+    else if(p.type==='planche'){ slot.plancheSteps=['planche']; slot.symDegres=[]; }
+    ev._pl2Touche=true;
+    touche=true;
+  });
+  if(touche) plSave2(data);
+  return touche;
 }
 // Disponibilités (Étape 4) encore proposables pour un morceau d'architecture
 // (Planche/Symbolisme) d'une tenue donnée : sujet renseigné, type/degré
@@ -26664,6 +26713,7 @@ function plFrereModifier(nomFrere,eid,type,degre,sujet){
 function adminPlRenderFreresRestants(cid){
   cid=cid||'admin-pl-freresrestants-list';
   var el=document.getElementById(cid); if(!el) return;
+  if(typeof _plReparerMorceauxOrphelins==='function') _plReparerMorceauxOrphelins();
   var restants=_plFreresRestants();
   if(!restants.length){
     el.innerHTML='<p style="color:rgba(255,255,255,.5);font-style:italic;padding:20px;text-align:center;">Tous les frères ont déjà une planche ou un symbolisme proposé à l\'Étape 4.</p>';
