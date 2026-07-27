@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.640-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.641-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25008,7 +25008,12 @@ function _plCompletCardHtml(e){
   } else {
     parties.forEach(function(p,idx){
       var type=_plMorceauType(p);
-      var marq=type==='P'?'<span style="color:#33DD66;font-weight:700;">P</span>':(type==='S'?'<span style="color:#C080D0;font-weight:700;">S</span>':'');
+      // v642 — Même convention de couleur que le résumé (Ligne 2) et les
+      // autres étapes : Planche selon le degré (3° rouge, 2° orange, 1°
+      // vert), Symbolisme en lavande — jusqu'ici fixe, sans distinction de
+      // degré, et le conférencier/sujet restaient en gris neutre.
+      var coulDet=type==='S'?'#C080D0':(deg==='3°'?'#E74C3C':(deg==='2°'?'#E67E22':'#33DD66'));
+      var marq=type==='P'||type==='S'?'<span style="color:'+coulDet+';font-weight:700;">'+type+'</span>':'';
       var upOp=idx===0?'opacity:.25;pointer-events:none;':'';
       var dnOp=idx===parties.length-1?'opacity:.25;pointer-events:none;':'';
       h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);">';
@@ -25025,8 +25030,8 @@ function _plCompletCardHtml(e){
       // désormais exclusivement via les Étapes 4 à 7. Le reste de l'étape
       // (nom, durée, suppression) reste corrigeable comme avant.
       if(type==='P'||type==='S'){
-        h+='<span style="'+inS+'width:150px;box-sizing:border-box;display:inline-block;color:rgba(255,255,255,.75);">'+(p.conf?(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf):'<span style="color:rgba(255,255,255,.3);font-style:italic;">— (Étapes 4-7)</span>')+'</span>';
-        h+='<span style="'+inS+'flex:1;min-width:150px;box-sizing:border-box;display:inline-block;color:rgba(255,255,255,.75);">'+(p.titre?('« '+p.titre+' »'):'<span style="color:rgba(255,255,255,.3);font-style:italic;">—</span>')+'</span>';
+        h+='<span style="'+inS+'width:150px;box-sizing:border-box;display:inline-block;color:'+coulDet+';">'+(p.conf?(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf):'<span style="color:rgba(255,255,255,.3);font-style:italic;">— (Étapes 4-7)</span>')+'</span>';
+        h+='<span style="'+inS+'flex:1;min-width:150px;box-sizing:border-box;display:inline-block;color:'+coulDet+';">'+(p.titre?('« '+p.titre+' »'):'<span style="color:rgba(255,255,255,.3);font-style:italic;">—</span>')+'</span>';
       } else {
         h+='<input type="text" list="pl-complet-freres" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:150px;">';
         h+='<input type="text" value="'+(p.titre||'').replace(/"/g,'&quot;')+'" placeholder="Sujet / titre" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:150px;">';
