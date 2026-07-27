@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.646-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.647-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -26223,21 +26223,20 @@ function adminPlRenderMorceauxDisponibles(cid,store2){
       var e=ln.e;
       var bg=i%2===0?'rgba(255,255,255,.02)':'transparent';
       h+='<tr style="background:'+bg+';border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;">';
-      // v621 — Date/Degré/Modèle colorés selon le thème (couleur) du modèle
-      // de tenue assigné, au lieu d'une couleur fixe, pour repérer d'un
-      // coup d'œil le type de tenue.
+      // v621 — Date/Degré/Modèle colorés au lieu d'une couleur fixe, pour
+      // repérer d'un coup d'œil le type de tenue.
+      // v647 — Couleur par défaut alignée sur le degré (même convention
+      // que l'Étape 1/2/3 et l'Étape 10 : 3° rouge, 2° orange, 1° vert),
+      // au lieu du thème propre du modèle (ex. « TENUE AU 1 » avait sa
+      // propre nuance de vert, différente du vert des autres plannings).
       // v640 — Priorité à la couleur de désignation quand la tenue en
-      // porte une (même convention que l'Étape 1/2/3 et l'Étape 10) :
-      // Candidature en vert sauge, Date spéciale en vert sapin, Initiation
-      // dans la couleur du degré — sinon la couleur du modèle comme avant.
-      var _modRef=e.modeleId?getModele(e.modeleId):null;
-      var _modCouleur=(_modRef&&_modRef.couleur)?_modRef.couleur:'var(--gold2)';
+      // porte une : Candidature en vert sauge, Date spéciale en vert
+      // sapin — Initiation reste dans la couleur du degré, déjà la valeur
+      // par défaut ci-dessous.
+      var _degM=e.degre||'1°';
+      var _modCouleur=_degM==='3°'?'#FF4444':(_degM==='2°'?'#FF9900':'#33DD66');
       if((e.titre||'').indexOf('Candidature')===0) _modCouleur='#9CAF88';
       else if((typeof ADM_DATES_SPECIALES!=='undefined'&&ADM_DATES_SPECIALES.some(function(sp){return sp.titre===e.titre;}))||e.titre==='Inspecteur + Installation') _modCouleur='#27AE60';
-      else if((e.titre||'').indexOf('Initiation')===0){
-        var _degI=e.degre||'1°';
-        _modCouleur=_degI==='3°'?'#E74C3C':(_degI==='2°'?'#E67E22':'#33DD66');
-      }
       h+='<td style="padding:8px;color:'+_modCouleur+';font-weight:600;white-space:nowrap;">'+fmtDate(e.date)+(e.heure?' — '+e.heure:'')+'</td>';
       h+='<td style="padding:8px;color:'+_modCouleur+';font-weight:600;">'+(e.degre||'1°')+'</td>';
       h+='<td style="padding:8px;"><select onchange="plModeleChanger2(&quot;'+e.id+'&quot;,this.value);setTimeout(function(){adminPlRenderMorceauxDisponibles(&quot;'+cid+'&quot;,true);},80);" style="padding:5px 8px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:'+_modCouleur+' !important;font-weight:600;font-family:Raleway,sans-serif;font-size:12px;width:100%;">';
