@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.642-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.643-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -24990,12 +24990,17 @@ function _plCompletCardHtml(e){
   h+=morceaux.length?morceaux.map(function(m){
     var p=m.p;
     var type=_plMorceauType(p);
-    var coul=type==='S'?'#C080D0':(deg==='3°'?'#E74C3C':(deg==='2°'?'#E67E22':'#33DD66'));
-    var marq='<span style="color:'+coul+';font-weight:700;">'+(type==='S'?'Symbolisme':'Planche')+'</span>';
     var infos=[];
     if(p.conf) infos.push(typeof _plNomAvecPrenom==='function'?_plNomAvecPrenom(p.conf):p.conf);
     if(p.titre) infos.push('« '+p.titre+' »');
-    var reste=infos.length?(' — <span style="color:'+coul+';">'+infos.join(' · ')+'</span>'):' — <span style="color:#FF9900;">disponible</span>';
+    // v644 — Une fois attribué, toute la ligne (libellé compris) prend la
+    // couleur du morceau (Planche selon le degré, Symbolisme lavande) ;
+    // tant qu'il n'est pas encore défini, elle reste en blanc neutre (plus
+    // de repère coloré ni de « disponible » en orange, qui suggéraient à
+    // tort une information déjà connue).
+    var coul=infos.length?(type==='S'?'#C080D0':(deg==='3°'?'#E74C3C':(deg==='2°'?'#E67E22':'#33DD66'))):'#FFFFFF';
+    var marq='<span style="color:'+coul+';font-weight:700;">'+(type==='S'?'Symbolisme':'Planche')+'</span>';
+    var reste=infos.length?(' — <span style="color:'+coul+';">'+infos.join(' · ')+'</span>'):' — <span style="color:'+coul+';">disponible</span>';
     return '<div style="margin-bottom:3px;">'+marq+reste+'</div>';
   }).join(''):'<span style="color:rgba(255,255,255,.3);font-style:italic;">Aucun morceau d\'architecture</span>';
   h+='</div>';
@@ -25012,7 +25017,10 @@ function _plCompletCardHtml(e){
       // autres étapes : Planche selon le degré (3° rouge, 2° orange, 1°
       // vert), Symbolisme en lavande — jusqu'ici fixe, sans distinction de
       // degré, et le conférencier/sujet restaient en gris neutre.
-      var coulDet=type==='S'?'#C080D0':(deg==='3°'?'#E74C3C':(deg==='2°'?'#E67E22':'#33DD66'));
+      // v644 — Blanc neutre tant que le morceau n'est pas encore attribué
+      // (même logique que le résumé) : la couleur ne s'applique qu'une
+      // fois conférencier/sujet connus.
+      var coulDet=(p.conf||p.titre)?(type==='S'?'#C080D0':(deg==='3°'?'#E74C3C':(deg==='2°'?'#E67E22':'#33DD66'))):'#FFFFFF';
       var marq=type==='P'||type==='S'?'<span style="color:'+coulDet+';font-weight:700;">'+type+'</span>':'';
       // v643 — Toute la ligne d'un morceau d'architecture (nom, durée
       // compris, pas seulement le repère et le conférencier/sujet) prend
