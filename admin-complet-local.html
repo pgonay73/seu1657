@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.641-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.642-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25014,6 +25014,10 @@ function _plCompletCardHtml(e){
       // degré, et le conférencier/sujet restaient en gris neutre.
       var coulDet=type==='S'?'#C080D0':(deg==='3°'?'#E74C3C':(deg==='2°'?'#E67E22':'#33DD66'));
       var marq=type==='P'||type==='S'?'<span style="color:'+coulDet+';font-weight:700;">'+type+'</span>':'';
+      // v643 — Toute la ligne d'un morceau d'architecture (nom, durée
+      // compris, pas seulement le repère et le conférencier/sujet) prend
+      // la couleur du morceau (Planche selon le degré, Symbolisme lavande).
+      var inSDet=type==='P'||type==='S'?(inS+'color:'+coulDet+' !important;'):inS;
       var upOp=idx===0?'opacity:.25;pointer-events:none;':'';
       var dnOp=idx===parties.length-1?'opacity:.25;pointer-events:none;':'';
       h+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);">';
@@ -25022,8 +25026,8 @@ function _plCompletCardHtml(e){
       h+='<button onclick="_plDetailPartieMove2(&quot;'+eid+'&quot;,'+idx+',-1)" title="Monter" style="'+upOp+'background:none;border:none;color:var(--gold2);cursor:pointer;font-size:10px;line-height:1;padding:1px;">&#9650;</button>';
       h+='<button onclick="_plDetailPartieMove2(&quot;'+eid+'&quot;,'+idx+',1)" title="Descendre" style="'+dnOp+'background:none;border:none;color:var(--gold2);cursor:pointer;font-size:10px;line-height:1;padding:1px;">&#9660;</button>';
       h+='</div>';
-      h+='<input type="text" list="pl-complet-detail-tenue" value="'+(p.nom||'').replace(/"/g,'&quot;')+'" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'nom\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'flex:1;min-width:130px;">';
-      h+='<input type="number" min="0" value="'+(p.dur||0)+'" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'dur\',+this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inS+'width:56px;">';
+      h+='<input type="text" list="pl-complet-detail-tenue" value="'+(p.nom||'').replace(/"/g,'&quot;')+'" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'nom\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inSDet+'flex:1;min-width:130px;">';
+      h+='<input type="number" min="0" value="'+(p.dur||0)+'" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'dur\',+this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="'+inSDet+'width:56px;">';
       h+='<span style="font-size:10px;color:rgba(255,255,255,.4);">min</span>';
       // v627 — Pour un morceau d'architecture (Planche/Symbolisme),
       // conférencier et sujet ne sont plus modifiables ici : cela se fait
