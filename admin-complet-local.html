@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.652-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.653-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -19714,6 +19714,32 @@ function plTitreChanger2(eid,val){
   for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._pl2Touche=true;data.events[i]._titreManuel=(val.trim()!=='');break;}}
   plSave2(data);
 }
+// v653 — Reprend, pour un nouveau jeu de parties (nouveau modèle/degré
+// appliqué à une tenue), les morceaux d'architecture (Planche/Symbolisme)
+// déjà affectés dans l'ancien détail de cette tenue, en les reportant sur
+// des places de même type du nouveau modèle. Généralise le correctif v638
+// (jusqu'ici appliqué seulement dans plModeleChanger2) à
+// admTransfererAuPlanning() et _plSyncModelesAvecDegre(), qui remettaient
+// eux aussi tout le détail à zéro sans condition à chaque changement de
+// degré — un morceau déjà affecté à un frère (Étapes 4 à 7) pouvait ainsi
+// disparaître silencieusement de la tenue.
+function _plConserverMorceauxSurNouvellesParties(ev,nouvellesParties){
+  var affectesAvant=[];
+  (typeof _plPartiesEffectives==='function'?_plPartiesEffectives(ev):(ev.detail||[])).forEach(function(p){
+    if(isPlancheOuSym(p.nom)&&(p.conf||p.titre)){
+      affectesAvant.push({type:_plMorceauType(p),conf:p.conf,titre:p.titre,plancheSteps:p.plancheSteps,symDegres:p.symDegres});
+    }
+  });
+  var nouveau=cpP(nouvellesParties||[]);
+  affectesAvant.forEach(function(a){
+    var slot=nouveau.filter(function(p){ return isPlancheOuSym(p.nom)&&!p.conf&&!p.titre&&_plMorceauType(p)===a.type; })[0];
+    if(slot){
+      slot.conf=a.conf; slot.titre=a.titre;
+      slot.plancheSteps=a.plancheSteps||[]; slot.symDegres=a.symDegres||[];
+    }
+  });
+  return nouveau;
+}
 function plModeleChanger2(eid,newModeleId){
   var data=plLoad2();
   var ev=null;for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){ev=data.events[i];break;}}
@@ -22309,7 +22335,9 @@ function _plSyncModelesAvecDegre(data){
     var mCorrect=getModeleParDegre(ev.degre);
     if(!mCorrect||mCorrect.id===ev.modeleId) return;
     ev.modeleId=mCorrect.id;
-    ev.detail=cpP(mCorrect.parties||[]);
+    // v653 — Préserve les morceaux d'architecture déjà affectés à cette
+    // tenue au lieu de les effacer silencieusement (voir _plConserverMorceauxSurNouvellesParties).
+    ev.detail=(typeof _plConserverMorceauxSurNouvellesParties==='function')?_plConserverMorceauxSurNouvellesParties(ev,mCorrect.parties||[]):cpP(mCorrect.parties||[]);
     if(!ev._titreManuel) ev.titre=mCorrect.nom;
     ev._pl2Touche=true;
     n++;
@@ -26432,11 +26460,33 @@ function plDispoAjouter(nomFrere){
 function _plReparerMorceauxOrphelins(){
   var dispo=plDispoLoad();
   var data=plLoad2();
-  var touche=false;
+  var touche=false, dispoTouche=false;
   dispo.forEach(function(p){
     if(!p.sujet||!p.assigneEventId) return;
     var ev=data.events.filter(function(e){return e.id===p.assigneEventId;})[0];
     if(!ev) return;
+    // v653 — Ne répare (ni ne laisse) jamais une disponibilité sur une
+    // tenue dont le degré ne correspond plus à celui demandé par le frère :
+    // une tenue reclassée après coup (voir admTransfererAuPlanning/
+    // _plSyncModelesAvecDegre) pouvait « récupérer » une disponibilité
+    // destinée à un autre degré, la faisant apparaître sur la mauvaise
+    // tenue (Planche « au 3 » affichée sur une Tenue au 2, par exemple).
+    // Si le mauvais placement a déjà eu lieu (séquelle d'avant ce
+    // correctif), on l'annule ici : la place redevient disponible et la
+    // disponibilité, non affectée — à réaffecter correctement.
+    if(p.degre && ev.degre && p.degre!==ev.degre){
+      if(ev.detail&&ev.detail.length){
+        var mauvaisSlot=ev.detail.filter(function(x){return x.conf===p.frere&&x.titre===p.sujet;})[0];
+        if(mauvaisSlot){
+          mauvaisSlot.conf=''; mauvaisSlot.titre='';
+          ev._pl2Touche=true;
+          touche=true;
+        }
+      }
+      p.assigneEventId='';
+      dispoTouche=true;
+      return;
+    }
     if(!ev.detail||!ev.detail.length) ev.detail=cpP(_plPartiesEffectives(ev));
     var dejaLa=ev.detail.some(function(x){return x.conf===p.frere&&x.titre===p.sujet;});
     if(dejaLa) return;
@@ -26452,7 +26502,8 @@ function _plReparerMorceauxOrphelins(){
     touche=true;
   });
   if(touche) plSave2(data);
-  return touche;
+  if(dispoTouche) plDispoSave(dispo);
+  return touche||dispoTouche;
 }
 // Disponibilités (Étape 4) encore proposables pour un morceau d'architecture
 // (Planche/Symbolisme) d'une tenue donnée : sujet renseigné, type/degré
@@ -28207,13 +28258,23 @@ function admTransfererAuPlanning(){
       // sans écraser une heure déjà saisie.
       if(ev && !ev.heure){ ev.heure=heure; heureAj++; }
       var estDeuxiemeExist=!item.degre3&&!!datesDeuxieme[ds];
+      // v653 — Les 3 branches ci-dessous remettaient tout le détail à zéro
+      // sans condition à chaque (ré)génération, y compris les morceaux
+      // d'architecture (Planche/Symbolisme) déjà affectés à un frère via
+      // les Étapes 4 à 7 : ils disparaissaient silencieusement de la tenue
+      // dès qu'elle changeait de degré (ex. reclassée au 2° après coup),
+      // et la disponibilité correspondante (toujours marquée affectée à
+      // cette tenue) pouvait ensuite se retrouver, via la réparation
+      // automatique des orphelins, replacée dans une place de la tenue au
+      // mauvais degré. _plConserverMorceauxSurNouvellesParties reporte les
+      // affectations déjà faites sur le nouveau jeu de parties.
       if(item.degre3 && ev && ev.degre!=='3°'){
         ev.degre='3°';
-        if(mdef3){ev.modeleId=mdef3.id;ev.titre=mdef3.nom;ev.detail=cpP(mdef3.parties||[]);}
+        if(mdef3){ev.modeleId=mdef3.id;ev.titre=mdef3.nom;ev.detail=_plConserverMorceauxSurNouvellesParties(ev,mdef3.parties||[]);}
         updated++;
       } else if(estDeuxiemeExist && ev && ev.degre!=='2°' && ev.degre!=='3°'){
         ev.degre='2°';
-        if(mdef2){ev.modeleId=mdef2.id;ev.titre=mdef2.nom;ev.detail=cpP(mdef2.parties||[]);}
+        if(mdef2){ev.modeleId=mdef2.id;ev.titre=mdef2.nom;ev.detail=_plConserverMorceauxSurNouvellesParties(ev,mdef2.parties||[]);}
         updated++;
       } else if(ev && !ev.modeleId){
         // Tenue déjà présente mais sans modèle assigné (créée avant le
@@ -28224,7 +28285,7 @@ function admTransfererAuPlanning(){
         // avec le détail par défaut générique (voir plGetTenuesFiltrees),
         // qui sinon primerait indéfiniment sur le modèle choisi ici.
         var _mExist=(ev.degre==='3°')?(mdef3||mdef):(ev.degre==='2°'?(mdef2||mdef):mdef);
-        if(_mExist){ ev.modeleId=_mExist.id; ev.detail=cpP(_mExist.parties||[]); if(ev.degre!=='1°'&&!ev.titre) ev.titre=_mExist.nom; modeleAj++; }
+        if(_mExist){ ev.modeleId=_mExist.id; ev.detail=_plConserverMorceauxSurNouvellesParties(ev,_mExist.parties||[]); if(ev.degre!=='1°'&&!ev.titre) ev.titre=_mExist.nom; modeleAj++; }
       }
       skipped++;return;
     }
