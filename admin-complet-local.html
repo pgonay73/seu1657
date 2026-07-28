@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.654-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.655-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -19695,7 +19695,7 @@ function plTenueSetPresences(id,presences,presents){plTenueUpdate(id,{presences:
 // Candidatures/Initiations, elle n'est plus jamais écrasée par Planning 1.
 var PL_KEY2='planning_libre_data_v2';
 function plLoad2(){try{var s=localStorage.getItem(PL_KEY2);return s?JSON.parse(s):{events:[]};}catch(e){return{events:[]};}}
-function plSave2(d){try{localStorage.setItem(PL_KEY2,JSON.stringify(d));}catch(e){}if(typeof _autoBackupSiDue==='function')_autoBackupSiDue();}
+function plSave2(d){try{localStorage.setItem(PL_KEY2,JSON.stringify(d));}catch(e){}if(typeof _plSyncVersStore1==='function')_plSyncVersStore1(d);if(typeof _autoBackupSiDue==='function')_autoBackupSiDue();}
 function plTenueAdd2(t){var d=plLoad2();d.events.push(t);plSave2(d);}
 function plTenueDelete2(id){
   var d=plLoad2();
@@ -19711,7 +19711,21 @@ function plChampSimpleChanger2(eid,champ,val){
 }
 function plTitreChanger2(eid,val){
   var data=plLoad2();
-  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._pl2Touche=true;data.events[i]._titreManuel=(val.trim()!=='');break;}}
+  var t=val.trim();
+  for(var i=0;i<data.events.length;i++){
+    if(data.events[i].id===eid){
+      data.events[i].titre=t;
+      data.events[i]._pl2Touche=true;
+      data.events[i]._titreManuel=(t!=='');
+      var mMatch=t?(D.modeles||[]).filter(function(m){return (m.nom||'').trim().toLowerCase()===t.toLowerCase();})[0]:null;
+      if(mMatch){
+        data.events[i].modeleId=mMatch.id;
+        var _deg=_degreDepuisModele(mMatch);
+        if(_deg) data.events[i].degre=_deg;
+      }
+      break;
+    }
+  }
   plSave2(data);
 }
 // v653 — Reprend, pour un nouveau jeu de parties (nouveau modèle/degré
@@ -19764,10 +19778,11 @@ function plModeleChanger2(eid,newModeleId){
   var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
   var _deg=_degreDepuisModele(_mRef);
   if(_deg) ev.degre=_deg;
-  // v475 — Un titre déjà personnalisé (saisi à la main, ou via une désignation
-  // Candidature/Initiation) n'est plus écrasé par le nom du modèle quand on
-  // change simplement le modèle de tenue.
-  if(_mRef && !ev._titreManuel) ev.titre=_mRef.nom;
+  // Choix explicite de l'utilisateur dans le menu déroulant Modèle (voir
+  // plModeleChanger, même logique) : le titre est toujours recalé sur le
+  // nouveau modèle, contrairement aux resynchronisations automatiques qui
+  // respectent encore _titreManuel plus bas dans cette fonction.
+  if(_mRef){ ev.titre=_mRef.nom; ev._titreManuel=false; }
   if(affectesAvant.length){
     var nouveau=cpP(_plPartiesEffectives(ev));
     affectesAvant.forEach(function(a){
@@ -19831,6 +19846,34 @@ function _plSyncVersStore2(d1){
     return !!d1Ids[e2.id];
   });
   plSave2(d2);
+}
+// Répercute vers Planning 1 (store1) les changements Date/Heure/Degré/
+// Modèle/Titre faits directement dans Planning 2/3 (Étapes 5, 7, 10) sur une
+// tenue déjà personnalisée (_pl2Touche) : sans ça, éditer l'heure ou le
+// degré d'une tenue depuis l'une de ces étapes ne se voyait jamais dans
+// Planning 1 (Étapes 1 à 3), qui pouvait alors afficher des informations
+// différentes pour la même tenue. Le détail (morceaux d'architecture) n'est
+// volontairement pas remonté : propre à Planning 2/3, il écraserait sans
+// raison la donnée de Planning 1. Écrit directement dans le localStorage
+// (sans passer par plSave) pour ne pas redéclencher _plSyncVersStore2 en
+// boucle — les tenues déjà personnalisées y sont de toute façon ignorées.
+function _plSyncVersStore1(d2){
+  var d1=plLoad();
+  if(!d1.events) d1.events=[];
+  var d1ById={}; d1.events.forEach(function(e){ d1ById[e.id]=e; });
+  var changed=false;
+  (d2.events||[]).forEach(function(e2){
+    if(!e2._pl2Touche) return;
+    var e1=d1ById[e2.id];
+    if(!e1) return;
+    ['date','heure','degre','modeleId','titre'].forEach(function(champ){
+      if(e1[champ]!==e2[champ]){ e1[champ]=e2[champ]; changed=true; }
+    });
+  });
+  if(!changed) return;
+  try{ localStorage.setItem(PL_KEY, JSON.stringify(d1)); }catch(e){}
+  window._plLocalSaveTs=Date.now();
+  if(window.fbSet) window.fbSet(PL_KEY,d1);
 }
 // Marque une tenue de Planning 2/3 comme personnalisée : elle ne sera
 // plus jamais écrasée par une synchronisation depuis Planning 1. Utilisé
@@ -22386,7 +22429,20 @@ function _plNettoyerModelesOrphelins(){
 }
 function plTitreChanger(eid,val){
   var data=plLoad();
-  for(var i=0;i<data.events.length;i++){if(data.events[i].id===eid){data.events[i].titre=val.trim();data.events[i]._titreManuel=(val.trim()!=='');break;}}
+  var t=val.trim();
+  for(var i=0;i<data.events.length;i++){
+    if(data.events[i].id===eid){
+      data.events[i].titre=t;
+      data.events[i]._titreManuel=(t!=='');
+      var mMatch=t?(D.modeles||[]).filter(function(m){return (m.nom||'').trim().toLowerCase()===t.toLowerCase();})[0]:null;
+      if(mMatch){
+        data.events[i].modeleId=mMatch.id;
+        var _deg=_degreDepuisModele(mMatch);
+        if(_deg) data.events[i].degre=_deg;
+      }
+      break;
+    }
+  }
   plSave(data);
 }
 // v366 — Le titre (écrans admin) était un <input>, dont la valeur n'est pas
@@ -22428,10 +22484,13 @@ function plModeleChanger(eid,newModeleId,triggerEl){
   var _mRef=newModeleId?(D.modeles||[]).filter(function(m){return m.id===newModeleId;})[0]:null;
   var _deg=_degreDepuisModele(_mRef);
   if(_deg) ev.degre=_deg;
-  // Caler le titre sur le nouveau modèle choisi — sauf si un titre a déjà été
-  // personnalisé à la main (v475) : dans ce cas, changer le modèle ne doit
-  // pas effacer ce titre.
-  if(_mRef && !ev._titreManuel) ev.titre=_mRef.nom;
+  // Caler le titre sur le nouveau modèle choisi. Choix explicite de
+  // l'utilisateur dans le menu déroulant Modèle : contrairement aux
+  // resynchronisations automatiques (génération, correction de degré), qui
+  // respectent _titreManuel pour ne jamais écraser un titre personnalisé
+  // (ex : désignation Candidature), un changement manuel de modèle doit ici
+  // toujours mettre à jour le titre en retour.
+  if(_mRef){ ev.titre=_mRef.nom; ev._titreManuel=false; }
   plSave(data);
   var contId=null;
   if(triggerEl){var c=triggerEl.closest('#pl-list,#admin-pl-sans-list,#admin-pl-ref-list');if(c)contId=c.id;}
