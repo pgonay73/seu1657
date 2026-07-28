@@ -775,7 +775,7 @@ function loginVerif(){
         <button onclick="rechargerDepuisFirebase()" style="padding:4px 10px;background:transparent;border:1px solid rgba(100,160,255,.5);color:rgba(100,160,255,.8);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Recharger TOUTES vos données depuis Firebase (écrase le cache local, la page sera rechargée)">⬇️ Firebase</button>
         <button onclick="recupererAncienCloudEnJSON()" style="padding:4px 10px;background:transparent;border:1px solid rgba(184,146,42,.7);color:rgba(212,175,90,.9);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Télécharger en JSON tout ce qui est dans le cloud Firebase (Frères, Planning, Trésorerie, offices...) — sauvegarde de secours, ne modifie pas vos données locales">🗄️ Récupérer l'ancien cloud</button>
         <button onclick="purgerCloudDonneesSensibles()" style="padding:4px 10px;background:transparent;border:1px solid rgba(220,80,60,.6);color:rgba(255,120,100,.85);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Ancien outil de purge du cloud, devenu sans effet : toutes les données sont désormais synchronisées et protégées par authentification Firebase">🗑️ Purger le cloud</button>
-        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.653-admin-local</span>
+        <span id="app-version" style="font-size:10px;color:rgba(212,175,90,.75);font-family:Raleway,sans-serif;font-weight:600;background:rgba(212,175,90,.12);border:1px solid rgba(212,175,90,.3);border-radius:3px;padding:1px 6px;letter-spacing:.3px;" title="Version de l'application — mentionnez ce numéro lors de vos échanges pour s'assurer de travailler sur la même version">v2026-07-21.654-admin-local</span>
         <button onclick="(function(){try{sessionStorage.removeItem('seu_login_ok');}catch(e){}try{if(typeof _auth!=='undefined'&&_auth)_auth.signOut();}catch(e){}location.reload();})()" style="padding:4px 10px;background:transparent;border:1px solid rgba(192,57,43,.4);color:rgba(255,120,90,.75);font-family:Raleway,sans-serif;font-size:10px;border-radius:3px;cursor:pointer;" title="Se déconnecter — réaffiche l'écran de connexion">🔓 Déco.</button>
         <span id="firebase-status" style="font-size:9px;color:rgba(255,200,50,.6);font-family:Raleway,sans-serif;">⬤ sync...</span>
       </nav>
@@ -25051,7 +25051,37 @@ function _plCompletCardHtml(e){
         +' <button onclick="_plMorceauEditToggleComplet(&quot;'+editKey+'&quot;,&quot;'+eid+'&quot;)" title="Modifier" style="background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:10px;padding:1px 5px;margin-left:4px;">✏️</button>'
         +' <button onclick="plDispoDesassignerSlot(&quot;'+eid+'&quot;,&quot;'+(p.conf||'').replace(/"/g,'&quot;')+'&quot;,&quot;'+(p.titre||'').replace(/"/g,'&quot;')+'&quot;);setTimeout(function(){_plCompletRenderUneTenue(&quot;'+eid+'&quot;);},80);" title="Retirer cette affectation — la disponibilité redevient proposable" style="background:none;border:1px solid rgba(192,57,43,.4);border-radius:3px;color:#C0392B;cursor:pointer;font-size:10px;padding:1px 5px;margin-left:2px;">🗑</button>';
     } else {
-      reste=' — <span style="color:'+coul+' !important;">disponible</span>';
+      // v654 — Choix en 3 points sur une place disponible : Frère (Étape
+      // 4), Banque (Étape 6), Autre (saisie libre).
+      var choixMode=(window._plMorceauChoixIdx&&window._plMorceauChoixIdx[editKey])||'';
+      var btnS='background:none;border:1px solid rgba(184,146,42,.5);border-radius:3px;color:var(--gold2);cursor:pointer;font-size:10px;padding:1px 6px;';
+      var annulerBtn=' <button onclick="_plMorceauChoixToggle(&quot;'+editKey+'&quot;,&quot;'+eid+'&quot;,\'\')" title="Annuler" style="background:none;border:1px solid rgba(255,255,255,.3);border-radius:3px;color:rgba(255,255,255,.6);cursor:pointer;font-size:10px;padding:1px 5px;margin-left:2px;">✕</button>';
+      if(choixMode==='frere'){
+        var typeOppose=type==='P'?'S':(type==='S'?'P':'');
+        var _dispoOpts=(typeof _plDispoDisponiblesPourTenue==='function')?_plDispoDisponiblesPourTenue(e.date,type,deg).map(function(dp){return {dp:dp,croise:false};})
+          .concat(typeOppose?_plDispoDisponiblesPourTenue(e.date,typeOppose,deg).map(function(dp){return {dp:dp,croise:true};}):[]):[];
+        if(_dispoOpts.length){
+          reste=' — <select onchange="if(this.value){plDispoAssignerSlot(this.value,&quot;'+eid+'&quot;,'+idx+');setTimeout(function(){_plCompletRenderUneTenue(&quot;'+eid+'&quot;);},80);}" style="padding:2px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF !important;font-family:Raleway,sans-serif;font-size:11px;max-width:240px;"><option value="">-- Choisir --</option>'
+            +_dispoOpts.map(function(o){ return '<option value="'+o.dp.id+'">'+o.dp.frere+' — '+o.dp.sujet+(o.croise?' ('+(typeOppose==='S'?'Symbolisme':'Planche')+')':'')+'</option>'; }).join('')
+            +'</select>';
+        } else {
+          reste=' — <span style="color:rgba(255,255,255,.4);font-style:italic;font-size:11px;">Aucune planche proposée par un frère disponible</span>';
+        }
+        reste+=annulerBtn;
+      } else if(choixMode==='banque'){
+        var typeTexteB=type==='S'?'symbolisme':'planche';
+        var sujetsB=(typeof _plSujetsMerged==='function'?_plSujetsMerged():[]).filter(function(s){return s.actif!==false&&s.sujet&&s._type===typeTexteB&&(!s.degre||s.degre===deg);});
+        reste=' — <select onchange="if(this.value){_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'titre\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;);}" style="padding:2px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF !important;font-family:Raleway,sans-serif;font-size:11px;max-width:190px;"><option value="">-- Sujet --</option>'
+          +sujetsB.map(function(s){ return '<option value="'+s.sujet.replace(/"/g,'&quot;')+'"'+(p.titre===s.sujet?' selected':'')+'>'+s.sujet+'</option>'; }).join('')
+          +'</select>'
+          +' <input type="text" value="'+(p.conf||'').replace(/"/g,'&quot;')+'" placeholder="Conférencier" onchange="_plDetailPartieChanger2(&quot;'+eid+'&quot;,'+idx+',\'conf\',this.value);_plCompletRenderUneTenue(&quot;'+eid+'&quot;)" style="padding:2px 6px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:#1E3660;color:#FFF !important;font-family:Raleway,sans-serif;font-size:11px;width:110px;">'
+          +annulerBtn;
+      } else {
+        reste=' — <span style="color:'+coul+' !important;">disponible</span>'
+          +' <button onclick="_plMorceauChoixToggle(&quot;'+editKey+'&quot;,&quot;'+eid+'&quot;,\'frere\')" title="Choisir parmi les planches proposées par un frère (Étape 4)" style="'+btnS+'margin-left:4px;">Frère</button>'
+          +' <button onclick="_plMorceauChoixToggle(&quot;'+editKey+'&quot;,&quot;'+eid+'&quot;,\'banque\')" title="Choisir un sujet dans la Banque d\'architecture" style="'+btnS+'">Banque</button>'
+          +' <button onclick="_plMorceauChoixToggle(&quot;'+editKey+'&quot;,&quot;'+eid+'&quot;,\'autre\')" title="Saisie libre" style="'+btnS+'">Autre</button>';
+      }
     }
     return '<div style="margin-bottom:3px;">'+marq+reste+'</div>';
   }).join(''):'<span style="color:rgba(255,255,255,.3);font-style:italic;">Aucun morceau d\'architecture</span>';
@@ -26597,6 +26627,23 @@ function _plMorceauEditToggle(key,cid){
 function _plMorceauEditToggleComplet(key,eid){
   if(!window._plMorceauEditIdx) window._plMorceauEditIdx={};
   window._plMorceauEditIdx[key]=!window._plMorceauEditIdx[key];
+  if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
+}
+// v654 — Sur une place encore disponible (Étape 10), propose un choix en 3
+// points au lieu du simple mot « disponible » : Frère (une planche déjà
+// proposée à l'Étape 4, comme à l'Étape 5), Banque (un sujet de la Banque
+// d'architecture, avec conférencier à saisir), ou Autre (saisie libre,
+// réutilise le crayon existant). window._plMorceauChoixIdx mémorise, par
+// place, lequel des 3 choix est ouvert (aucun par défaut).
+window._plMorceauChoixIdx=window._plMorceauChoixIdx||{};
+function _plMorceauChoixToggle(key,eid,mode){
+  if(!window._plMorceauChoixIdx) window._plMorceauChoixIdx={};
+  if(mode==='autre'){
+    delete window._plMorceauChoixIdx[key];
+    if(typeof _plMorceauEditToggleComplet==='function') _plMorceauEditToggleComplet(key,eid);
+    return;
+  }
+  window._plMorceauChoixIdx[key]=(window._plMorceauChoixIdx[key]===mode)?'':mode;
   if(typeof _plCompletRenderUneTenue==='function') _plCompletRenderUneTenue(eid);
 }
 function plDispoSupprimer(id){
